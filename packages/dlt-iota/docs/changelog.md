@@ -1,5 +1,13 @@
 # @twin.org/dlt-iota - Changelog
 
+## [0.0.2-next.5](https://github.com/twinfoundation/dlt/compare/dlt-iota-v0.0.2-next.4...dlt-iota-v0.0.2-next.5) (2025-08-25)
+
+
+### Bug Fixes
+
+* added missing dependency ([#35](https://github.com/twinfoundation/dlt/issues/35)) ([c280e8a](https://github.com/twinfoundation/dlt/commit/c280e8aba583a957f89929dbe5105352e59c4c3f))
+* modifying logging type param ([#36](https://github.com/twinfoundation/dlt/issues/36)) ([b884fcc](https://github.com/twinfoundation/dlt/commit/b884fccef5bea5c6818cf8bfa8af197d3622cac6))
+
 ## [0.0.2-next.4](https://github.com/twinfoundation/dlt/compare/dlt-iota-v0.0.2-next.3...dlt-iota-v0.0.2-next.4) (2025-08-22)
 
 
