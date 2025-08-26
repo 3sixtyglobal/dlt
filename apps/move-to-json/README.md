@@ -385,8 +385,3 @@ If you cannot enable long path support system-wide, you can use the `--skip-fetc
 ```bash
 iota move build --skip-fetch-latest-git-deps
 ```
-
-## Contributing
-
-To contribute to this package see the guidelines for building and publishing in
-[CONTRIBUTING](./CONTRIBUTING.md)
