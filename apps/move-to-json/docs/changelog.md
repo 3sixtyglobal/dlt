@@ -1,5 +1,19 @@
 # @twin.org/move-to-json - Changelog
 
+## [0.0.2-next.6](https://github.com/twinfoundation/dlt/compare/move-to-json-v0.0.2-next.5...move-to-json-v0.0.2-next.6) (2025-08-27)
+
+
+### Features
+
+* methods for alias handling and tests ([#38](https://github.com/twinfoundation/dlt/issues/38)) ([43e0062](https://github.com/twinfoundation/dlt/commit/43e006220b4cf3df1aceb52b62178be0395ede00))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @twin.org/dlt-iota bumped from 0.0.2-next.5 to 0.0.2-next.6
+
 ## [0.0.2-next.5](https://github.com/twinfoundation/dlt/compare/move-to-json-v0.0.2-next.4...move-to-json-v0.0.2-next.5) (2025-08-25)
 
 
