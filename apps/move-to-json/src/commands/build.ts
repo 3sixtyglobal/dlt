@@ -109,7 +109,7 @@ export async function actionCommandBuild(
 		await searchDirectoryForMoveToml(executionDir, moveProjects);
 
 		for (const projectRoot of moveProjects) {
-			CLIDisplay.value("Prepared project", projectRoot, 1);
+			CLIDisplay.value(I18n.formatMessage("commands.build.labels.preparedProject"), projectRoot, 1);
 		}
 
 		const existingJson = await CLIUtils.readJsonFile<ISmartContractDeployments>(normalizedOutput);
@@ -144,7 +144,11 @@ export async function actionCommandBuild(
 					targetNetworkData.packageId = packageId;
 					targetNetworkData.packageBytecode = packageData;
 
-					CLIDisplay.value(`Updated ${network} package`, contractName, 2);
+					CLIDisplay.value(
+						I18n.formatMessage("commands.build.labels.updatedNetworkPackage", { network }),
+						contractName,
+						2
+					);
 				}
 			} catch (err) {
 				throw new GeneralError(
@@ -201,7 +205,7 @@ async function processMoveFile(moveFile: string): Promise<{
 		await CLIUtils.runShellApp("iota", cliArgs, projectRoot);
 		CLIDisplay.value(
 			I18n.formatMessage("commands.build.labels.compileResult"),
-			"Build completed",
+			I18n.formatMessage("commands.build.labels.buildCompleted"),
 			1
 		);
 	} catch (error) {

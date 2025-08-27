@@ -6,7 +6,7 @@ import { promisify } from "node:util";
 import { IotaClient } from "@iota/iota-sdk/client";
 import { requestIotaFromFaucetV0 } from "@iota/iota-sdk/faucet";
 import { CLIDisplay, CLIUtils } from "@twin.org/cli-core";
-import { GeneralError, Is, Converter, I18n, Coerce, Guards } from "@twin.org/core";
+import { GeneralError, Is, Converter, I18n, Coerce, Guards, RandomHelper } from "@twin.org/core";
 import { Bip39, Bip44 } from "@twin.org/crypto";
 import {
 	Iota,
@@ -91,36 +91,9 @@ async function setIotaEnvironment(network: NetworkTypes, dryRun: boolean = false
 		const addressIndex = Coerce.number(process.env.ADDRESS_INDEX) ?? 0;
 		const targetAddress = await getDeploymentWalletAddress(network, addressIndex);
 
-		// Check if address exists in IOTA CLI
-		const { stdout: addressListOutput } = await execAsync("iota client addresses --json");
-		const addressInfo = JSON.parse(addressListOutput);
-		const addressExists: boolean = addressInfo.addresses.some(
-			([_, addr]: [string, string]) => addr === targetAddress
-		);
-		CLIDisplay.value(
-			I18n.formatMessage("commands.deploy.labels.checkingAddress"),
-			targetAddress,
-			1
-		);
-		if (!addressExists) {
-			// Import the address using the mnemonic
-			CLIDisplay.task(I18n.formatMessage("commands.deploy.progress.importingDeployerAddress"));
-
-			const mnemonic = await getDeploymentMnemonic(network);
-			const aliasName = `deployer-${network}`;
-
-			const derivationPath = Bip44.path(Iota.DEFAULT_COIN_TYPE, 0, false, addressIndex).toString();
-
-			await execAsync(
-				`iota keytool import "${mnemonic}" ed25519 "${derivationPath}" --alias "${aliasName}"`
-			);
-
-			CLIDisplay.value(
-				I18n.formatMessage("commands.deploy.labels.importedDeployerAddress"),
-				`${aliasName} (${targetAddress})`,
-				1
-			);
-		}
+		// Ensure the correct deployer key exists in the keystore
+		const aliasName = `deployer-${network}`;
+		await ensureCorrectDeployerKey(network, aliasName, targetAddress, addressIndex);
 
 		// Switch both environment and address in one command
 		await execAsync(`iota client switch --env ${network} --address ${targetAddress}`);
@@ -804,4 +777,141 @@ async function updateContractsFile(
 			err
 		);
 	}
+}
+
+/**
+ * Generate a unique backup alias that doesn't conflict with existing keys.
+ * Uses cryptographically secure random bytes to avoid conflicts.
+ * @param baseAlias The original alias name.
+ * @param existingKeys Array of existing keys from keystore.
+ * @returns A unique backup alias name.
+ */
+export function generateUniqueBackupAlias(
+	baseAlias: string,
+	existingKeys: { alias: string; iotaAddress: string }[]
+): string {
+	const existingAliases = new Set(existingKeys.map(key => key.alias));
+
+	// Generate cryptographically secure random identifier
+	const randomSuffix = Converter.bytesToHex(RandomHelper.generate(4));
+	const backupAlias = `${baseAlias}-backup-${randomSuffix}`;
+
+	// In the extremely unlikely event of collision, add timestamp
+	if (existingAliases.has(backupAlias)) {
+		return `${baseAlias}-backup-${Date.now()}-${randomSuffix}`;
+	}
+
+	return backupAlias;
+}
+
+/**
+ * Ensure the correct deployer key exists in the keystore with the expected address.
+ * If a conflicting alias exists, rename it and import the correct key.
+ * @param network The target network.
+ * @param aliasName The desired alias name (e.g., "deployer-testnet").
+ * @param expectedAddress The expected address from the current mnemonic.
+ * @param addressIndex The address index to use.
+ */
+export async function ensureCorrectDeployerKey(
+	network: NetworkTypes,
+	aliasName: string,
+	expectedAddress: string,
+	addressIndex: number
+): Promise<void> {
+	try {
+		// Check if the alias already exists in keystore
+		const { stdout: keysListOutput } = await execAsync("iota keytool list --json");
+		const keysList = JSON.parse(keysListOutput);
+
+		// Find existing key with the target alias
+		const existingKey = keysList.find(
+			(key: { alias: string; iotaAddress: string }) => key.alias === aliasName
+		);
+
+		if (existingKey) {
+			// Check if existing key has the correct address
+			const existingAddress = existingKey.iotaAddress;
+
+			if (existingAddress !== expectedAddress) {
+				// Conflicting alias exists with wrong mnemonic - rename it
+				CLIDisplay.task(
+					I18n.formatMessage("commands.deploy.progress.renamingConflictingKey", { aliasName })
+				);
+
+				const backupAlias = generateUniqueBackupAlias(aliasName, keysList);
+				await execAsync(`iota keytool update-alias "${aliasName}" "${backupAlias}"`);
+
+				CLIDisplay.value(
+					I18n.formatMessage("commands.deploy.labels.renamedExistingKey"),
+					`${aliasName} → ${backupAlias} (${existingAddress})`,
+					1
+				);
+
+				// Now import the correct key with the desired alias
+				await importCorrectDeployerKey(network, aliasName, addressIndex, expectedAddress);
+			} else {
+				// Existing key is correct - no action needed
+				CLIDisplay.value(
+					I18n.formatMessage("commands.deploy.labels.usingExistingCorrectKey"),
+					`${aliasName} (${expectedAddress})`,
+					1
+				);
+			}
+		} else {
+			// No existing alias - import the key
+			await importCorrectDeployerKey(network, aliasName, addressIndex, expectedAddress);
+		}
+
+		// Verify the address exists in client addresses
+		const { stdout: addressListOutput } = await execAsync("iota client addresses --json");
+		const addressInfo = JSON.parse(addressListOutput);
+		const addressExists: boolean = addressInfo.addresses.some(
+			([_, addr]: [string, string]) => addr === expectedAddress
+		);
+
+		if (!addressExists) {
+			throw new GeneralError("commands", "commands.deploy.addressNotInClient", {
+				expectedAddress,
+				aliasName
+			});
+		}
+	} catch (error) {
+		throw new GeneralError(
+			"commands",
+			"commands.deploy.deployerKeySetupFailed",
+			{ network, aliasName, expectedAddress },
+			error
+		);
+	}
+}
+
+/**
+ * Import the deployer key with the correct mnemonic.
+ * @param network The target network.
+ * @param aliasName The alias name to use.
+ * @param addressIndex The address index.
+ * @param targetAddress The expected target address (avoids redundant calculation).
+ */
+async function importCorrectDeployerKey(
+	network: NetworkTypes,
+	aliasName: string,
+	addressIndex: number,
+	targetAddress: string
+): Promise<void> {
+	CLIDisplay.task(
+		I18n.formatMessage("commands.deploy.progress.importingDeployerKey", { aliasName })
+	);
+
+	const mnemonic = await getDeploymentMnemonic(network);
+	const derivationPath = Bip44.path(Iota.DEFAULT_COIN_TYPE, 0, false, addressIndex).toString();
+
+	await execAsync(
+		`iota keytool import "${mnemonic}" ed25519 "${derivationPath}" --alias "${aliasName}"`
+	);
+
+	CLIDisplay.value(
+		I18n.formatMessage("commands.deploy.labels.importedDeployerKey"),
+		`${aliasName} (${targetAddress})`,
+		1
+	);
 }
