@@ -37,7 +37,8 @@
 				"packageNotFoundOnNetwork": "Package {packageId} not found on network {network}. Please ensure the package is deployed.",
 				"dryRunInvalidConfig": "Dry run failed due to invalid configuration",
 				"noMoveTomlFilesFound": "No Move.toml files found in current directory or subdirectories. Make sure you're running this from a directory containing Move projects.",
-				"addressSwitchFailed": "Failed to switch to active address {targetAddress} for {network}. Active address: {activeAddress}"
+				"addressSwitchFailed": "Failed to switch to active address {targetAddress} for {network}. Active address: {activeAddress}",
+				"addressNotInClient": "Address {expectedAddress} not found in IOTA client addresses for alias {aliasName}"
 			}
 		},
 		"envSetup": {
@@ -78,7 +79,10 @@
 				"computedPackageId": "Computed Package ID",
 				"mergingWithExistingJson": "Merging with existing JSON",
 				"noExistingJsonFound": "No existing JSON found",
-				"creatingNewJsonStructure": "Creating new JSON structure"
+				"creatingNewJsonStructure": "Creating new JSON structure",
+				"preparedProject": "Prepared project",
+				"updatedNetworkPackage": "Updated {network} package",
+				"buildCompleted": "Build completed"
 			},
 			"progress": {
 				"searchingFiles": "Searching for Move files...",
@@ -159,7 +163,12 @@
 				"insufficientBalanceAfterFaucet": "Insufficient balance after faucet request on {network}: {balance} IOTA < {required} IOTA for wallet {walletAddress}. Attempting deployment anyway.",
 				"updatedWalletBalance": "Updated wallet balance",
 				"balanceCheck": "Balance check",
-				"sufficientFundsAvailable": "Sufficient funds available, skipping faucet request"
+				"sufficientFundsAvailable": "Sufficient funds available, skipping faucet request",
+				"insufficientBalance": "Insufficient balance: {currentBalance} IOTA < {requiredBalance} IOTA",
+				"faucetNoFundsAdded": "Faucet request completed but no funds were added to wallet on {network}",
+				"renamedExistingKey": "Renamed existing key",
+				"usingExistingCorrectKey": "Using existing correct deployer key",
+				"importedDeployerKey": "Imported deployer key"
 			},
 			"progress": {
 				"loadingContracts": "Loading compiled contracts...",
@@ -169,13 +178,16 @@
 				"deployingContract": "Deploying contract: {contractName} ({network})",
 				"updatingContractsFile": "Updating contracts file...",
 				"requestingFaucetFunds": "Requesting funds from {network} faucet...",
-				"requestingAdditionalFaucetFunds": "Requesting additional funds from faucet..."
+				"requestingAdditionalFaucetFunds": "Requesting additional funds from faucet...",
+				"renamingConflictingKey": "Renaming conflicting key alias \"{aliasName}\" to preserve existing key",
+				"importingDeployerKey": "Importing deployer key as \"{aliasName}\""
 			},
 			"messages": {},
 			"section": {
 				"deploymentConfiguration": "Deployment Configuration",
 				"deploymentResults": "Deployment Results",
-				"deployContracts": "Deploy Contracts"
+				"deployContracts": "Deploy Contracts",
+				"contractsFile": "Contracts File"
 			}
 		}
 	}
