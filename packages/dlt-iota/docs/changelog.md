@@ -1,5 +1,12 @@
 # @twin.org/dlt-iota - Changelog
 
+## [0.0.2-next.7](https://github.com/twinfoundation/dlt/compare/dlt-iota-v0.0.2-next.6...dlt-iota-v0.0.2-next.7) (2025-08-29)
+
+
+### Features
+
+* eslint migration to flat config ([da1d12d](https://github.com/twinfoundation/dlt/commit/da1d12dcf5b24e7ba6204f540c27de191bca098e))
+
 ## [0.0.2-next.6](https://github.com/twinfoundation/dlt/compare/dlt-iota-v0.0.2-next.5...dlt-iota-v0.0.2-next.6) (2025-08-27)
 
 
