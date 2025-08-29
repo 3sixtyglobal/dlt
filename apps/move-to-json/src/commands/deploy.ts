@@ -246,13 +246,13 @@ async function createNetworkConfig(network: NetworkTypes): Promise<INetworkConfi
 			platform: "iota",
 			rpc: {
 				url: rpcUrl,
-				timeout: Coerce.number(process.env.RPC_TIMEOUT) || 60000
+				timeout: Coerce.number(process.env.RPC_TIMEOUT) ?? 60000
 			},
 			deployment: {
-				gasBudget: Coerce.number(process.env.GAS_BUDGET) || 50000000,
-				confirmationTimeout: Coerce.number(process.env.CONFIRMATION_TIMEOUT) || 60,
+				gasBudget: Coerce.number(process.env.GAS_BUDGET) ?? 50000000,
+				confirmationTimeout: Coerce.number(process.env.CONFIRMATION_TIMEOUT) ?? 60,
 				wallet: {
-					addressIndex: Coerce.number(process.env.ADDRESS_INDEX) || 0
+					addressIndex: Coerce.number(process.env.ADDRESS_INDEX) ?? 0
 				}
 			}
 		};
