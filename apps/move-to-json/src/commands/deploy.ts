@@ -5,8 +5,8 @@ import path from "node:path";
 import { promisify } from "node:util";
 import { IotaClient } from "@iota/iota-sdk/client";
 import { requestIotaFromFaucetV0 } from "@iota/iota-sdk/faucet";
-import { CLIDisplay, CLIUtils } from "@twin.org/cli-core";
-import { GeneralError, Is, Converter, I18n, Coerce, Guards, RandomHelper } from "@twin.org/core";
+import { CLIDisplay, CLIUtils, CLIParam } from "@twin.org/cli-core";
+import { GeneralError, Is, Converter, I18n, Guards, RandomHelper } from "@twin.org/core";
 import { Bip39, Bip44 } from "@twin.org/crypto";
 import {
 	Iota,
@@ -17,6 +17,7 @@ import {
 import { nameof } from "@twin.org/nameof";
 import type { Command } from "commander";
 import type { INetworkConfig } from "../models/INetworkConfig";
+import { ensureEnvironment } from "../utils/environmentUtils.js";
 import {
 	validateDeploymentEnvironment,
 	getDeploymentMnemonic,
@@ -42,7 +43,8 @@ export function buildCommandDeploy(program: Command): void {
 		)
 		.option(
 			I18n.formatMessage("commands.deploy.options.network.param"),
-			I18n.formatMessage("commands.deploy.options.network.description")
+			I18n.formatMessage("commands.deploy.options.network.description"),
+			"!NETWORK"
 		)
 		.option(
 			I18n.formatMessage("commands.deploy.options.dryRun.param"),
@@ -52,15 +54,203 @@ export function buildCommandDeploy(program: Command): void {
 			I18n.formatMessage("commands.deploy.options.force.param"),
 			I18n.formatMessage("commands.deploy.options.force.description")
 		)
+		.option(
+			I18n.formatMessage("commands.deploy.options.rpcUrl.param"),
+			I18n.formatMessage("commands.deploy.options.rpcUrl.description"),
+			"!RPC_URL"
+		)
+		.option(
+			I18n.formatMessage("commands.deploy.options.addressIndex.param"),
+			I18n.formatMessage("commands.deploy.options.addressIndex.description"),
+			"!ADDRESS_INDEX"
+		)
+		.option(
+			I18n.formatMessage("commands.deploy.options.rpcTimeout.param"),
+			I18n.formatMessage("commands.deploy.options.rpcTimeout.description"),
+			"!RPC_TIMEOUT"
+		)
+		.option(
+			I18n.formatMessage("commands.deploy.options.gasBudget.param"),
+			I18n.formatMessage("commands.deploy.options.gasBudget.description"),
+			"!GAS_BUDGET"
+		)
+		.option(
+			I18n.formatMessage("commands.deploy.options.confirmationTimeout.param"),
+			I18n.formatMessage("commands.deploy.options.confirmationTimeout.description"),
+			"!CONFIRMATION_TIMEOUT"
+		)
+		.option(
+			I18n.formatMessage("commands.deploy.options.faucetUrl.param"),
+			I18n.formatMessage("commands.deploy.options.faucetUrl.description"),
+			"!FAUCET_URL"
+		)
+		.option(
+			I18n.formatMessage("commands.deploy.options.deployerMnemonic.param"),
+			I18n.formatMessage("commands.deploy.options.deployerMnemonic.description"),
+			"!DEPLOYER_MNEMONIC"
+		)
+		.option(
+			I18n.formatMessage("commands.deploy.options.deployerSeed.param"),
+			I18n.formatMessage("commands.deploy.options.deployerSeed.description"),
+			"!DEPLOYER_SEED"
+		)
 		.action(actionCommandDeploy);
+}
+
+/**
+ * Action for the deploy command.
+ * @param opts Command options.
+ * @param opts.contracts Path to compiled modules JSON.
+ * @param opts.network Network identifier - optional if NETWORK env var is set.
+ * @param opts.dryRun Simulate deployment without executing.
+ * @param opts.force Force redeployment of existing packages.
+ * @param opts.rpcUrl RPC endpoint URL for the network.
+ * @param opts.addressIndex Address index for key derivation.
+ * @param opts.rpcTimeout RPC request timeout in milliseconds.
+ * @param opts.gasBudget Gas budget for transactions.
+ * @param opts.confirmationTimeout Transaction confirmation timeout in milliseconds.
+ * @param opts.faucetUrl Faucet URL for requesting test tokens.
+ * @param opts.deployerMnemonic Deployer wallet mnemonic phrase.
+ * @param opts.deployerSeed Deployer wallet seed (alternative to mnemonic).
+ */
+export async function actionCommandDeploy(opts: {
+	contracts?: string;
+	network?: NetworkTypes;
+	dryRun?: boolean;
+	force?: boolean;
+	rpcUrl?: string;
+	addressIndex?: string;
+	rpcTimeout?: string;
+	gasBudget?: string;
+	confirmationTimeout?: string;
+	faucetUrl?: string;
+	deployerMnemonic?: string;
+	deployerSeed?: string;
+}): Promise<void> {
+	try {
+		const contractsPath = opts.contracts ?? "smart-contract-deployments.json";
+		const dryRun = opts.dryRun ?? false;
+		const force = opts.force ?? false;
+
+		CLIDisplay.section(I18n.formatMessage("commands.deploy.section.deployContracts"));
+		CLIDisplay.section(contractsPath);
+
+		const networkRaw = CLIParam.stringValue("network", opts.network);
+		const network = networkRaw as NetworkTypes;
+
+		Guards.arrayOneOf("commands", nameof(network), network, Object.values(NetworkTypes));
+
+		// Verify the IOTA SDK before we do anything else
+		await verifyIotaSDK();
+
+		// Get configuration values needed for environment setup
+		const rpcUrl: string = CLIParam.stringValue("rpcUrl", opts.rpcUrl);
+		const addressIndex = CLIParam.number("addressIndex", opts.addressIndex) ?? 0;
+		const rpcTimeout = CLIParam.number("rpcTimeout", opts.rpcTimeout);
+		const gasBudget = CLIParam.number("gasBudget", opts.gasBudget);
+		const confirmationTimeout = CLIParam.number("confirmationTimeout", opts.confirmationTimeout);
+		const faucetUrl: string | undefined =
+			network === NetworkTypes.Mainnet
+				? undefined
+				: CLIParam.stringValue("faucetUrl", opts.faucetUrl);
+
+		let deployerMnemonic: string | undefined;
+		try {
+			deployerMnemonic = CLIParam.stringValue("deployerMnemonic", opts.deployerMnemonic);
+		} catch {
+			// Optional parameter, can be undefined
+			deployerMnemonic = undefined;
+		}
+
+		let deployerSeed: string | undefined;
+		try {
+			deployerSeed = CLIParam.stringValue("deployerSeed", opts.deployerSeed);
+		} catch {
+			// Optional parameter, can be undefined
+			deployerSeed = undefined;
+		}
+
+		// Validate that at least one deployer credential is provided
+		const hasValidMnemonic = Is.stringValue(deployerMnemonic);
+		const hasValidSeed = Is.stringValue(deployerSeed);
+
+		if (!hasValidMnemonic && !hasValidSeed) {
+			throw new GeneralError("commands", "commands.deploy.deployerCredentialRequired", {
+				network
+			});
+		}
+
+		// Check/switch to target network environment BEFORE loading config
+		await setIotaEnvironment(network, rpcUrl, addressIndex, dryRun, deployerMnemonic, deployerSeed);
+
+		const config = await createNetworkConfig(
+			network,
+			rpcUrl,
+			addressIndex,
+			rpcTimeout,
+			gasBudget,
+			confirmationTimeout
+		);
+		validateNetworkConfig(config, network);
+
+		const contractsData = await loadCompiledContracts(contractsPath);
+
+		if (network === NetworkTypes.Mainnet) {
+			const validatedMnemonic = await getDeploymentMnemonic(
+				network,
+				hasValidMnemonic ? deployerMnemonic : undefined
+			);
+			await validateDeploymentEnvironment(network, validatedMnemonic);
+		}
+
+		const networkContracts = contractsData[network];
+		if (!Is.object<IContractData>(networkContracts)) {
+			throw new GeneralError("commands", "commands.deploy.noContractsFound", {
+				network,
+				contractsPath
+			});
+		}
+
+		await deployContract(
+			"contract",
+			networkContracts,
+			config,
+			network,
+			dryRun,
+			force,
+			faucetUrl,
+			deployerMnemonic,
+			deployerSeed
+		);
+
+		if (!dryRun) {
+			await updateContractsFile(contractsPath, contractsData);
+		}
+
+		CLIDisplay.done();
+	} catch (err) {
+		CLIDisplay.error(err);
+		throw err;
+	}
 }
 
 /**
  * Switch IOTA CLI to the target network environment and set the active address.
  * @param network Target network to switch to
+ * @param rpcUrl The RPC URL for the network
+ * @param addressIndex The address index to derive the target address
  * @param dryRun Whether this is a dry run (checks environment but doesn't switch)
+ * @param deployerMnemonic The deployer mnemonic from environment variables.
+ * @param deployerSeed The deployer seed from environment variables (optional).
  */
-async function setIotaEnvironment(network: NetworkTypes, dryRun: boolean = false): Promise<void> {
+async function setIotaEnvironment(
+	network: NetworkTypes,
+	rpcUrl: string,
+	addressIndex: number,
+	dryRun: boolean = false,
+	deployerMnemonic?: string,
+	deployerSeed?: string
+): Promise<void> {
 	try {
 		CLIDisplay.task(
 			dryRun
@@ -68,15 +258,10 @@ async function setIotaEnvironment(network: NetworkTypes, dryRun: boolean = false
 				: I18n.formatMessage("commands.deploy.progress.settingEnvironment")
 		);
 
-		// Check if the environment exists
-		const { stdout: envListOutput } = await execAsync("iota client envs");
-		if (!envListOutput.includes(network)) {
-			throw new GeneralError("commands", "commands.deploy.environmentNotFound", {
-				network,
-				availableEnvironments: envListOutput,
-				setupCommand: `iota client new-env --alias ${network} --rpc <RPC_URL>`
-			});
-		}
+		// Ensure environment exists, create if necessary
+		Guards.stringValue("setIotaEnvironment", nameof(rpcUrl), rpcUrl);
+
+		await ensureEnvironment(network, rpcUrl);
 
 		if (dryRun) {
 			CLIDisplay.value(
@@ -88,12 +273,23 @@ async function setIotaEnvironment(network: NetworkTypes, dryRun: boolean = false
 		}
 
 		// Derive the target address from existing mnemonic/seed
-		const addressIndex = Coerce.number(process.env.ADDRESS_INDEX) ?? 0;
-		const targetAddress = await getDeploymentWalletAddress(network, addressIndex);
+		const targetAddress = await getDeploymentWalletAddress(
+			network,
+			addressIndex,
+			deployerMnemonic,
+			deployerSeed
+		);
 
 		// Ensure the correct deployer key exists in the keystore
 		const aliasName = `deployer-${network}`;
-		await ensureCorrectDeployerKey(network, aliasName, targetAddress, addressIndex);
+		const validatedMnemonic = await getDeploymentMnemonic(network, deployerMnemonic);
+		await ensureCorrectDeployerKey(
+			network,
+			aliasName,
+			targetAddress,
+			addressIndex,
+			validatedMnemonic
+		);
 
 		// Switch both environment and address in one command
 		await execAsync(`iota client switch --env ${network} --address ${targetAddress}`);
@@ -139,93 +335,38 @@ async function setIotaEnvironment(network: NetworkTypes, dryRun: boolean = false
 }
 
 /**
- * Action for the deploy command.
- * @param opts Command options.
- * @param opts.contracts Path to compiled modules JSON.
- * @param opts.network Network identifier - optional if NETWORK env var is set.
- * @param opts.dryRun Simulate deployment without executing.
- * @param opts.force Force redeployment of existing packages.
- */
-export async function actionCommandDeploy(opts: {
-	contracts?: string;
-	network?: NetworkTypes;
-	dryRun?: boolean;
-	force?: boolean;
-}): Promise<void> {
-	CLIDisplay.section(I18n.formatMessage("commands.deploy.section.deployContracts"));
-	CLIDisplay.section(opts.contracts ?? "smart-contract-deployments.json");
-
-	try {
-		const contractsPath = opts.contracts ?? "smart-contract-deployments.json";
-		const dryRun = opts.dryRun ?? false;
-		const force = opts.force ?? false;
-
-		const network = opts.network ?? (process.env.NETWORK as NetworkTypes);
-
-		Guards.arrayOneOf("commands", nameof(network), network, Object.values(NetworkTypes));
-
-		// Verify the IOTA SDK before we do anything else
-		await verifyIotaSDK();
-
-		// Check/switch to target network environment BEFORE loading config
-		await setIotaEnvironment(network, dryRun);
-
-		const config = await createNetworkConfig(network);
-		validateNetworkConfig(config, network);
-
-		const contractsData = await loadCompiledContracts(contractsPath);
-
-		if (network === NetworkTypes.Mainnet) {
-			await validateDeploymentEnvironment(network);
-		}
-
-		const networkContracts = contractsData[network];
-		if (!Is.object<IContractData>(networkContracts)) {
-			throw new GeneralError("commands", "commands.deploy.noContractsFound", {
-				network,
-				contractsPath
-			});
-		}
-
-		await deployContract("contract", networkContracts, config, network, dryRun, force);
-
-		if (!dryRun) {
-			await updateContractsFile(contractsPath, contractsData);
-		}
-
-		CLIDisplay.done();
-	} catch (err) {
-		CLIDisplay.error(err);
-		throw err;
-	}
-}
-
-/**
  * Creates the network configuration.
  * @param network Target network to determine which env file to load.
+ * @param rpcUrl The RPC URL for the network.
+ * @param addressIndex The address index for the wallet.
+ * @param rpcTimeout The RPC timeout in milliseconds.
+ * @param gasBudget The gas budget for deployment.
+ * @param confirmationTimeout The confirmation timeout in seconds.
  * @returns Network configuration.
  */
-async function createNetworkConfig(network: NetworkTypes): Promise<INetworkConfig> {
+async function createNetworkConfig(
+	network: NetworkTypes,
+	rpcUrl: string,
+	addressIndex: number,
+	rpcTimeout?: number,
+	gasBudget?: number,
+	confirmationTimeout?: number
+): Promise<INetworkConfig> {
 	try {
-		const rpcUrl = Coerce.string(process.env.RPC_URL);
-		if (!Is.stringValue(rpcUrl)) {
-			throw new GeneralError("commands", "commands.deploy.rpcUrlRequired", {
-				network
-			});
-		}
+		Guards.stringValue("createNetworkConfig", nameof(rpcUrl), rpcUrl);
 
 		const config: INetworkConfig = {
 			network,
 			platform: "iota",
 			rpc: {
 				url: rpcUrl,
-				timeout: Coerce.number(process.env.RPC_TIMEOUT) ?? 60000
+				timeout: rpcTimeout ?? 60000
 			},
 			deployment: {
-				gasBudget: Coerce.number(process.env.GAS_BUDGET) ?? 50000000,
-				confirmationTimeout: Coerce.number(process.env.CONFIRMATION_TIMEOUT) ?? 60,
+				gasBudget: gasBudget ?? 50000000,
+				confirmationTimeout: confirmationTimeout ?? 60,
 				wallet: {
-					addressIndex: Coerce.number(process.env.ADDRESS_INDEX) ?? 0
+					addressIndex
 				}
 			}
 		};
@@ -299,16 +440,24 @@ async function loadCompiledContracts(contractsPath: string): Promise<ISmartContr
  * @param network Target network.
  * @param config Network configuration.
  * @param isDryRun Whether this is a dry run.
+ * @param faucetUrl The faucet URL (optional, defaults to network-specific URL).
+ * @param deployerMnemonic The deployer mnemonic for validation.
+ * @param deployerSeed The deployer seed (optional).
  * @returns Wallet address for the deployment.
  */
 async function validateEnvironmentForNetwork(
 	network: NetworkTypes,
 	config: INetworkConfig,
-	isDryRun: boolean = false
+	isDryRun: boolean = false,
+	faucetUrl?: string,
+	deployerMnemonic?: string,
+	deployerSeed?: string
 ): Promise<string> {
 	const walletAddress = await getDeploymentWalletAddress(
 		network,
-		config.deployment.wallet.addressIndex
+		config.deployment.wallet.addressIndex,
+		deployerMnemonic,
+		deployerSeed
 	);
 
 	if (isDryRun) {
@@ -322,10 +471,11 @@ async function validateEnvironmentForNetwork(
 	}
 
 	if (network === NetworkTypes.Mainnet) {
-		await validateDeploymentEnvironment(network);
+		const validatedMnemonic = await getDeploymentMnemonic(network, deployerMnemonic);
+		await validateDeploymentEnvironment(network, validatedMnemonic);
 	} else if ((network === NetworkTypes.Testnet || network === NetworkTypes.Devnet) && !isDryRun) {
 		// For testnet/devnet, check balance first and only request funds if needed
-		await checkBalanceAndRequestFaucetIfNeeded(network, config, walletAddress);
+		await checkBalanceAndRequestFaucetIfNeeded(network, config, walletAddress, faucetUrl);
 	}
 
 	return walletAddress;
@@ -404,12 +554,18 @@ async function checkWalletBalance(
  * @param contractData Contract data.
  * @param config Network configuration.
  * @param network Target network.
+ * @param faucetUrl The faucet URL (optional, defaults to network-specific URL).
+ * @param deployerMnemonic The deployer mnemonic from environment variables.
+ * @param deployerSeed The deployer seed from environment variables (optional).
  */
 async function handleDryRunValidation(
 	contractName: string,
 	contractData: IContractData,
 	config: INetworkConfig,
-	network: NetworkTypes
+	network: NetworkTypes,
+	faucetUrl?: string,
+	deployerMnemonic?: string,
+	deployerSeed?: string
 ): Promise<void> {
 	CLIDisplay.value(
 		I18n.formatMessage("commands.deploy.labels.dryRunWouldDeploy"),
@@ -424,7 +580,14 @@ async function handleDryRunValidation(
 	CLIDisplay.value(I18n.formatMessage("commands.deploy.labels.dryRunRpcUrl"), config.rpc.url, 1);
 
 	try {
-		const walletAddress = await validateEnvironmentForNetwork(network, config, true);
+		const walletAddress = await validateEnvironmentForNetwork(
+			network,
+			config,
+			true,
+			faucetUrl,
+			deployerMnemonic,
+			deployerSeed
+		);
 		await checkWalletBalance(network, config, walletAddress, true);
 	} catch (err) {
 		CLIDisplay.value(
@@ -443,15 +606,28 @@ async function handleDryRunValidation(
  * @param contractData Contract data.
  * @param config Network configuration.
  * @param network Target network.
+ * @param faucetUrl The faucet URL (optional, defaults to network-specific URL).
+ * @param deployerMnemonic The deployer mnemonic from environment variables.
+ * @param deployerSeed The deployer seed from environment variables (optional).
  */
 async function handleActualDeployment(
 	contractName: string,
 	contractData: IContractData,
 	config: INetworkConfig,
-	network: NetworkTypes
+	network: NetworkTypes,
+	faucetUrl?: string,
+	deployerMnemonic?: string,
+	deployerSeed?: string
 ): Promise<void> {
 	try {
-		const walletAddress = await validateEnvironmentForNetwork(network, config, false);
+		const walletAddress = await validateEnvironmentForNetwork(
+			network,
+			config,
+			false,
+			faucetUrl,
+			deployerMnemonic,
+			deployerSeed
+		);
 		await checkWalletBalance(network, config, walletAddress, false);
 
 		const deploymentResult = await deployWithIotaCli(config.deployment.gasBudget);
@@ -503,6 +679,9 @@ async function handleActualDeployment(
  * @param network Target network
  * @param dryRun Whether this is a dry run
  * @param force Whether to force redeployment
+ * @param faucetUrl The faucet URL (optional, defaults to network-specific URL).
+ * @param deployerMnemonic The deployer mnemonic from environment variables.
+ * @param deployerSeed The deployer seed from environment variables (optional).
  */
 async function deployContract(
 	contractName: string,
@@ -510,7 +689,10 @@ async function deployContract(
 	config: INetworkConfig,
 	network: NetworkTypes,
 	dryRun: boolean,
-	force: boolean
+	force: boolean,
+	faucetUrl?: string,
+	deployerMnemonic?: string,
+	deployerSeed?: string
 ): Promise<void> {
 	CLIDisplay.task(
 		I18n.formatMessage("commands.deploy.progress.deployingContract", { contractName, network })
@@ -526,30 +708,50 @@ async function deployContract(
 	}
 
 	if (dryRun) {
-		await handleDryRunValidation(contractName, contractData, config, network);
+		await handleDryRunValidation(
+			contractName,
+			contractData,
+			config,
+			network,
+			faucetUrl,
+			deployerMnemonic,
+			deployerSeed
+		);
 		return;
 	}
 
-	await handleActualDeployment(contractName, contractData, config, network);
+	await handleActualDeployment(
+		contractName,
+		contractData,
+		config,
+		network,
+		faucetUrl,
+		deployerMnemonic,
+		deployerSeed
+	);
 }
 
 /**
  * Get wallet address for deployment, preferring seed over mnemonic if available.
  * @param network The target network.
  * @param addressIndex The address index to derive.
+ * @param deployerMnemonic The deployer mnemonic from environment variables.
+ * @param deployerSeed The deployer seed from environment variables (optional).
  * @returns The wallet address.
  */
 async function getDeploymentWalletAddress(
 	network: NetworkTypes,
-	addressIndex: number
+	addressIndex: number,
+	deployerMnemonic?: string,
+	deployerSeed?: string
 ): Promise<string> {
 	// Try to use seed first if available
-	const hexSeed = await getDeploymentSeed(network);
+	const hexSeed = await getDeploymentSeed(network, deployerSeed);
 	let seed: Uint8Array | undefined;
 	if (Is.stringValue(hexSeed)) {
 		seed = Converter.hexToBytes(hexSeed);
 	} else {
-		const mnemonic = await getDeploymentMnemonic(network);
+		const mnemonic = await getDeploymentMnemonic(network, deployerMnemonic);
 		seed = Bip39.mnemonicToSeed(mnemonic);
 	}
 
@@ -571,17 +773,19 @@ function nanosToIota(nanos: number): number {
  * Request funds from the faucet for testnet or devnet deployment.
  * @param network The target network (testnet or devnet).
  * @param walletAddress The wallet address to fund.
+ * @param rpcUrl The RPC URL for the network.
+ * @param faucetUrl The faucet URL (optional, defaults to network-specific URL).
  * @returns Promise that resolves when funding is complete.
  */
-async function requestFaucetFunds(network: NetworkTypes, walletAddress: string): Promise<void> {
-	if (network !== NetworkTypes.Testnet && network !== NetworkTypes.Devnet) {
-		return;
-	}
+async function requestFaucetFunds(
+	network: NetworkTypes,
+	walletAddress: string,
+	rpcUrl: string,
+	faucetUrl: string
+): Promise<void> {
 	CLIDisplay.task(
 		I18n.formatMessage("commands.deploy.progress.requestingFaucetFunds", { network })
 	);
-
-	const faucetUrl = process.env.FAUCET_URL ?? `https://faucet.${network}.iota.cafe`;
 
 	const response = await requestIotaFromFaucetV0({
 		host: faucetUrl,
@@ -592,7 +796,7 @@ async function requestFaucetFunds(network: NetworkTypes, walletAddress: string):
 		throw new GeneralError("commands", "commands.deploy.fundingFailed", undefined, response.error);
 	}
 
-	const client = new IotaClient({ url: process.env.RPC_URL ?? "" });
+	const client = new IotaClient({ url: rpcUrl });
 	const balanceResponse = await client.getBalance({ owner: walletAddress });
 	const balanceInNanos = Number(balanceResponse.totalBalance);
 
@@ -617,17 +821,15 @@ async function requestFaucetFunds(network: NetworkTypes, walletAddress: string):
  * @param network The target network (testnet or devnet).
  * @param config Network configuration.
  * @param walletAddress The wallet address to check and potentially fund.
+ * @param faucetUrl The faucet URL (optional, defaults to network-specific URL).
  * @returns Promise that resolves when balance check and optional funding is complete.
  */
 async function checkBalanceAndRequestFaucetIfNeeded(
 	network: NetworkTypes,
 	config: INetworkConfig,
-	walletAddress: string
+	walletAddress: string,
+	faucetUrl?: string
 ): Promise<void> {
-	if (network !== NetworkTypes.Testnet && network !== NetworkTypes.Devnet) {
-		return;
-	}
-
 	// Check current balance
 	const client = new IotaClient({ url: config.rpc.url });
 	const balanceResponse = await client.getBalance({ owner: walletAddress });
@@ -659,8 +861,12 @@ async function checkBalanceAndRequestFaucetIfNeeded(
 			1
 		);
 
+		if (!Is.stringValue(faucetUrl)) {
+			throw new GeneralError("commands", "error.commands.deploy.noFaucetConfigured");
+		}
+
 		CLIDisplay.task(I18n.formatMessage("commands.deploy.progress.requestingAdditionalFaucetFunds"));
-		await requestFaucetFunds(network, walletAddress);
+		await requestFaucetFunds(network, walletAddress, config.rpc.url, faucetUrl);
 
 		// Check balance again after faucet request
 		const updatedBalanceResponse = await client.getBalance({ owner: walletAddress });
@@ -811,12 +1017,14 @@ export function generateUniqueBackupAlias(
  * @param aliasName The desired alias name (e.g., "deployer-testnet").
  * @param expectedAddress The expected address from the current mnemonic.
  * @param addressIndex The address index to use.
+ * @param deployerMnemonic The deployer mnemonic.
  */
 export async function ensureCorrectDeployerKey(
 	network: NetworkTypes,
 	aliasName: string,
 	expectedAddress: string,
-	addressIndex: number
+	addressIndex: number,
+	deployerMnemonic: string
 ): Promise<void> {
 	try {
 		// Check if the alias already exists in keystore
@@ -848,7 +1056,13 @@ export async function ensureCorrectDeployerKey(
 				);
 
 				// Now import the correct key with the desired alias
-				await importCorrectDeployerKey(network, aliasName, addressIndex, expectedAddress);
+				await importCorrectDeployerKey(
+					network,
+					aliasName,
+					addressIndex,
+					expectedAddress,
+					deployerMnemonic
+				);
 			} else {
 				// Existing key is correct - no action needed
 				CLIDisplay.value(
@@ -859,7 +1073,13 @@ export async function ensureCorrectDeployerKey(
 			}
 		} else {
 			// No existing alias - import the key
-			await importCorrectDeployerKey(network, aliasName, addressIndex, expectedAddress);
+			await importCorrectDeployerKey(
+				network,
+				aliasName,
+				addressIndex,
+				expectedAddress,
+				deployerMnemonic
+			);
 		}
 
 		// Verify the address exists in client addresses
@@ -891,18 +1111,20 @@ export async function ensureCorrectDeployerKey(
  * @param aliasName The alias name to use.
  * @param addressIndex The address index.
  * @param targetAddress The expected target address (avoids redundant calculation).
+ * @param deployerMnemonic The deployer mnemonic.
  */
 async function importCorrectDeployerKey(
 	network: NetworkTypes,
 	aliasName: string,
 	addressIndex: number,
-	targetAddress: string
+	targetAddress: string,
+	deployerMnemonic: string
 ): Promise<void> {
 	CLIDisplay.task(
 		I18n.formatMessage("commands.deploy.progress.importingDeployerKey", { aliasName })
 	);
 
-	const mnemonic = await getDeploymentMnemonic(network);
+	const mnemonic = await getDeploymentMnemonic(network, deployerMnemonic);
 	const derivationPath = Bip44.path(Iota.DEFAULT_COIN_TYPE, 0, false, addressIndex).toString();
 
 	await execAsync(

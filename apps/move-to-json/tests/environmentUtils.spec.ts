@@ -1,0 +1,97 @@
+// Copyright 2024 IOTA Stiftung.
+// SPDX-License-Identifier: Apache-2.0.
+
+import { describe, it, expect } from "vitest";
+import {
+	checkEnvironmentExists,
+	execAsyncWithTimeout,
+	verifyIotaCliInstalled,
+	ensureEnvironment
+} from "../src/utils/environmentUtils";
+
+describe("environmentUtils", () => {
+	describe("execAsyncWithTimeout", () => {
+		it("should execute simple commands successfully", async () => {
+			const result = await execAsyncWithTimeout("echo 'test'", 5000);
+			expect(result.stdout.trim()).toContain("test");
+		});
+
+		it("should timeout after specified duration", async () => {
+			const isWindows = process.platform === "win32";
+
+			await expect(
+				execAsyncWithTimeout(isWindows ? "powershell Start-Sleep -Seconds 10" : "sleep 10", 1000)
+			).rejects.toThrow("error.environmentUtils.commandTimeout");
+		}, 2000);
+	});
+
+	describe("checkEnvironmentExists", () => {
+		it("should parse environment data correctly", async () => {
+			// Test with mock data that matches actual IOTA CLI output
+			const mockOutput = `[
+									[
+										{
+										"alias": "mainnet",
+										"rpc": "https://api.mainnet.iota.cafe",
+										"graphql": null,
+										"ws": null,
+										"basic_auth": null,
+										"faucet": null
+										},
+										{
+										"alias": "testnet", 
+										"rpc": "https://api.testnet.iota.cafe",
+										"graphql": null,
+										"ws": null,
+										"basic_auth": null,
+										"faucet": null
+										}
+									],
+									"testnet"
+								]`;
+
+			const envData = JSON.parse(mockOutput);
+			const environments = Array.isArray(envData) && envData.length > 0 ? envData[0] : envData;
+
+			expect(Array.isArray(environments)).toBe(true);
+			expect(environments.some((env: { alias: string }) => env.alias === "testnet")).toBe(true);
+			expect(environments.some((env: { alias: string }) => env.alias === "mainnet")).toBe(true);
+			expect(environments.some((env: { alias: string }) => env.alias === "devnet")).toBe(false);
+		});
+
+		it("should return false when checking non-existent environment", async () => {
+			const result = await checkEnvironmentExists("non-existent-network");
+			expect(result).toBe(false);
+		});
+	});
+
+	describe("verifyIotaCliInstalled", () => {
+		it("should verify IOTA CLI is installed", async () => {
+			// This should pass if IOTA CLI is available
+			await expect(verifyIotaCliInstalled()).resolves.toBeUndefined();
+		});
+
+		it("should throw error if IOTA CLI is not available", async () => {
+			await expect(
+				execAsyncWithTimeout("non-existent-iota-command --version", 5000)
+			).rejects.toThrow();
+		});
+	});
+
+	describe("Default Environment Creation", () => {
+		it("should create default environments when none exist", async () => {
+			await ensureEnvironment("testnet", "https://api.testnet.iota.cafe");
+
+			// Check if all default environments were created
+			const testnetExists = await checkEnvironmentExists("testnet");
+			const mainnetExists = await checkEnvironmentExists("mainnet");
+			const devnetExists = await checkEnvironmentExists("devnet");
+			const localnetExists = await checkEnvironmentExists("localnet");
+
+			expect(testnetExists).toBe(true);
+			expect(mainnetExists).toBe(true);
+			expect(devnetExists).toBe(true);
+			expect(localnetExists).toBe(true);
+		}, 60000);
+	});
+});

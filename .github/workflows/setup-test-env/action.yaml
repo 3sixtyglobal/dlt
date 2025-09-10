@@ -47,13 +47,13 @@ runs:
         done
 
         # Wait for Gas Station
-        for i in {1..30}; do
+        for i in {1..45}; do
           if curl -f http://localhost:9527/ 2>/dev/null; then
             echo "✅ Gas station is ready!"
             break
           fi
           echo "Attempt $i: Gas station not ready yet, waiting..."
-          sleep 2
+          sleep 5
         done
 
         echo "✅ All services are ready!"
@@ -82,13 +82,13 @@ runs:
         done
         # Verify Gas Station is ready after restart
         echo "Checking if gas station port is accessible..."
-        for i in {1..30}; do
+        for i in {1..45}; do
           if curl -f http://localhost:9527/ 2>/dev/null; then
             echo "✅ Gas station is ready after restart!"
             break
           fi
           echo "Attempt $i: Gas station not ready after restart, waiting..."
-          sleep 2
+          sleep 5
         done
 
     - name: Fund Gas Station Sponsor

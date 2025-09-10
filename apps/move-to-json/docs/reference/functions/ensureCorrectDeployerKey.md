@@ -1,6 +1,6 @@
 # Function: ensureCorrectDeployerKey()
 
-> **ensureCorrectDeployerKey**(`network`, `aliasName`, `expectedAddress`, `addressIndex`): `Promise`\<`void`\>
+> **ensureCorrectDeployerKey**(`network`, `aliasName`, `expectedAddress`, `addressIndex`, `deployerMnemonic`): `Promise`\<`void`\>
 
 Ensure the correct deployer key exists in the keystore with the expected address.
 If a conflicting alias exists, rename it and import the correct key.
@@ -30,6 +30,12 @@ The expected address from the current mnemonic.
 `number`
 
 The address index to use.
+
+### deployerMnemonic
+
+`string`
+
+The deployer mnemonic.
 
 ## Returns
 

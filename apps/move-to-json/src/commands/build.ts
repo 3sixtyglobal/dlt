@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0.
 import { promises as fsPromises } from "node:fs";
 import path from "node:path";
-import { CLIDisplay, CLIUtils } from "@twin.org/cli-core";
-import { Converter, GeneralError, StringHelper, I18n, Guards } from "@twin.org/core";
+import { CLIDisplay, CLIParam, CLIUtils } from "@twin.org/cli-core";
+import { Converter, GeneralError, Guards, I18n, StringHelper } from "@twin.org/core";
 import { Sha3 } from "@twin.org/crypto";
-import type { IContractData, ISmartContractDeployments } from "@twin.org/dlt-iota";
+import type { ISmartContractDeployments } from "@twin.org/dlt-iota";
 import { NetworkTypes } from "@twin.org/dlt-iota";
 import { nameof } from "@twin.org/nameof";
 import type { Command } from "commander";
@@ -24,23 +24,22 @@ export function buildCommandBuild(program: Command): void {
 		.argument("<inputGlob>", I18n.formatMessage("commands.build.options.inputGlob.description"))
 		.option(
 			I18n.formatMessage("commands.build.options.network.param"),
-			I18n.formatMessage("commands.build.options.network.description")
+			I18n.formatMessage("commands.build.options.network.description"),
+			"!NETWORK"
 		)
 		.option(
 			I18n.formatMessage("commands.build.options.output.param"),
 			I18n.formatMessage("commands.build.options.output.description"),
 			"smart-contract-deployments.json"
 		)
-		.action(async (inputGlob, opts) => {
-			await actionCommandBuild(inputGlob, opts);
-		});
+		.action(actionCommandBuild);
 }
 
 /**
  * Action for the build command.
  * @param inputGlob A glob pattern that matches one or more Move files
  * @param opts Additional options.
- * @param opts.network Target network (testnet/devnet/mainnet) - optional if NETWORK env var is set.
+ * @param opts.network Target network (testnet/devnet/mainnet).
  * @param opts.output Where we store the final compiled modules.
  */
 export async function actionCommandBuild(
@@ -48,7 +47,8 @@ export async function actionCommandBuild(
 	opts: { network?: NetworkTypes; output?: string }
 ): Promise<void> {
 	try {
-		const network = opts.network ?? (process.env.NETWORK as NetworkTypes);
+		const networkRaw = CLIParam.stringValue("network", opts.network);
+		const network = networkRaw as NetworkTypes;
 
 		Guards.arrayOneOf("commands", nameof(network), network, Object.values(NetworkTypes));
 
@@ -62,14 +62,13 @@ export async function actionCommandBuild(
 
 		CLIDisplay.section(
 			I18n.formatMessage("commands.build.section.buildingMoveContracts", {
-				network: network.toUpperCase()
+				network
 			})
 		);
 
 		CLIDisplay.value(I18n.formatMessage("commands.build.labels.inputGlob"), inputGlob);
 		CLIDisplay.value(I18n.formatMessage("commands.build.labels.outputJson"), normalizedOutput);
 		CLIDisplay.value(I18n.formatMessage("commands.build.labels.network"), network);
-		CLIDisplay.value(I18n.formatMessage("commands.build.labels.platform"), "iota");
 		CLIDisplay.break();
 
 		// Find matching .move files
@@ -115,8 +114,6 @@ export async function actionCommandBuild(
 		const existingJson = await CLIUtils.readJsonFile<ISmartContractDeployments>(normalizedOutput);
 		const finalJson: ISmartContractDeployments = existingJson ?? {};
 
-		finalJson[network] ??= {} as IContractData;
-
 		if (existingJson) {
 			CLIDisplay.value(
 				I18n.formatMessage("commands.build.labels.mergingWithExistingJson"),
@@ -137,12 +134,19 @@ export async function actionCommandBuild(
 			try {
 				const compiled = await processMoveFile(moveFile);
 				if (compiled) {
-					const { contractName, packageId, packageData } = compiled;
+					const { contractName, packageId, packageBytecode } = compiled;
 
-					const targetNetworkData = finalJson[network];
+					// Capture the last package id before overwriting it
+					const lastPackageId = finalJson[network]?.packageId;
 
-					targetNetworkData.packageId = packageId;
-					targetNetworkData.packageBytecode = packageData;
+					finalJson[network] ??= { packageId, packageBytecode };
+
+					// If the last package id is different we need to clear
+					// the deployed package id, otherwise calling deploy will
+					// not do anything as it thinks the package is already deployed.
+					if (lastPackageId !== packageId) {
+						delete finalJson[network].deployedPackageId;
+					}
 
 					CLIDisplay.value(
 						I18n.formatMessage("commands.build.labels.updatedNetworkPackage", { network }),
@@ -168,19 +172,23 @@ export async function actionCommandBuild(
 		CLIDisplay.done();
 	} catch (err) {
 		CLIDisplay.error(err);
+		throw err;
 	}
 }
 
 /**
  * Process a single Move file by compiling it, computing the packageId, and base64-encoding the .mv modules.
  * @param moveFile The path to a single Move source file.
- * @returns The compiled results or null if no modules found.
+ * @returns The compiled results or undefined if no modules found.
  */
-async function processMoveFile(moveFile: string): Promise<{
-	contractName: string;
-	packageId: string;
-	packageData: string | string[];
-} | null> {
+async function processMoveFile(moveFile: string): Promise<
+	| {
+			contractName: string;
+			packageId: string;
+			packageBytecode: string | string[];
+	  }
+	| undefined
+> {
 	// The contract name is based on the .move file's base name in kebab-case
 	const { name: baseName } = path.parse(moveFile);
 	const contractName = StringHelper.kebabCase(baseName);
@@ -189,7 +197,6 @@ async function processMoveFile(moveFile: string): Promise<{
 	const projectRoot = getProjectRoot(moveFile);
 
 	CLIDisplay.value(I18n.formatMessage("commands.build.labels.contractName"), contractName, 1);
-	CLIDisplay.value(I18n.formatMessage("commands.build.labels.platform"), "iota", 1);
 
 	// Compile the contract
 	try {
@@ -209,12 +216,7 @@ async function processMoveFile(moveFile: string): Promise<{
 			1
 		);
 	} catch (error) {
-		throw new GeneralError(
-			"commands",
-			"commands.build.buildFailed",
-			{ platform: "iota", file: moveFile },
-			error
-		);
+		throw new GeneralError("commands", "commands.build.buildFailed", { file: moveFile }, error);
 	}
 
 	// Get the bytecode modules
@@ -229,7 +231,7 @@ async function processMoveFile(moveFile: string): Promise<{
 			"",
 			2
 		);
-		return null;
+		return;
 	}
 
 	const moduleFiles = await fsPromises.readdir(bytecodeModulesPath);
@@ -240,7 +242,7 @@ async function processMoveFile(moveFile: string): Promise<{
 			"",
 			2
 		);
-		return null;
+		return;
 	}
 
 	// Compute the package ID
@@ -271,7 +273,7 @@ async function processMoveFile(moveFile: string): Promise<{
 	return {
 		contractName,
 		packageId: computedPackageId,
-		packageData
+		packageBytecode: packageData
 	};
 }
 

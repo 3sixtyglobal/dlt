@@ -96,7 +96,7 @@ describe("move-to-json CLI", () => {
 			{ overrideOutputWidth: 1000 }
 		);
 
-		expect(exitCode).toBe(0);
+		expect(exitCode).toBe(1);
 
 		const errOutput = errorBuffer.join("\n");
 		expect(errOutput).toContain("IOTA SDK not installed");
@@ -146,7 +146,41 @@ describe("move-to-json CLI", () => {
 		expect(exitCode).toBe(1);
 		const errOutput = errorBuffer.join("\n");
 		expect(errOutput).toContain(
-			'Property "network" must be one of [testnet, devnet, mainnet], it is "undefined"'
+			'The "network" option is configured as an environment variable, but there is no environment variable with the name "NETWORK" set'
+		);
+	});
+
+	test("Deploy command requires rpcUrl option", async () => {
+		const cli = new CLI();
+		const exitCode = await cli.run(
+			["node", "move-to-json", "deploy", "--network", "testnet"],
+			"./dist/locales",
+			{
+				overrideOutputWidth: 1000
+			}
+		);
+
+		expect(exitCode).toBe(1);
+		const errOutput = errorBuffer.join("\n");
+		expect(errOutput).toContain(
+			'The "rpcUrl" option is configured as an environment variable, but there is no environment variable with the name "RPC_URL" set'
+		);
+	});
+
+	test("Build command requires network option", async () => {
+		const cli = new CLI();
+		const exitCode = await cli.run(
+			["node", "move-to-json", "build", "src/contracts/**/*.move"],
+			"./dist/locales",
+			{
+				overrideOutputWidth: 1000
+			}
+		);
+
+		expect(exitCode).toBe(1);
+		const errOutput = errorBuffer.join("\n");
+		expect(errOutput).toContain(
+			'The "network" option is configured as an environment variable, but there is no environment variable with the name "NETWORK" set'
 		);
 	});
 });
@@ -168,13 +202,11 @@ describe("envSetup Validation", () => {
 	});
 
 	test("validateDeploymentEnvironment throws localized error when mnemonic is missing", async () => {
-		process.env.DEPLOYER_MNEMONIC = ""; // Clear mnemonic
-
 		const originalCwd = process.cwd();
 		process.chdir(TEST_DATA_LOCATION);
 
 		try {
-			await validateDeploymentEnvironment("testnet");
+			await validateDeploymentEnvironment("testnet", "");
 			expect(true).toBe(false); // Should not reach here
 		} catch (error) {
 			expect(error).toBeInstanceOf(GeneralError);
@@ -192,14 +224,15 @@ describe("envSetup Validation", () => {
 
 	test("validateDeploymentEnvironment throws localized error when mnemonic has wrong word count", async () => {
 		// Modify the env with invalid mnemonic (only 12 words instead of 24)
-		process.env.DEPLOYER_MNEMONIC =
-			"word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12";
 
 		const originalCwd = process.cwd();
 		process.chdir(TEST_DATA_LOCATION);
 
 		try {
-			await validateDeploymentEnvironment("testnet");
+			await validateDeploymentEnvironment(
+				"testnet",
+				"word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12"
+			);
 			expect(true).toBe(false); // Should not reach here
 		} catch (error) {
 			expect(error).toBeInstanceOf(GeneralError);
@@ -208,8 +241,7 @@ describe("envSetup Validation", () => {
 			expect(generalError.message).toBe("envSetup.mnemonicInvalidFormat");
 			expect(generalError.properties).toMatchObject({
 				network: "testnet",
-				mnemonicVar: "DEPLOYER_MNEMONIC",
-				wordCount: 12
+				mnemonicVar: "DEPLOYER_MNEMONIC"
 			});
 		} finally {
 			process.chdir(originalCwd);
@@ -218,14 +250,13 @@ describe("envSetup Validation", () => {
 
 	test("getDeploymentMnemonic returns mnemonic when valid", async () => {
 		// Create env file with valid 24-word mnemonic
-		const validMnemonic = Array.from({ length: 24 }, (_, i) => `word${i + 1}`).join(" ");
-		process.env.DEPLOYER_MNEMONIC = validMnemonic;
+		const validMnemonic = Bip39.randomMnemonic();
 
 		const originalCwd = process.cwd();
 		process.chdir(TEST_DATA_LOCATION);
 
 		try {
-			const result = await getDeploymentMnemonic("testnet");
+			const result = await getDeploymentMnemonic("testnet", validMnemonic);
 			expect(result).toBe(validMnemonic);
 		} finally {
 			process.chdir(originalCwd);
@@ -234,6 +265,9 @@ describe("envSetup Validation", () => {
 });
 
 describe("ensureCorrectDeployerKey", () => {
+	const TEST_MNEMONIC =
+		"abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon art";
+
 	beforeEach(() => {
 		vi.clearAllMocks();
 	});
@@ -257,7 +291,14 @@ describe("ensureCorrectDeployerKey", () => {
 		});
 
 		// Call the actual function
-		await ensureCorrectDeployerKey("testnet", "deployer-testnet", "correct_address", 0);
+		const validMnemonic = TEST_MNEMONIC;
+		await ensureCorrectDeployerKey(
+			"testnet",
+			"deployer-testnet",
+			"correct_address",
+			0,
+			validMnemonic
+		);
 
 		// Should only call list command and address check, no renaming or importing
 		expect(mockExecAsync).toHaveBeenCalledWith("iota keytool list --json");
@@ -294,12 +335,14 @@ describe("ensureCorrectDeployerKey", () => {
 			stderr: ""
 		});
 
-		// Mock environment variable
-		process.env.DEPLOYER_MNEMONIC =
-			"abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon art";
-
 		// Call the actual function
-		await ensureCorrectDeployerKey("testnet", "deployer-testnet", "correct_address", 0);
+		await ensureCorrectDeployerKey(
+			"testnet",
+			"deployer-testnet",
+			"correct_address",
+			0,
+			TEST_MNEMONIC
+		);
 
 		// Should call: list, update-alias, import, addresses check
 		expect(mockExecAsync).toHaveBeenCalledWith("iota keytool list --json");
@@ -329,12 +372,14 @@ describe("ensureCorrectDeployerKey", () => {
 			stderr: ""
 		});
 
-		// Mock environment variable
-		process.env.DEPLOYER_MNEMONIC =
-			"abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon art";
-
 		// Call the actual function
-		await ensureCorrectDeployerKey("testnet", "deployer-testnet", "correct_address", 0);
+		await ensureCorrectDeployerKey(
+			"testnet",
+			"deployer-testnet",
+			"correct_address",
+			0,
+			TEST_MNEMONIC
+		);
 
 		// Should call: list, import, addresses check
 		expect(mockExecAsync).toHaveBeenCalledWith("iota keytool list --json");

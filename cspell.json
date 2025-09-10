@@ -42,6 +42,7 @@
 		"iotaledger",
 		"keepalive",
 		"keytool",
+		"localnet",
 		"loglevel",
 		"longpaths",
 		"maxmemory",

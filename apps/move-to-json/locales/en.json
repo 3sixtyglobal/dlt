@@ -6,8 +6,8 @@
 				"failedReadingOutputJson": "Failed to read output JSON file: {file}",
 				"contractProcessingFailed": "Failed to process contract: {file}",
 				"mkdirFailed": "Failed to create output directory: {dir}",
-				"buildFailed": "Build failed on platform {platform} for file {file}",
-				"sdkNotInstalled": "The {platform} SDK is not installed. Please install it first."
+				"buildFailed": "Build failed on for file {file}",
+				"sdkNotInstalled": "The SDK is not installed. Please install it first."
 			},
 			"deploy": {
 				"environmentNotFound": "IOTA CLI environment \"{network}\" not found. Please configure it first.",
@@ -17,7 +17,7 @@
 				"envFileLoadFailed": "Failed to load environment file: {envFilePath}",
 				"networkConfigInvalid": "Invalid network configuration",
 				"networkMismatch": "Network mismatch",
-				"rpcUrlRequired": "Missing required RPC_URL environment variable. Set RPC_URL in your environment or use --load-env to load from configuration file (e.g., configs/{network}.env).",
+				"deployerCredentialRequired": "Missing required deployer credentials. Provide either DEPLOYER_MNEMONIC or DEPLOYER_SEED environment variable, or use --deployer-mnemonic or --deployer-seed options.",
 				"gasBudgetRequired": "Missing required GAS_BUDGET environment variable. Set GAS_BUDGET in your environment or use --load-env to load from configuration file (e.g., configs/{network}.env).",
 				"invalidContractsFile": "Invalid contracts file: must contain an object",
 				"contractsLoadFailed": "Failed to load compiled contracts",
@@ -38,7 +38,8 @@
 				"dryRunInvalidConfig": "Dry run failed due to invalid configuration",
 				"noMoveTomlFilesFound": "No Move.toml files found in current directory or subdirectories. Make sure you're running this from a directory containing Move projects.",
 				"addressSwitchFailed": "Failed to switch to active address {targetAddress} for {network}. Active address: {activeAddress}",
-				"addressNotInClient": "Address {expectedAddress} not found in IOTA client addresses for alias {aliasName}"
+				"addressNotInClient": "Address {expectedAddress} not found in IOTA client addresses for alias {aliasName}",
+				"noFaucetConfigured": "No faucet URL configured, cannot request funds for deployment."
 			}
 		},
 		"envSetup": {
@@ -47,6 +48,23 @@
 			"mnemonicInvalidFormat": "Invalid DEPLOYER_MNEMONIC environment variable format for {network}. Expected 24 words, got {wordCount}.\nPlease ensure {mnemonicVar} in your environment or configs/{network}.env contains a valid 24-word mnemonic phrase.",
 			"mnemonicValidationFailed": "Mnemonic validation failed",
 			"seedInvalidFormat": "Invalid DEPLOYER_SEED environment variable format for {network}. Expected hex string starting with 0x and at least 64 characters.\nPlease ensure {seedVar} in your environment or configs/{network}.env contains a valid hex seed value."
+		},
+		"environmentUtils": {
+			"commandTimeout": "Command timed out after {timeout}ms",
+			"commandFailedWithCode": "Command failed with code {code}",
+			"commandExecutionFailed": "Failed to execute command",
+			"iotaCliNotFound": "IOTA CLI not found. Please install IOTA CLI using: npm install -g @iota/cli",
+			"iotaCliVerificationFailed": "Failed to verify IOTA CLI installation",
+			"environmentCreationFailed": "Failed to create IOTA CLI environment: {network} using {rpcUrl}"
+		}
+	},
+	"info": {
+		"environmentUtils": {
+			"creatingDefaultEnvironments": "Creating default IOTA environments",
+			"noEnvironments": "No IOTA environments found",
+			"creatingDefaults": "Creating Defaults",
+			"creatingEnvironment": "Creating IOTA environment",
+			"activeEnvironment": "Active environment"
 		}
 	},
 	"commands": {
@@ -70,7 +88,6 @@
 				"inputGlob": "Input Glob",
 				"outputJson": "Output JSON",
 				"network": "Network",
-				"platform": "Platform",
 				"matchedFilesCount": "Matched Files Count",
 				"contractName": "Contract Name",
 				"compileCommand": "Compile Command",
@@ -119,6 +136,38 @@
 				"force": {
 					"param": "-f, --force",
 					"description": "Force redeployment even if already deployed"
+				},
+				"rpcUrl": {
+					"param": "--rpc-url '<'url'>'",
+					"description": "RPC endpoint URL for the network"
+				},
+				"addressIndex": {
+					"param": "--address-index '<'number'>'",
+					"description": "Address index for key derivation"
+				},
+				"rpcTimeout": {
+					"param": "--rpc-timeout '<'number'>'",
+					"description": "RPC request timeout in milliseconds"
+				},
+				"gasBudget": {
+					"param": "--gas-budget '<'number'>'",
+					"description": "Gas budget for transactions"
+				},
+				"confirmationTimeout": {
+					"param": "--confirmation-timeout '<'number'>'",
+					"description": "Transaction confirmation timeout in milliseconds"
+				},
+				"faucetUrl": {
+					"param": "--faucet-url '<'url'>'",
+					"description": "Faucet URL for requesting test tokens"
+				},
+				"deployerMnemonic": {
+					"param": "--deployer-mnemonic '<'mnemonic'>'",
+					"description": "Deployer wallet mnemonic phrase"
+				},
+				"deployerSeed": {
+					"param": "--deployer-seed '<'seed'>'",
+					"description": "Deployer wallet seed (alternative to mnemonic)"
 				}
 			},
 			"labels": {

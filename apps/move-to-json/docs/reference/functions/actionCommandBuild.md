@@ -20,7 +20,7 @@ Additional options.
 
 `NetworkTypes`
 
-Target network (testnet/devnet/mainnet) - optional if NETWORK env var is set.
+Target network (testnet/devnet/mainnet).
 
 #### output?
 
