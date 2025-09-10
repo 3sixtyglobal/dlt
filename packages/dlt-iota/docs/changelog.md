@@ -1,5 +1,12 @@
 # @twin.org/dlt-iota - Changelog
 
+## [0.0.2-next.8](https://github.com/twinfoundation/dlt/compare/dlt-iota-v0.0.2-next.7...dlt-iota-v0.0.2-next.8) (2025-09-10)
+
+
+### Features
+
+* consolidate environment management ([#41](https://github.com/twinfoundation/dlt/issues/41)) ([add1618](https://github.com/twinfoundation/dlt/commit/add161828e5dc42880fb0a5f9d3e61e611cf92bb))
+
 ## [0.0.2-next.7](https://github.com/twinfoundation/dlt/compare/dlt-iota-v0.0.2-next.6...dlt-iota-v0.0.2-next.7) (2025-08-29)
 
 
