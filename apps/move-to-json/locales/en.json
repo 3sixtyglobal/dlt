@@ -58,15 +58,6 @@
 			"environmentCreationFailed": "Failed to create IOTA CLI environment: {network} using {rpcUrl}"
 		}
 	},
-	"info": {
-		"environmentUtils": {
-			"creatingDefaultEnvironments": "Creating default IOTA environments",
-			"noEnvironments": "No IOTA environments found",
-			"creatingDefaults": "Creating Defaults",
-			"creatingEnvironment": "Creating IOTA environment",
-			"activeEnvironment": "Active environment"
-		}
-	},
 	"commands": {
 		"build": {
 			"summary": "Compile Move contracts for specified network and generate network-aware JSON structure",
@@ -237,6 +228,15 @@
 				"deploymentResults": "Deployment Results",
 				"deployContracts": "Deploy Contracts",
 				"contractsFile": "Contracts File"
+			}
+		},
+		"common": {
+			"info": {
+				"creatingDefaultEnvironments": "Creating default IOTA environments",
+				"noEnvironments": "No IOTA environments found",
+				"creatingDefaults": "Creating Defaults",
+				"creatingEnvironment": "Creating IOTA environment",
+				"activeEnvironment": "Active environment"
 			}
 		}
 	}

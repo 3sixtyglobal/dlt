@@ -182,7 +182,7 @@ async function createDefaultEnvironments(): Promise<void> {
 	];
 
 	CLIDisplay.value(
-		I18n.formatMessage("info.environmentUtils.creatingDefaultEnvironments"),
+		I18n.formatMessage("commands.common.info.creatingDefaultEnvironments"),
 		`${defaultEnvironments.length} environments`,
 		1
 	);
@@ -190,11 +190,7 @@ async function createDefaultEnvironments(): Promise<void> {
 	for (const env of defaultEnvironments) {
 		try {
 			await createEnvironment(env.alias, env.rpc);
-			CLIDisplay.value(
-				I18n.formatMessage("info.environmentUtils.createdEnvironment"),
-				env.alias,
-				2
-			);
+			CLIDisplay.value(I18n.formatMessage("commands.common.info.createdEnvironment"), env.alias, 2);
 		} catch {
 			// Continue creating other environments even if one fails
 		}
@@ -205,7 +201,7 @@ async function createDefaultEnvironments(): Promise<void> {
 	const additionalInfo = isWindows ? "" : " || true";
 	try {
 		await execAsyncWithTimeout(`iota client switch --env testnet${additionalInfo}`, 5000);
-		CLIDisplay.value(I18n.formatMessage("info.environmentUtils.activeEnvironment"), "testnet", 1);
+		CLIDisplay.value(I18n.formatMessage("commands.common.info.activeEnvironment"), "testnet", 1);
 	} catch {
 		// Ignore switch failures - testnet might not exist yet
 	}
@@ -245,8 +241,8 @@ export async function ensureEnvironment(network: string, rpcUrl: string): Promis
 	if (!anyEnvironmentsExist) {
 		// No environments exist - create defaults
 		CLIDisplay.value(
-			I18n.formatMessage("info.environmentUtils.noEnvironments"),
-			I18n.formatMessage("info.environmentUtils.creatingDefaults"),
+			I18n.formatMessage("commands.common.info.noEnvironments"),
+			I18n.formatMessage("commands.common.info.creatingDefaults"),
 			1
 		);
 		await createDefaultEnvironments();
@@ -257,7 +253,7 @@ export async function ensureEnvironment(network: string, rpcUrl: string): Promis
 
 	if (!exists) {
 		// Use CLI framework for user-facing message
-		CLIDisplay.value(I18n.formatMessage("info.environmentUtils.creatingEnvironment"), network, 1);
+		CLIDisplay.value(I18n.formatMessage("commands.common.info.creatingEnvironment"), network, 1);
 		await createEnvironment(network, rpcUrl);
 	} else {
 		// Switch to the environment to make sure it's active
