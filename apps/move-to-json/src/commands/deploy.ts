@@ -127,17 +127,19 @@ export async function actionCommandDeploy(opts: {
 	deployerMnemonic?: string;
 	deployerSeed?: string;
 }): Promise<void> {
+	const network = CLIParam.arrayOneOf<NetworkTypes>(
+		"network",
+		opts.network,
+		Object.values(NetworkTypes),
+		true
+	);
+
 	const contractsPath = opts.contracts ?? "smart-contract-deployments.json";
 	const dryRun = opts.dryRun ?? false;
 	const force = opts.force ?? false;
 
 	CLIDisplay.section(I18n.formatMessage("commands.deploy.section.deployContracts"));
 	CLIDisplay.section(contractsPath);
-
-	const networkRaw = CLIParam.stringValue("network", opts.network);
-	const network = networkRaw as NetworkTypes;
-
-	Guards.arrayOneOf("commands", nameof(network), network, Object.values(NetworkTypes));
 
 	// Verify the IOTA SDK before we do anything else
 	await verifyIotaSDK();
@@ -891,16 +893,17 @@ async function deployWithIotaCli(
 ): Promise<{ packageId: string; upgradeCap?: string; migrationStateId?: string }> {
 	// Find the Move project directory
 	const moveTomlPaths: string[] = [];
-	await searchDirectoryForMoveToml(process.cwd(), moveTomlPaths);
+	const cwd = process.cwd();
+	await searchDirectoryForMoveToml(cwd, moveTomlPaths);
 
 	if (moveTomlPaths.length === 0) {
 		throw new GeneralError("commands", "commands.deploy.noMoveTomlFilesFound", {
-			currentDir: process.cwd()
+			currentDir: cwd
 		});
 	}
 
 	// Prioritize Move.toml in current directory, then use first found
-	const currentDirMoveToml = path.join(process.cwd(), "Move.toml");
+	const currentDirMoveToml = path.join(cwd, "Move.toml");
 	const selectedMoveToml = moveTomlPaths.find(p => p === currentDirMoveToml) ?? moveTomlPaths[0];
 
 	// Use the actual Move project directory

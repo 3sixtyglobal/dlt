@@ -3,11 +3,10 @@
 import { promises as fsPromises } from "node:fs";
 import path from "node:path";
 import { CLIDisplay, CLIParam, CLIUtils } from "@twin.org/cli-core";
-import { Converter, GeneralError, Guards, I18n, StringHelper } from "@twin.org/core";
+import { Converter, GeneralError, I18n, StringHelper } from "@twin.org/core";
 import { Sha3 } from "@twin.org/crypto";
 import type { ISmartContractDeployments } from "@twin.org/dlt-iota";
 import { NetworkTypes } from "@twin.org/dlt-iota";
-import { nameof } from "@twin.org/nameof";
 import type { Command } from "commander";
 import FastGlob from "fast-glob";
 import { verifyIotaSDK } from "../utils/iotaUtils.js";
@@ -46,10 +45,12 @@ export async function actionCommandBuild(
 	inputGlob: string,
 	opts: { network?: NetworkTypes; output?: string }
 ): Promise<void> {
-	const networkRaw = CLIParam.stringValue("network", opts.network);
-	const network = networkRaw as NetworkTypes;
-
-	Guards.arrayOneOf("commands", nameof(network), network, Object.values(NetworkTypes));
+	const network = CLIParam.arrayOneOf<NetworkTypes>(
+		"network",
+		opts.network,
+		Object.values(NetworkTypes),
+		true
+	);
 
 	// Verify the IOTA SDK before we do anything else
 	await verifyIotaSDK();
