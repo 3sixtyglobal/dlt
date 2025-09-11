@@ -46,134 +46,129 @@ export async function actionCommandBuild(
 	inputGlob: string,
 	opts: { network?: NetworkTypes; output?: string }
 ): Promise<void> {
-	try {
-		const networkRaw = CLIParam.stringValue("network", opts.network);
-		const network = networkRaw as NetworkTypes;
+	const networkRaw = CLIParam.stringValue("network", opts.network);
+	const network = networkRaw as NetworkTypes;
 
-		Guards.arrayOneOf("commands", nameof(network), network, Object.values(NetworkTypes));
+	Guards.arrayOneOf("commands", nameof(network), network, Object.values(NetworkTypes));
 
-		// Verify the IOTA SDK before we do anything else
-		await verifyIotaSDK();
+	// Verify the IOTA SDK before we do anything else
+	await verifyIotaSDK();
 
-		const { normalizedGlob, normalizedOutput, executionDir } = normalizePathsAndWorkingDir(
-			inputGlob,
-			opts.output ?? "smart-contract-deployments.json"
-		);
+	const { normalizedGlob, normalizedOutput, executionDir } = normalizePathsAndWorkingDir(
+		inputGlob,
+		opts.output ?? "smart-contract-deployments.json"
+	);
 
-		CLIDisplay.section(
-			I18n.formatMessage("commands.build.section.buildingMoveContracts", {
-				network
-			})
-		);
+	CLIDisplay.section(
+		I18n.formatMessage("commands.build.section.buildingMoveContracts", {
+			network
+		})
+	);
 
-		CLIDisplay.value(I18n.formatMessage("commands.build.labels.inputGlob"), inputGlob);
-		CLIDisplay.value(I18n.formatMessage("commands.build.labels.outputJson"), normalizedOutput);
-		CLIDisplay.value(I18n.formatMessage("commands.build.labels.network"), network);
-		CLIDisplay.break();
+	CLIDisplay.value(I18n.formatMessage("commands.build.labels.inputGlob"), inputGlob);
+	CLIDisplay.value(I18n.formatMessage("commands.build.labels.outputJson"), normalizedOutput);
+	CLIDisplay.value(I18n.formatMessage("commands.build.labels.network"), network);
+	CLIDisplay.break();
 
-		// Find matching .move files
-		CLIDisplay.task(I18n.formatMessage("commands.build.progress.searchingFiles"));
+	// Find matching .move files
+	CLIDisplay.task(I18n.formatMessage("commands.build.progress.searchingFiles"));
 
-		const matchedFiles = await FastGlob(
-			[normalizedGlob, "!**/build/**/*.move", "!**/dependencies/**/*.move"],
-			{
-				cwd: executionDir,
-				absolute: true,
-				dot: true,
-				followSymbolicLinks: false,
-				caseSensitiveMatch: false, // Important for Windows
-				onlyFiles: true,
-				stats: false
-			}
-		);
-
-		if (matchedFiles.length === 0) {
-			CLIDisplay.value(
-				I18n.formatMessage("commands.build.warnings.noMoveFilesFound", { inputGlob }),
-				"",
-				2
-			);
+	const matchedFiles = await FastGlob(
+		[normalizedGlob, "!**/build/**/*.move", "!**/dependencies/**/*.move"],
+		{
+			cwd: executionDir,
+			absolute: true,
+			dot: true,
+			followSymbolicLinks: false,
+			caseSensitiveMatch: false, // Important for Windows
+			onlyFiles: true,
+			stats: false
 		}
+	);
+
+	if (matchedFiles.length === 0) {
 		CLIDisplay.value(
-			I18n.formatMessage("commands.build.labels.matchedFilesCount"),
-			matchedFiles.length.toString()
+			I18n.formatMessage("commands.build.warnings.noMoveFilesFound", { inputGlob }),
+			"",
+			2
 		);
-		CLIDisplay.break();
+	}
+	CLIDisplay.value(
+		I18n.formatMessage("commands.build.labels.matchedFilesCount"),
+		matchedFiles.length.toString()
+	);
+	CLIDisplay.break();
 
-		// Prepare build environment
-		CLIDisplay.task(I18n.formatMessage("commands.build.progress.preparingBuildEnvironment"));
+	// Prepare build environment
+	CLIDisplay.task(I18n.formatMessage("commands.build.progress.preparingBuildEnvironment"));
 
-		// Find all Move projects in the directory tree
-		const moveProjects: string[] = [];
-		await searchDirectoryForMoveToml(executionDir, moveProjects);
+	// Find all Move projects in the directory tree
+	const moveProjects: string[] = [];
+	await searchDirectoryForMoveToml(executionDir, moveProjects);
 
-		for (const projectRoot of moveProjects) {
-			CLIDisplay.value(I18n.formatMessage("commands.build.labels.preparedProject"), projectRoot, 1);
-		}
+	for (const projectRoot of moveProjects) {
+		CLIDisplay.value(I18n.formatMessage("commands.build.labels.preparedProject"), projectRoot, 1);
+	}
 
-		const existingJson = await CLIUtils.readJsonFile<ISmartContractDeployments>(normalizedOutput);
-		const finalJson: ISmartContractDeployments = existingJson ?? {};
+	const existingJson = await CLIUtils.readJsonFile<ISmartContractDeployments>(normalizedOutput);
+	const finalJson: ISmartContractDeployments = existingJson ?? {};
 
-		if (existingJson) {
-			CLIDisplay.value(
-				I18n.formatMessage("commands.build.labels.mergingWithExistingJson"),
-				normalizedOutput
-			);
-		} else {
-			CLIDisplay.value(
-				I18n.formatMessage("commands.build.labels.noExistingJsonFound"),
-				I18n.formatMessage("commands.build.labels.creatingNewJsonStructure"),
-				1
-			);
-		}
+	if (existingJson) {
+		CLIDisplay.value(
+			I18n.formatMessage("commands.build.labels.mergingWithExistingJson"),
+			normalizedOutput
+		);
+	} else {
+		CLIDisplay.value(
+			I18n.formatMessage("commands.build.labels.noExistingJsonFound"),
+			I18n.formatMessage("commands.build.labels.creatingNewJsonStructure"),
+			1
+		);
+	}
 
-		CLIDisplay.break();
+	CLIDisplay.break();
 
-		for (const moveFile of matchedFiles) {
-			CLIDisplay.task(I18n.formatMessage("commands.build.progress.processingMoveFile"), moveFile);
-			try {
-				const compiled = await processMoveFile(moveFile);
-				if (compiled) {
-					const { contractName, packageId, packageBytecode } = compiled;
+	for (const moveFile of matchedFiles) {
+		CLIDisplay.task(I18n.formatMessage("commands.build.progress.processingMoveFile"), moveFile);
+		try {
+			const compiled = await processMoveFile(moveFile);
+			if (compiled) {
+				const { contractName, packageId, packageBytecode } = compiled;
 
-					// Capture the last package id before overwriting it
-					const lastPackageId = finalJson[network]?.packageId;
+				// Capture the last package id before overwriting it
+				const lastPackageId = finalJson[network]?.packageId;
 
-					finalJson[network] ??= { packageId, packageBytecode };
+				finalJson[network] ??= { packageId, packageBytecode };
 
-					// If the last package id is different we need to clear
-					// the deployed package id, otherwise calling deploy will
-					// not do anything as it thinks the package is already deployed.
-					if (lastPackageId !== packageId) {
-						delete finalJson[network].deployedPackageId;
-					}
-
-					CLIDisplay.value(
-						I18n.formatMessage("commands.build.labels.updatedNetworkPackage", { network }),
-						contractName,
-						2
-					);
+				// If the last package id is different we need to clear
+				// the deployed package id, otherwise calling deploy will
+				// not do anything as it thinks the package is already deployed.
+				if (lastPackageId !== packageId) {
+					delete finalJson[network].deployedPackageId;
 				}
-			} catch (err) {
-				throw new GeneralError(
-					"commands",
-					"commands.build.contractProcessingFailed",
-					{ file: moveFile },
-					err
+
+				CLIDisplay.value(
+					I18n.formatMessage("commands.build.labels.updatedNetworkPackage", { network }),
+					contractName,
+					2
 				);
 			}
-			CLIDisplay.break();
+		} catch (err) {
+			throw new GeneralError(
+				"commands",
+				"commands.build.contractProcessingFailed",
+				{ file: moveFile },
+				err
+			);
 		}
-
-		CLIDisplay.task(I18n.formatMessage("commands.build.progress.writingJsonFile"));
-		await CLIUtils.writeJsonFile(normalizedOutput, finalJson, true);
-
 		CLIDisplay.break();
-		CLIDisplay.done();
-	} catch (err) {
-		CLIDisplay.error(err);
-		throw err;
 	}
+
+	CLIDisplay.task(I18n.formatMessage("commands.build.progress.writingJsonFile"));
+	await CLIUtils.writeJsonFile(normalizedOutput, finalJson, false);
+
+	CLIDisplay.break();
+	CLIDisplay.done();
 }
 
 /**

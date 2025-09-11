@@ -127,111 +127,106 @@ export async function actionCommandDeploy(opts: {
 	deployerMnemonic?: string;
 	deployerSeed?: string;
 }): Promise<void> {
+	const contractsPath = opts.contracts ?? "smart-contract-deployments.json";
+	const dryRun = opts.dryRun ?? false;
+	const force = opts.force ?? false;
+
+	CLIDisplay.section(I18n.formatMessage("commands.deploy.section.deployContracts"));
+	CLIDisplay.section(contractsPath);
+
+	const networkRaw = CLIParam.stringValue("network", opts.network);
+	const network = networkRaw as NetworkTypes;
+
+	Guards.arrayOneOf("commands", nameof(network), network, Object.values(NetworkTypes));
+
+	// Verify the IOTA SDK before we do anything else
+	await verifyIotaSDK();
+
+	// Get configuration values needed for environment setup
+	const rpcUrl: string = CLIParam.stringValue("rpcUrl", opts.rpcUrl);
+	const addressIndex = CLIParam.number("addressIndex", opts.addressIndex) ?? 0;
+	const rpcTimeout = CLIParam.number("rpcTimeout", opts.rpcTimeout);
+	const gasBudget = CLIParam.number("gasBudget", opts.gasBudget);
+	const confirmationTimeout = CLIParam.number("confirmationTimeout", opts.confirmationTimeout);
+	const faucetUrl: string | undefined =
+		network === NetworkTypes.Mainnet
+			? undefined
+			: CLIParam.stringValue("faucetUrl", opts.faucetUrl);
+
+	let deployerMnemonic: string | undefined;
 	try {
-		const contractsPath = opts.contracts ?? "smart-contract-deployments.json";
-		const dryRun = opts.dryRun ?? false;
-		const force = opts.force ?? false;
-
-		CLIDisplay.section(I18n.formatMessage("commands.deploy.section.deployContracts"));
-		CLIDisplay.section(contractsPath);
-
-		const networkRaw = CLIParam.stringValue("network", opts.network);
-		const network = networkRaw as NetworkTypes;
-
-		Guards.arrayOneOf("commands", nameof(network), network, Object.values(NetworkTypes));
-
-		// Verify the IOTA SDK before we do anything else
-		await verifyIotaSDK();
-
-		// Get configuration values needed for environment setup
-		const rpcUrl: string = CLIParam.stringValue("rpcUrl", opts.rpcUrl);
-		const addressIndex = CLIParam.number("addressIndex", opts.addressIndex) ?? 0;
-		const rpcTimeout = CLIParam.number("rpcTimeout", opts.rpcTimeout);
-		const gasBudget = CLIParam.number("gasBudget", opts.gasBudget);
-		const confirmationTimeout = CLIParam.number("confirmationTimeout", opts.confirmationTimeout);
-		const faucetUrl: string | undefined =
-			network === NetworkTypes.Mainnet
-				? undefined
-				: CLIParam.stringValue("faucetUrl", opts.faucetUrl);
-
-		let deployerMnemonic: string | undefined;
-		try {
-			deployerMnemonic = CLIParam.stringValue("deployerMnemonic", opts.deployerMnemonic);
-		} catch {
-			// Optional parameter, can be undefined
-			deployerMnemonic = undefined;
-		}
-
-		let deployerSeed: string | undefined;
-		try {
-			deployerSeed = CLIParam.stringValue("deployerSeed", opts.deployerSeed);
-		} catch {
-			// Optional parameter, can be undefined
-			deployerSeed = undefined;
-		}
-
-		// Validate that at least one deployer credential is provided
-		const hasValidMnemonic = Is.stringValue(deployerMnemonic);
-		const hasValidSeed = Is.stringValue(deployerSeed);
-
-		if (!hasValidMnemonic && !hasValidSeed) {
-			throw new GeneralError("commands", "commands.deploy.deployerCredentialRequired", {
-				network
-			});
-		}
-
-		// Check/switch to target network environment BEFORE loading config
-		await setIotaEnvironment(network, rpcUrl, addressIndex, dryRun, deployerMnemonic, deployerSeed);
-
-		const config = await createNetworkConfig(
-			network,
-			rpcUrl,
-			addressIndex,
-			rpcTimeout,
-			gasBudget,
-			confirmationTimeout
-		);
-		validateNetworkConfig(config, network);
-
-		const contractsData = await loadCompiledContracts(contractsPath);
-
-		if (network === NetworkTypes.Mainnet) {
-			const validatedMnemonic = await getDeploymentMnemonic(
-				network,
-				hasValidMnemonic ? deployerMnemonic : undefined
-			);
-			await validateDeploymentEnvironment(network, validatedMnemonic);
-		}
-
-		const networkContracts = contractsData[network];
-		if (!Is.object<IContractData>(networkContracts)) {
-			throw new GeneralError("commands", "commands.deploy.noContractsFound", {
-				network,
-				contractsPath
-			});
-		}
-
-		await deployContract(
-			"contract",
-			networkContracts,
-			config,
-			network,
-			dryRun,
-			force,
-			faucetUrl,
-			deployerMnemonic,
-			deployerSeed
-		);
-
-		if (!dryRun) {
-			await updateContractsFile(contractsPath, contractsData);
-		}
-
-		CLIDisplay.done();
-	} catch (err) {
-		CLIDisplay.error(err);
-		throw err;
+		deployerMnemonic = CLIParam.stringValue("deployerMnemonic", opts.deployerMnemonic);
+	} catch {
+		// Optional parameter, can be undefined
+		deployerMnemonic = undefined;
 	}
+
+	let deployerSeed: string | undefined;
+	try {
+		deployerSeed = CLIParam.stringValue("deployerSeed", opts.deployerSeed);
+	} catch {
+		// Optional parameter, can be undefined
+		deployerSeed = undefined;
+	}
+
+	// Validate that at least one deployer credential is provided
+	const hasValidMnemonic = Is.stringValue(deployerMnemonic);
+	const hasValidSeed = Is.stringValue(deployerSeed);
+
+	if (!hasValidMnemonic && !hasValidSeed) {
+		throw new GeneralError("commands", "commands.deploy.deployerCredentialRequired", {
+			network
+		});
+	}
+
+	// Check/switch to target network environment BEFORE loading config
+	await setIotaEnvironment(network, rpcUrl, addressIndex, dryRun, deployerMnemonic, deployerSeed);
+
+	const config = await createNetworkConfig(
+		network,
+		rpcUrl,
+		addressIndex,
+		rpcTimeout,
+		gasBudget,
+		confirmationTimeout
+	);
+	validateNetworkConfig(config, network);
+
+	const contractsData = await loadCompiledContracts(contractsPath);
+
+	if (network === NetworkTypes.Mainnet) {
+		const validatedMnemonic = await getDeploymentMnemonic(
+			network,
+			hasValidMnemonic ? deployerMnemonic : undefined
+		);
+		await validateDeploymentEnvironment(network, validatedMnemonic);
+	}
+
+	const networkContracts = contractsData[network];
+	if (!Is.object<IContractData>(networkContracts)) {
+		throw new GeneralError("commands", "commands.deploy.noContractsFound", {
+			network,
+			contractsPath
+		});
+	}
+
+	await deployContract(
+		"contract",
+		networkContracts,
+		config,
+		network,
+		dryRun,
+		force,
+		faucetUrl,
+		deployerMnemonic,
+		deployerSeed
+	);
+
+	if (!dryRun) {
+		await updateContractsFile(contractsPath, contractsData);
+	}
+
+	CLIDisplay.done();
 }
 
 /**
