@@ -1,5 +1,12 @@
 # @twin.org/dlt-iota - Changelog
 
+## [0.0.2-next.9](https://github.com/twinfoundation/dlt/compare/dlt-iota-v0.0.2-next.8...dlt-iota-v0.0.2-next.9) (2025-09-22)
+
+
+### Features
+
+* bytecode change detection ([#43](https://github.com/twinfoundation/dlt/issues/43)) ([528469c](https://github.com/twinfoundation/dlt/commit/528469c1e4f032c6a936a9724a692abe403d92f6))
+
 ## [0.0.2-next.8](https://github.com/twinfoundation/dlt/compare/dlt-iota-v0.0.2-next.7...dlt-iota-v0.0.2-next.8) (2025-09-10)
 
 

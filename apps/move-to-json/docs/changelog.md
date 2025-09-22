@@ -1,5 +1,26 @@
 # @twin.org/move-to-json - Changelog
 
+## [0.0.2-next.9](https://github.com/twinfoundation/dlt/compare/move-to-json-v0.0.2-next.8...move-to-json-v0.0.2-next.9) (2025-09-22)
+
+
+### Features
+
+* bytecode change detection ([#43](https://github.com/twinfoundation/dlt/issues/43)) ([528469c](https://github.com/twinfoundation/dlt/commit/528469c1e4f032c6a936a9724a692abe403d92f6))
+* remove local error handling as CLI base already handles this ([fc5a083](https://github.com/twinfoundation/dlt/commit/fc5a083303f8c92cc264f782a2d292436da18031))
+* use new CLIParam.arrayOnOf ([1f6458a](https://github.com/twinfoundation/dlt/commit/1f6458a44486dfa5ddbf61bd63b85a98ec561728))
+
+
+### Bug Fixes
+
+* i18n messages ([4b61495](https://github.com/twinfoundation/dlt/commit/4b614957ea84d8af43345892cae3256dfa457483))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @twin.org/dlt-iota bumped from 0.0.2-next.8 to 0.0.2-next.9
+
 ## [0.0.2-next.8](https://github.com/twinfoundation/dlt/compare/move-to-json-v0.0.2-next.7...move-to-json-v0.0.2-next.8) (2025-09-10)
 
 
