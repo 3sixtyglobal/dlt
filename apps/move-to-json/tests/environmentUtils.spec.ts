@@ -21,7 +21,7 @@ describe("environmentUtils", () => {
 
 			await expect(
 				execAsyncWithTimeout(isWindows ? "powershell Start-Sleep -Seconds 10" : "sleep 10", 1000)
-			).rejects.toThrow("error.environmentUtils.commandTimeout");
+			).rejects.toThrow("commandTimeout");
 		}, 2000);
 	});
 

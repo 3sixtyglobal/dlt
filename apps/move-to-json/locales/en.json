@@ -39,7 +39,16 @@
 				"noMoveTomlFilesFound": "No Move.toml files found in current directory or subdirectories. Make sure you're running this from a directory containing Move projects.",
 				"addressSwitchFailed": "Failed to switch to active address {targetAddress} for {network}. Active address: {activeAddress}",
 				"addressNotInClient": "Address {expectedAddress} not found in IOTA client addresses for alias {aliasName}",
-				"noFaucetConfigured": "No faucet URL configured, cannot request funds for deployment."
+				"noFaucetConfigured": "No faucet URL configured, cannot request funds for deployment.",
+				"noPreviousDeploymentForUpgrade": "Cannot upgrade contract: no previous deployment found. Use initial deployment instead.",
+				"upgradePackageIdNotFound": "Upgrade failed: new package ID not found in response",
+				"moveTomlUpdateFailed": "Failed to update Move.toml file for upgrade",
+				"upgradeCapabilityNotFound": "Upgrade capability not found in deployment data",
+				"moveTomlNotFound": "Move.toml not found. Expected at: {moveTomlPath}",
+				"contractNotBuilt": "Contract has not been built. Run 'move-to-json build' first.",
+				"contractDataOutdated": "Contract data is missing or outdated. Run 'move-to-json build' first.",
+				"upgradeFailed": "Contract upgrade failed",
+				"buildPathNotDirectory": "Build path exists but is not a directory: {buildDir}"
 			}
 		},
 		"envSetup": {
@@ -53,6 +62,7 @@
 			"commandTimeout": "Command timed out after {timeout}ms",
 			"commandFailedWithCode": "Command failed with code {code}",
 			"commandExecutionFailed": "Failed to execute command",
+			"commandExecutionFailedParams": "Failed to execute command\n\"{command}\"\n\n{output}\n",
 			"iotaCliNotFound": "IOTA CLI not found. Please install IOTA CLI using: npm install -g @iota/cli",
 			"iotaCliVerificationFailed": "Failed to verify IOTA CLI installation",
 			"environmentCreationFailed": "Failed to create IOTA CLI environment: {network} using {rpcUrl}"
@@ -90,7 +100,11 @@
 				"creatingNewJsonStructure": "Creating new JSON structure",
 				"preparedProject": "Prepared project",
 				"updatedNetworkPackage": "Updated {network} package",
-				"buildCompleted": "Build completed"
+				"buildCompleted": "Build completed",
+				"bytecodeChanged": "Bytecode Changed",
+				"bytecodeUnchanged": "Bytecode Unchanged",
+				"deployedPackageIdCleared": "Deployed package ID cleared - redeployment required",
+				"deployedPackageIdPreserved": "Deployed package ID preserved - no redeployment needed"
 			},
 			"progress": {
 				"searchingFiles": "Searching for Move files...",
@@ -105,7 +119,8 @@
 			"warnings": {
 				"noMoveFilesFound": "No Move files found for pattern: {inputGlob}",
 				"noBytecodeModulesFolder": "No bytecode_modules folder found for contract: {contractName}",
-				"noMvFilesFound": "No .mv files found for contract: {contractName}"
+				"noMvFilesFound": "No .mv files found for contract: {contractName}",
+				"multipleFilesNotSupported": "Multiple Move files detected. Found {fileCount} files: {fileList}. Please specify a single .move file per build command."
 			}
 		},
 		"deploy": {
@@ -208,7 +223,21 @@
 				"faucetNoFundsAdded": "Faucet request completed but no funds were added to wallet on {network}",
 				"renamedExistingKey": "Renamed existing key",
 				"usingExistingCorrectKey": "Using existing correct deployer key",
-				"importedDeployerKey": "Imported deployer key"
+				"importedDeployerKey": "Imported deployer key",
+				"smartDeployAnalysis": "Smart Deploy Analysis",
+				"upgradeCapability": "Upgrade Capability",
+				"detectedStrategy": "Detected Strategy",
+				"upgradeSuccessful": "Upgrade Successful",
+				"upgradeCapabilityPreserved": "Upgrade Capability Preserved",
+				"moveTomlUpdated": "Move.toml Updated",
+				"moveTomlRestored": "Move.toml Restored",
+				"contractStatus": "Contract Status",
+				"upgradeGuidance": "Upgrade Guidance",
+				"lastDeployment": "Last Deployment",
+				"previousDeployment": "Previous Deployment",
+				"deploymentStrategy": "Deployment Strategy",
+				"currentDeployment": "Current Deployment",
+				"buildValidation": "Build Validation"
 			},
 			"progress": {
 				"loadingContracts": "Loading compiled contracts...",
@@ -222,7 +251,14 @@
 				"renamingConflictingKey": "Renaming conflicting key alias \"{aliasName}\" to preserve existing key",
 				"importingDeployerKey": "Importing deployer key as \"{aliasName}\""
 			},
-			"messages": {},
+			"messages": {
+				"contractAlreadyDeployed": "Contract already deployed, no changes detected",
+				"upgradeGuidanceMessage": "If you want to upgrade, run 'move-to-json build' first to detect bytecode changes",
+				"noneInitialDeployment": "None - Initial deployment",
+				"noneNeedsDeploymentUpgrade": "None - Needs deployment/upgrade",
+				"originalConfigurationRestored": "Original configuration restored",
+				"contractBuiltAndReadyForUpgrade": "Contract has been built and is ready for upgrade"
+			},
 			"section": {
 				"deploymentConfiguration": "Deployment Configuration",
 				"deploymentResults": "Deployment Results",

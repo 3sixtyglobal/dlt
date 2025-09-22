@@ -1,14 +1,8 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-
-// Use vi.hoisted to create mock function that can be referenced in vi.mock
-const { mockExecAsync } = vi.hoisted(() => ({
-	mockExecAsync: vi.fn()
-}));
-
 import crypto from "node:crypto";
 import { existsSync } from "node:fs";
-import { mkdir, rm, readFile } from "node:fs/promises";
+import { mkdir, rm, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { CLIDisplay, CLIUtils } from "@twin.org/cli-core";
 import { GeneralError } from "@twin.org/core";
@@ -18,17 +12,8 @@ import { vi } from "vitest";
 import { CLI } from "../src/cli";
 import { copyFixtures } from "./utils/copyFixtures";
 import { ensureCorrectDeployerKey, generateUniqueBackupAlias } from "../src/commands/deploy";
+import * as environmentUtils from "../src/utils/environmentUtils";
 import { validateDeploymentEnvironment, getDeploymentMnemonic } from "../src/utils/envSetup";
-
-// Mock node:child_process with proper types
-vi.mock("node:child_process", () => ({
-	exec: vi.fn()
-}));
-
-// Mock node:util to return our mock when promisify is called
-vi.mock("node:util", () => ({
-	promisify: vi.fn().mockReturnValue(mockExecAsync)
-}));
 
 const TEST_DATA_LOCATION = path.resolve(path.join(__dirname, ".tmp"));
 const TEST_INPUT_GLOB = path.join(TEST_DATA_LOCATION, "contracts");
@@ -61,6 +46,8 @@ describe("move-to-json CLI", () => {
 		CLIDisplay.writeError = (buffer: string | Uint8Array): void => {
 			errorBuffer.push(...buffer.toString().split("\n"));
 		};
+
+		vi.restoreAllMocks();
 	});
 
 	test("Shows help when no subcommand provided", async () => {
@@ -135,6 +122,169 @@ describe("move-to-json CLI", () => {
 		expect(json.testnet.packageId).toMatch(/^0x/);
 		expect(json.testnet.packageBytecode).toBeDefined();
 		expect(json.testnet.deployedPackageId).toBeUndefined();
+	});
+
+	test("Build command preserves deployedPackageId when bytecode unchanged", async () => {
+		const cli = new CLI();
+
+		// First build
+		let exitCode = await cli.run(
+			[
+				"node",
+				"move-to-json",
+				"build",
+				path.join(TEST_INPUT_GLOB, "iota", "sources", "*.move"),
+				"--network",
+				"testnet",
+				"--output",
+				TEST_OUTPUT_JSON
+			],
+			"./dist/locales",
+			{ overrideOutputWidth: 1000 }
+		);
+
+		expect(exitCode).toBe(0);
+
+		// Simulate deployment by adding deployedPackageId
+		const firstBuildJson = JSON.parse(await readFile(TEST_OUTPUT_JSON, "utf8"));
+		firstBuildJson.testnet.deployedPackageId = "0xdeployed456";
+		await CLIUtils.writeJsonFile(TEST_OUTPUT_JSON, firstBuildJson, false);
+
+		// Second build without changes
+		exitCode = await cli.run(
+			[
+				"node",
+				"move-to-json",
+				"build",
+				path.join(TEST_INPUT_GLOB, "iota", "sources", "*.move"),
+				"--network",
+				"testnet",
+				"--output",
+				TEST_OUTPUT_JSON
+			],
+			"./dist/locales",
+			{ overrideOutputWidth: 1000 }
+		);
+
+		expect(exitCode).toBe(0);
+
+		// Verify deployedPackageId preserved
+		const secondBuildJson = JSON.parse(await readFile(TEST_OUTPUT_JSON, "utf8"));
+		expect(secondBuildJson.testnet.deployedPackageId).toBe("0xdeployed456");
+	});
+
+	test("Build command clears deployedPackageId when bytecode changes", async () => {
+		const cli = new CLI();
+
+		// First build
+		let exitCode = await cli.run(
+			[
+				"node",
+				"move-to-json",
+				"build",
+				path.join(TEST_INPUT_GLOB, "iota", "sources", "*.move"),
+				"--network",
+				"testnet",
+				"--output",
+				TEST_OUTPUT_JSON
+			],
+			"./dist/locales",
+			{ overrideOutputWidth: 1000 }
+		);
+
+		expect(exitCode).toBe(0);
+
+		// Simulate deployment by adding deployedPackageId
+		const firstBuildJson = JSON.parse(await readFile(TEST_OUTPUT_JSON, "utf8"));
+		firstBuildJson.testnet.deployedPackageId = "0xdeployed789";
+		await CLIUtils.writeJsonFile(TEST_OUTPUT_JSON, firstBuildJson, false);
+
+		const beforeModifyJson = firstBuildJson;
+
+		// Modify the contract source to change bytecode
+		const nftSourcePath = path.join(TEST_INPUT_GLOB, "iota", "sources", "nft.move");
+		const originalContent = await readFile(nftSourcePath, "utf8");
+
+		// Make a small change to trigger bytecode change
+		const modifiedContent = originalContent.replace(
+			"const VERSION: u64 = 1;",
+			"const VERSION: u64 = 2;"
+		);
+
+		await writeFile(nftSourcePath, modifiedContent, "utf8");
+
+		try {
+			// Second build with modified contract
+			exitCode = await cli.run(
+				[
+					"node",
+					"move-to-json",
+					"build",
+					path.join(TEST_INPUT_GLOB, "iota", "sources", "*.move"),
+					"--network",
+					"testnet",
+					"--output",
+					TEST_OUTPUT_JSON
+				],
+				"./dist/locales",
+				{ overrideOutputWidth: 1000 }
+			);
+
+			expect(exitCode).toBe(0);
+
+			// Verify deployedPackageId was cleared due to bytecode change
+			const afterModifyJson = JSON.parse(await readFile(TEST_OUTPUT_JSON, "utf8"));
+			expect(afterModifyJson.testnet.deployedPackageId).toBeUndefined();
+			expect(afterModifyJson.testnet.packageId).toBeDefined();
+			expect(afterModifyJson.testnet.packageBytecode).toBeDefined();
+
+			// Verify the package ID actually changed
+			expect(afterModifyJson.testnet.packageId).not.toBe(beforeModifyJson.testnet.packageId);
+		} finally {
+			// Restore original contract content
+			await writeFile(nftSourcePath, originalContent, "utf8");
+		}
+	});
+
+	test("Build command should error when multiple Move files are detected", async () => {
+		// Create a temporary directory with multiple Move files
+		const multiFileTestDir = path.join(TEST_DATA_LOCATION, "multi-file-test");
+		await mkdir(multiFileTestDir, { recursive: true });
+
+		// Create two Move files to trigger the error
+		await writeFile(
+			path.join(multiFileTestDir, "contract1.move"),
+			"module test::contract1 {}",
+			"utf8"
+		);
+		await writeFile(
+			path.join(multiFileTestDir, "contract2.move"),
+			"module test::contract2 {}",
+			"utf8"
+		);
+
+		const cli = new CLI();
+		const exitCode = await cli.run(
+			[
+				"node",
+				"move-to-json",
+				"build",
+				path.join(multiFileTestDir, "*.move"),
+				"--network",
+				"testnet",
+				"--output",
+				TEST_OUTPUT_JSON
+			],
+			"./dist/locales",
+			{ overrideOutputWidth: 1000 }
+		);
+
+		expect(exitCode).toBe(1);
+		const errOutput = errorBuffer.join("\n");
+		expect(errOutput).toContain("commands.build.warnings.multipleFilesNotSupported");
+
+		// Cleanup
+		await rm(multiFileTestDir, { recursive: true, force: true });
 	});
 
 	test("Deploy command requires network option", async () => {
@@ -278,6 +428,8 @@ describe("ensureCorrectDeployerKey", () => {
 			{ alias: "deployer-testnet", iotaAddress: "correct_address", keyScheme: "ed25519" }
 		];
 
+		const mockExecAsync = vi.spyOn(environmentUtils, "execAsyncWithError");
+
 		mockExecAsync.mockResolvedValueOnce({
 			stdout: JSON.stringify(mockKeysList),
 			stderr: ""
@@ -311,6 +463,8 @@ describe("ensureCorrectDeployerKey", () => {
 		const mockKeysList = [
 			{ alias: "deployer-testnet", iotaAddress: "old_wrong_address", keyScheme: "ed25519" }
 		];
+
+		const mockExecAsync = vi.spyOn(environmentUtils, "execAsyncWithError");
 		mockExecAsync.mockResolvedValueOnce({
 			stdout: JSON.stringify(mockKeysList),
 			stderr: ""
@@ -353,6 +507,8 @@ describe("ensureCorrectDeployerKey", () => {
 	});
 
 	test("should import key when no existing alias found", async () => {
+		const mockExecAsync = vi.spyOn(environmentUtils, "execAsyncWithError");
+
 		// Mock empty keystore list
 		mockExecAsync.mockResolvedValueOnce({
 			stdout: JSON.stringify([]),

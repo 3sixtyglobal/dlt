@@ -1,8 +1,42 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import { exec, spawn } from "node:child_process";
+import { exec, type ExecOptionsWithStringEncoding, spawn } from "node:child_process";
+import { promisify } from "node:util";
 import { CLIDisplay } from "@twin.org/cli-core";
 import { GeneralError, I18n, Is } from "@twin.org/core";
+
+const execAsync = promisify(exec);
+
+/**
+ * Executes a command with a timeout.
+ * @param command The command to execute.
+ * @param options The exec options.
+ * @returns The stdout and stderr of the command
+ */
+export async function execAsyncWithError(
+	command: string,
+	options?: ExecOptionsWithStringEncoding
+): Promise<{ stdout: string; stderr: string }> {
+	try {
+		const { stdout, stderr } = await execAsync(command, options);
+		return { stdout: stdout.toString(), stderr: stderr.toString() };
+	} catch (error) {
+		let additionalInfo = {
+			command,
+			output: ""
+		};
+		if (
+			Is.object<{ cmd: string; stdout: string; stderr: string }>(error) &&
+			Is.stringValue(error.cmd)
+		) {
+			additionalInfo = {
+				command: error.cmd,
+				output: `${error.stdout}\n${error.stderr}`.trim()
+			};
+		}
+		throw new GeneralError("environmentUtils", "commandExecutionFailedParams", additionalInfo);
+	}
+}
 
 /**
  * Executes a command with a timeout.
@@ -17,7 +51,7 @@ export async function execAsyncWithTimeout(
 	return new Promise((resolve, reject) => {
 		const timeoutId = setTimeout(() => {
 			reject(
-				new GeneralError("environmentUtils", "error.environmentUtils.commandTimeout", {
+				new GeneralError("environmentUtils", "commandTimeout", {
 					command,
 					timeout: timeoutMs
 				})
@@ -55,7 +89,7 @@ export async function execWithInput(command: string, inputs: string[]): Promise<
 		const timeout = setTimeout(() => {
 			child.kill("SIGTERM");
 			reject(
-				new GeneralError("environmentUtils", "error.environmentUtils.commandTimeout", {
+				new GeneralError("environmentUtils", "commandTimeout", {
 					command,
 					inputs,
 					timeout: 5000
@@ -70,7 +104,7 @@ export async function execWithInput(command: string, inputs: string[]): Promise<
 				resolve();
 			} else {
 				reject(
-					new GeneralError("environmentUtils", "error.environmentUtils.commandFailedWithCode", {
+					new GeneralError("environmentUtils", "commandFailedWithCode", {
 						command,
 						inputs,
 						code
@@ -82,7 +116,7 @@ export async function execWithInput(command: string, inputs: string[]): Promise<
 		child.on("error", error => {
 			clearTimeout(timeout);
 			reject(
-				new GeneralError("environmentUtils", "error.environmentUtils.commandExecutionFailed", {
+				new GeneralError("environmentUtils", "commandExecutionFailed", {
 					command,
 					inputs,
 					error
@@ -104,19 +138,9 @@ export async function verifyIotaCliInstalled(): Promise<void> {
 			(error as { code?: number }).code === 127 ||
 			(error as NodeJS.ErrnoException).code === "ENOENT"
 		) {
-			throw new GeneralError(
-				"environmentUtils",
-				"error.environmentUtils.iotaCliNotFound",
-				undefined,
-				error
-			);
+			throw new GeneralError("environmentUtils", "iotaCliNotFound", undefined, error);
 		}
-		throw new GeneralError(
-			"environmentUtils",
-			"error.environmentUtils.iotaCliVerificationFailed",
-			undefined,
-			error
-		);
+		throw new GeneralError("environmentUtils", "iotaCliVerificationFailed", undefined, error);
 	}
 }
 

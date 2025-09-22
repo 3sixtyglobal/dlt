@@ -21,6 +21,11 @@ export interface IContractData {
 	deployedPackageId?: string;
 
 	/**
+	 * Previous deployed package ID for upgrade chain tracking
+	 */
+	lastDeployedPackageId?: string;
+
+	/**
 	 * UpgradeCap object ID for package upgrades
 	 */
 	upgradeCapabilityId?: string;

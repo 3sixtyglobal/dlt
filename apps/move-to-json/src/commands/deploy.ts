@@ -1,32 +1,30 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import { exec } from "node:child_process";
+import { promises as fsPromises } from "node:fs";
 import path from "node:path";
-import { promisify } from "node:util";
 import { IotaClient } from "@iota/iota-sdk/client";
 import { requestIotaFromFaucetV0 } from "@iota/iota-sdk/faucet";
-import { CLIDisplay, CLIUtils, CLIParam } from "@twin.org/cli-core";
-import { GeneralError, Is, Converter, I18n, Guards, RandomHelper } from "@twin.org/core";
+import { CLIDisplay, CLIParam, CLIUtils } from "@twin.org/cli-core";
+import { Converter, GeneralError, Guards, I18n, Is, RandomHelper } from "@twin.org/core";
 import { Bip39, Bip44 } from "@twin.org/crypto";
 import {
 	Iota,
+	NetworkTypes,
 	type IContractData,
-	type ISmartContractDeployments,
-	NetworkTypes
+	type ISmartContractDeployments
 } from "@twin.org/dlt-iota";
 import { nameof } from "@twin.org/nameof";
 import type { Command } from "commander";
 import type { INetworkConfig } from "../models/INetworkConfig";
-import { ensureEnvironment } from "../utils/environmentUtils.js";
+import { cleanBuildArtifactsInPath } from "../utils/buildArtifactUtils.js";
+import { ensureEnvironment, execAsyncWithError } from "../utils/environmentUtils.js";
 import {
-	validateDeploymentEnvironment,
 	getDeploymentMnemonic,
-	getDeploymentSeed
+	getDeploymentSeed,
+	validateDeploymentEnvironment
 } from "../utils/envSetup.js";
 import { verifyIotaSDK } from "../utils/iotaUtils.js";
 import { searchDirectoryForMoveToml } from "../utils/moveToJsonUtils.js";
-
-const execAsync = promisify(exec);
 
 /**
  * Build the deploy command.
@@ -289,7 +287,7 @@ async function setIotaEnvironment(
 		);
 
 		// Switch both environment and address in one command
-		await execAsync(`iota client switch --env ${network} --address ${targetAddress}`);
+		await execAsyncWithError(`iota client switch --env ${network} --address ${targetAddress}`);
 
 		CLIDisplay.value(
 			I18n.formatMessage("commands.deploy.labels.switchedIotaEnvironment"),
@@ -303,7 +301,7 @@ async function setIotaEnvironment(
 		);
 
 		// Verify the switch was successful
-		const { stdout: activeEnv } = await execAsync("iota client active-env");
+		const { stdout: activeEnv } = await execAsyncWithError("iota client active-env");
 		if (!activeEnv.includes(network)) {
 			throw new GeneralError("commands", "commands.deploy.environmentSwitchFailed", {
 				network,
@@ -312,7 +310,7 @@ async function setIotaEnvironment(
 		}
 
 		// Verify address switch was successful
-		const { stdout: activeAddressOutput } = await execAsync("iota client active-address");
+		const { stdout: activeAddressOutput } = await execAsyncWithError("iota client active-address");
 		const activeAddress = activeAddressOutput.trim();
 		if (activeAddress !== targetAddress) {
 			throw new GeneralError("commands", "commands.deploy.addressSwitchFailed", {
@@ -666,6 +664,290 @@ async function handleActualDeployment(
 }
 
 /**
+ * Determine the deployment strategy based on contract state.
+ * @param contractData Contract data to analyze.
+ * @returns Deployment strategy: initial-deploy, upgrade or already-deployed.
+ */
+async function determineDeploymentStrategy(
+	contractData: IContractData
+): Promise<"initial-deploy" | "upgrade" | "already-deployed"> {
+	if (Is.stringValue(contractData.deployedPackageId)) {
+		return "already-deployed";
+	}
+
+	if (Is.stringValue(contractData.lastDeployedPackageId)) {
+		return "upgrade";
+	}
+
+	return "initial-deploy";
+}
+
+/**
+ * Execute contract upgrade using iota client upgrade command.
+ * @param contractData Contract data containing upgrade capability.
+ * @param config Network configuration.
+ * @returns Upgrade result with package ID and upgrade capability.
+ */
+async function executeContractUpgrade(
+	contractData: IContractData,
+	config: INetworkConfig
+): Promise<{ packageId: string; upgradeCap: string; migrationStateId?: string }> {
+	// Store the previous deployedPackageId for "published-at" field in Move.toml
+	// Use lastDeployedPackageId which tracks the previous deployment for upgrade chain
+	const previousDeployedPackageId = contractData.lastDeployedPackageId;
+	if (!previousDeployedPackageId) {
+		throw new GeneralError("commands", "commands.deploy.noPreviousDeploymentForUpgrade");
+	}
+
+	const moveTomlPaths: string[] = [];
+	await searchDirectoryForMoveToml(process.cwd(), moveTomlPaths);
+
+	if (moveTomlPaths.length === 0) {
+		throw new GeneralError("commands", "commands.deploy.noMoveTomlFilesFound", {
+			currentDir: process.cwd()
+		});
+	}
+
+	const currentDirMoveToml = path.join(process.cwd(), "Move.toml");
+	const selectedMoveToml = moveTomlPaths.find(p => p === currentDirMoveToml) ?? moveTomlPaths[0];
+	const moveTomlPath = selectedMoveToml;
+	const projectRoot = path.dirname(moveTomlPath);
+
+	const backupPath = await backupMoveToml(moveTomlPath);
+
+	try {
+		// Update Move.toml with "published-at" = previous deployedPackageId
+		await updateMoveTomlPublishedAt(moveTomlPath, previousDeployedPackageId);
+
+		await validateContractIsBuilt(contractData, projectRoot);
+
+		// Execute upgrade command
+		const upgradeCapabilityId = contractData.upgradeCapabilityId;
+		if (!upgradeCapabilityId) {
+			throw new GeneralError("commands", "commands.deploy.upgradeCapabilityNotFound");
+		}
+		const upgradeResult = await executeUpgradeWithIotaCli(
+			upgradeCapabilityId,
+			config.deployment.gasBudget,
+			projectRoot
+		);
+
+		// Update contract data with new package ID
+		contractData.deployedPackageId = upgradeResult.packageId;
+
+		return upgradeResult;
+	} finally {
+		// Always restore original Move.toml
+		await restoreMoveToml(moveTomlPath, backupPath);
+	}
+}
+
+/**
+ * Execute upgrade using iota client upgrade command.
+ * @param upgradeCapabilityId Upgrade capability ID.
+ * @param gasBudget Gas budget for upgrade.
+ * @param moveProjectRoot Move project root directory.
+ * @returns Upgrade result.
+ */
+async function executeUpgradeWithIotaCli(
+	upgradeCapabilityId: string,
+	gasBudget: number,
+	moveProjectRoot: string
+): Promise<{ packageId: string; upgradeCap: string; migrationStateId?: string }> {
+	// Clean build artifacts and lock files before upgrade to prevent permission issues
+	await cleanBuildArtifactsInPath(moveProjectRoot);
+
+	const upgradeCmd = `iota client upgrade --upgrade-capability ${upgradeCapabilityId} . --gas-budget ${gasBudget} --json`;
+
+	CLIDisplay.value(I18n.formatMessage("commands.deploy.labels.publishCommand"), upgradeCmd, 1);
+	CLIDisplay.value(
+		I18n.formatMessage("commands.deploy.labels.workingDirectory"),
+		moveProjectRoot,
+		1
+	);
+
+	try {
+		const { stdout: output } = await execAsyncWithError(upgradeCmd, {
+			cwd: moveProjectRoot
+		});
+		const result = JSON.parse(output);
+
+		// Parse upgrade response (different from publish response)
+		const packageId = result.objectChanges?.find(
+			(change: { type: string; packageId?: string }) => change.type === "published"
+		)?.packageId;
+
+		if (!packageId) {
+			throw new GeneralError("commands", "commands.deploy.upgradePackageIdNotFound", { result });
+		}
+
+		// UpgradeCap persists with same ID
+		const upgradeCap = upgradeCapabilityId;
+
+		return { packageId, upgradeCap };
+	} catch (err) {
+		// Clean up on error too
+		await cleanBuildArtifactsInPath(moveProjectRoot);
+		throw new GeneralError("commands", "commands.deploy.upgradeFailed", undefined, err);
+	}
+}
+
+/**
+ * Backup Move.toml file.
+ * @param moveTomlPath Path to Move.toml file.
+ * @returns Path to backup file.
+ */
+async function backupMoveToml(moveTomlPath: string): Promise<string> {
+	const backupPath = `${moveTomlPath}.backup.${Date.now()}`;
+	await fsPromises.copyFile(moveTomlPath, backupPath);
+	return backupPath;
+}
+
+/**
+ * Restore Move.toml file from backup.
+ * @param moveTomlPath Path to Move.toml file.
+ * @param backupPath Path to backup file.
+ */
+async function restoreMoveToml(moveTomlPath: string, backupPath: string): Promise<void> {
+	await fsPromises.copyFile(backupPath, moveTomlPath);
+	await fsPromises.unlink(backupPath);
+	CLIDisplay.value(
+		I18n.formatMessage("commands.deploy.labels.moveTomlRestored"),
+		I18n.formatMessage("commands.deploy.messages.originalConfigurationRestored"),
+		1
+	);
+}
+
+/**
+ * Update Move.toml published-at field.
+ * @param moveTomlPath Path to Move.toml file.
+ * @param publishedAt Published-at value to set.
+ */
+async function updateMoveTomlPublishedAt(moveTomlPath: string, publishedAt: string): Promise<void> {
+	const content = await fsPromises.readFile(moveTomlPath, "utf-8");
+
+	// Parse TOML and update "published-at" field
+	const lines = content.split("\n");
+	let updated = false;
+
+	for (let i = 0; i < lines.length; i++) {
+		if (lines[i].trim().startsWith("published-at")) {
+			lines[i] = `published-at = "${publishedAt}"`;
+			updated = true;
+			break;
+		}
+	}
+
+	if (!updated) {
+		// Add "published-at" to "[package]" section
+		const packageSectionIndex = lines.findIndex(line => line.trim() === "[package]");
+		if (packageSectionIndex >= 0) {
+			lines.splice(packageSectionIndex + 1, 0, `published-at = "${publishedAt}"`);
+		}
+	}
+
+	await fsPromises.writeFile(moveTomlPath, lines.join("\n"));
+	CLIDisplay.value(
+		I18n.formatMessage("commands.deploy.labels.moveTomlUpdated"),
+		`published-at = "${publishedAt}"`,
+		1
+	);
+}
+
+/**
+ * Validate that contract has been built.
+ * @param contractData Contract data to validate.
+ * @param projectRoot Project root directory.
+ */
+async function validateContractIsBuilt(
+	contractData: IContractData,
+	projectRoot: string
+): Promise<void> {
+	// Check if build directory exists and has been built
+	const buildDir = path.join(projectRoot, "build");
+	try {
+		const stats = await fsPromises.stat(buildDir);
+		if (!stats.isDirectory()) {
+			throw new GeneralError("commands", "commands.deploy.buildPathNotDirectory", {
+				buildDir
+			});
+		}
+	} catch {
+		throw new GeneralError("commands", "commands.deploy.contractNotBuilt", {
+			projectRoot
+		});
+	}
+
+	// Verify that the contract data has current packageId (build should have been run)
+	if (!contractData.packageId || !contractData.packageBytecode) {
+		throw new GeneralError("commands", "commands.deploy.contractDataOutdated");
+	}
+
+	CLIDisplay.value(
+		I18n.formatMessage("commands.deploy.labels.buildValidation"),
+		I18n.formatMessage("commands.deploy.messages.contractBuiltAndReadyForUpgrade"),
+		1
+	);
+}
+
+/**
+ * Handle contract upgrade execution.
+ * @param contractName Name of the contract.
+ * @param contractData Contract data.
+ * @param config Network configuration.
+ * @param network Target network.
+ * @param faucetUrl The faucet URL (optional, defaults to network-specific URL).
+ * @param deployerMnemonic The deployer mnemonic from environment variables.
+ * @param deployerSeed The deployer seed from environment variables (optional).
+ */
+async function handleContractUpgrade(
+	contractName: string,
+	contractData: IContractData,
+	config: INetworkConfig,
+	network: NetworkTypes,
+	faucetUrl?: string,
+	deployerMnemonic?: string,
+	deployerSeed?: string
+): Promise<void> {
+	CLIDisplay.task(`Upgrading contract: ${contractName}`);
+
+	const walletAddress = await validateEnvironmentForNetwork(
+		network,
+		config,
+		false,
+		faucetUrl,
+		deployerMnemonic,
+		deployerSeed
+	);
+	await checkWalletBalance(network, config, walletAddress, false);
+
+	const upgradeResult = await executeContractUpgrade(contractData, config);
+
+	// Update contract data with upgrade chain tracking
+	contractData.deployedPackageId = upgradeResult.packageId;
+
+	CLIDisplay.value(
+		I18n.formatMessage("commands.deploy.labels.upgradeSuccessful"),
+		upgradeResult.packageId,
+		1
+	);
+	if (contractData.lastDeployedPackageId) {
+		CLIDisplay.value(
+			I18n.formatMessage("commands.deploy.labels.previousDeployment"),
+			contractData.lastDeployedPackageId,
+			1
+		);
+	}
+	if (contractData.upgradeCapabilityId) {
+		CLIDisplay.value(
+			I18n.formatMessage("commands.deploy.labels.upgradeCapabilityPreserved"),
+			contractData.upgradeCapabilityId,
+			1
+		);
+	}
+}
+
+/**
  * Deploy a single contract.
  * @param contractName Name of the contract
  * @param contractData Contract compilation data
@@ -695,14 +977,35 @@ async function deployContract(
 		I18n.formatMessage("commands.deploy.progress.deployingContract", { contractName, network })
 	);
 
-	if (Is.stringValue(contractData.deployedPackageId) && !force) {
+	const strategy = await determineDeploymentStrategy(contractData);
+
+	if (strategy === "already-deployed" && !force) {
 		CLIDisplay.value(
-			I18n.formatMessage("commands.deploy.labels.contractAlreadyDeployed"),
-			contractData.deployedPackageId,
+			I18n.formatMessage("commands.deploy.labels.contractStatus"),
+			I18n.formatMessage("commands.deploy.messages.contractAlreadyDeployed"),
+			1
+		);
+		CLIDisplay.value(
+			I18n.formatMessage("commands.deploy.labels.upgradeGuidance"),
+			I18n.formatMessage("commands.deploy.messages.upgradeGuidanceMessage"),
 			1
 		);
 		return;
 	}
+
+	// Show deployment strategy
+	CLIDisplay.section(I18n.formatMessage("commands.deploy.labels.smartDeployAnalysis"));
+	CLIDisplay.value(
+		I18n.formatMessage("commands.deploy.labels.upgradeCapability"),
+		contractData.upgradeCapabilityId ??
+			I18n.formatMessage("commands.deploy.messages.noneInitialDeployment")
+	);
+	CLIDisplay.value(
+		I18n.formatMessage("commands.deploy.labels.currentDeployment"),
+		contractData.deployedPackageId ??
+			I18n.formatMessage("commands.deploy.messages.noneNeedsDeploymentUpgrade")
+	);
+	CLIDisplay.value(I18n.formatMessage("commands.deploy.labels.detectedStrategy"), strategy);
 
 	if (dryRun) {
 		await handleDryRunValidation(
@@ -717,15 +1020,27 @@ async function deployContract(
 		return;
 	}
 
-	await handleActualDeployment(
-		contractName,
-		contractData,
-		config,
-		network,
-		faucetUrl,
-		deployerMnemonic,
-		deployerSeed
-	);
+	if (strategy === "upgrade") {
+		await handleContractUpgrade(
+			contractName,
+			contractData,
+			config,
+			network,
+			faucetUrl,
+			deployerMnemonic,
+			deployerSeed
+		);
+	} else {
+		await handleActualDeployment(
+			contractName,
+			contractData,
+			config,
+			network,
+			faucetUrl,
+			deployerMnemonic,
+			deployerSeed
+		);
+	}
 }
 
 /**
@@ -859,7 +1174,7 @@ async function checkBalanceAndRequestFaucetIfNeeded(
 		);
 
 		if (!Is.stringValue(faucetUrl)) {
-			throw new GeneralError("commands", "error.commands.deploy.noFaucetConfigured");
+			throw new GeneralError("commands", "commands.deploy.noFaucetConfigured");
 		}
 
 		CLIDisplay.task(I18n.formatMessage("commands.deploy.progress.requestingAdditionalFaucetFunds"));
@@ -924,37 +1239,41 @@ async function deployWithIotaCli(
 		1
 	);
 
-	const { stdout: output } = await execAsync(publishCmd, { cwd: moveProjectRoot });
-	const result = JSON.parse(output);
+	try {
+		const { stdout: output } = await execAsyncWithError(publishCmd, { cwd: moveProjectRoot });
+		const result = JSON.parse(output);
 
-	// Extract package ID from published object
-	const packageId = result.objectChanges?.find(
-		(change: { type: string; packageId?: string }) => change.type === "published"
-	)?.packageId;
+		// Extract package ID from published object
+		const packageId = result.objectChanges?.find(
+			(change: { type: string; packageId?: string }) => change.type === "published"
+		)?.packageId;
 
-	if (!packageId) {
-		throw new GeneralError("commands", "commands.deploy.packageIdNotFound", {
-			result
-		});
+		if (!packageId) {
+			throw new GeneralError("commands", "commands.deploy.packageIdNotFound", {
+				result
+			});
+		}
+
+		// Extract UpgradeCap ID from created objects
+		const upgradeCap = result.objectChanges?.find(
+			(change: { objectType?: string; objectId?: string }) =>
+				change.objectType === "0x2::package::UpgradeCap"
+		)?.objectId;
+
+		// Extract MigrationState ID from created objects
+		const migrationStateId = result.objectChanges?.find(
+			(change: { objectType?: string; objectId?: string }) =>
+				change.objectType?.endsWith("::MigrationState")
+		)?.objectId;
+
+		return {
+			packageId,
+			upgradeCap,
+			migrationStateId
+		};
+	} catch (err) {
+		throw new GeneralError("commands", "commands.deploy.deploymentFailed", undefined, err);
 	}
-
-	// Extract UpgradeCap ID from created objects
-	const upgradeCap = result.objectChanges?.find(
-		(change: { objectType?: string; objectId?: string }) =>
-			change.objectType === "0x2::package::UpgradeCap"
-	)?.objectId;
-
-	// Extract MigrationState ID from created objects
-	const migrationStateId = result.objectChanges?.find(
-		(change: { objectType?: string; objectId?: string }) =>
-			change.objectType?.endsWith("::MigrationState")
-	)?.objectId;
-
-	return {
-		packageId,
-		upgradeCap,
-		migrationStateId
-	};
 }
 
 /**
@@ -1026,7 +1345,7 @@ export async function ensureCorrectDeployerKey(
 ): Promise<void> {
 	try {
 		// Check if the alias already exists in keystore
-		const { stdout: keysListOutput } = await execAsync("iota keytool list --json");
+		const { stdout: keysListOutput } = await execAsyncWithError("iota keytool list --json");
 		const keysList = JSON.parse(keysListOutput);
 
 		// Find existing key with the target alias
@@ -1045,7 +1364,7 @@ export async function ensureCorrectDeployerKey(
 				);
 
 				const backupAlias = generateUniqueBackupAlias(aliasName, keysList);
-				await execAsync(`iota keytool update-alias "${aliasName}" "${backupAlias}"`);
+				await execAsyncWithError(`iota keytool update-alias "${aliasName}" "${backupAlias}"`);
 
 				CLIDisplay.value(
 					I18n.formatMessage("commands.deploy.labels.renamedExistingKey"),
@@ -1081,7 +1400,7 @@ export async function ensureCorrectDeployerKey(
 		}
 
 		// Verify the address exists in client addresses
-		const { stdout: addressListOutput } = await execAsync("iota client addresses --json");
+		const { stdout: addressListOutput } = await execAsyncWithError("iota client addresses --json");
 		const addressInfo = JSON.parse(addressListOutput);
 		const addressExists: boolean = addressInfo.addresses.some(
 			([_, addr]: [string, string]) => addr === expectedAddress
@@ -1125,7 +1444,7 @@ async function importCorrectDeployerKey(
 	const mnemonic = await getDeploymentMnemonic(network, deployerMnemonic);
 	const derivationPath = Bip44.path(Iota.DEFAULT_COIN_TYPE, 0, false, addressIndex).toString();
 
-	await execAsync(
+	await execAsyncWithError(
 		`iota keytool import "${mnemonic}" ed25519 "${derivationPath}" --alias "${aliasName}"`
 	);
 

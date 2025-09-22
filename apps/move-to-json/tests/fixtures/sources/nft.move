@@ -1,12 +1,11 @@
 module nft::nft {
-    use iota::object::{Self, UID};
-    use iota::transfer;
-    use iota::tx_context::TxContext;
     use std::string::String;
 
     /// Current version of the NFT contract
     const VERSION: u64 = 1;
-
+    /// Test marker to differentiate from production contract  
+    const TEST_CONTRACT_MARKER: u64 = 1010;
+    // Testing bytecode change detection - MODIFIED FOR TESTING
     /// Error codes
     const E_INCOMPATIBLE_VERSION: u64 = 1;
     const E_ALREADY_LATEST_VERSION: u64 = 2;
