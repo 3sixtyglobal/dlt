@@ -1,5 +1,19 @@
 # @twin.org/move-to-json - Changelog
 
+## [0.0.2-next.10](https://github.com/twinfoundation/dlt/compare/move-to-json-v0.0.2-next.9...move-to-json-v0.0.2-next.10) (2025-09-29)
+
+
+### Bug Fixes
+
+* adding dependencies ([#45](https://github.com/twinfoundation/dlt/issues/45)) ([969f598](https://github.com/twinfoundation/dlt/commit/969f59807a0a0585dfe7d078b2cb38f197afb5d6))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @twin.org/dlt-iota bumped from 0.0.2-next.9 to 0.0.2-next.10
+
 ## [0.0.2-next.9](https://github.com/twinfoundation/dlt/compare/move-to-json-v0.0.2-next.8...move-to-json-v0.0.2-next.9) (2025-09-22)
 
 
