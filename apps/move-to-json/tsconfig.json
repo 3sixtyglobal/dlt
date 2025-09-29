@@ -14,7 +14,7 @@
 		"sourceMap": true,
 		"declaration": true,
 		"declarationDir": "dist/types",
-		"types": ["@types/node"],
+		"types": ["node"],
 		"plugins": [{ "transform": "@twin.org/nameof-transformer" }],
 		"skipLibCheck": true
 	},

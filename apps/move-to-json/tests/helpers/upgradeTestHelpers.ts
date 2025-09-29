@@ -79,7 +79,7 @@ export async function buildV1Contract(): Promise<void> {
 		});
 
 		const cli = new CLI();
-		const buildPromise = await cli.run(buildCommand, "./dist/locales", {
+		const buildPromise = cli.run(buildCommand, "./dist/locales", {
 			overrideOutputWidth: 1000
 		});
 		await Promise.race([buildPromise, timeoutPromise]);
@@ -161,7 +161,7 @@ export async function deployV1Contract(): Promise<IContractData> {
 		});
 
 		const cli = new CLI();
-		const deployPromise = await cli.run(deployCommand, "./dist/locales", {
+		const deployPromise = cli.run(deployCommand, "./dist/locales", {
 			overrideOutputWidth: 1000
 		});
 		await Promise.race([deployPromise, timeoutPromise]);
@@ -282,7 +282,7 @@ export async function buildV2Contract(v1Deployment: IContractData): Promise<void
 		});
 
 		const cli = new CLI();
-		const buildPromise = await cli.run(buildCommand, "./dist/locales", {
+		const buildPromise = cli.run(buildCommand, "./dist/locales", {
 			overrideOutputWidth: 1000
 		});
 		await Promise.race([buildPromise, timeoutPromise]);
@@ -364,7 +364,7 @@ export async function upgradeToV2UsingSmartDeploy(): Promise<IContractData> {
 		});
 
 		const cli = new CLI();
-		const deployPromise = await cli.run(deployCommand, "./dist/locales", {
+		const deployPromise = cli.run(deployCommand, "./dist/locales", {
 			overrideOutputWidth: 1000
 		});
 		await Promise.race([deployPromise, timeoutPromise]);

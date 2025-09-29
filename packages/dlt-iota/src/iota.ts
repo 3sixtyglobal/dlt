@@ -383,9 +383,12 @@ export class Iota {
 	 * @returns The extracted error.
 	 */
 	public static extractPayloadError(error: unknown): IError {
-		if (Is.object<{ code?: string; message?: string; inner?: IError }>(error)) {
+		if (Is.object<{ code?: string; message?: string; inner?: unknown; cause?: unknown }>(error)) {
 			if (!Is.empty(error.inner)) {
 				error.inner = Iota.extractPayloadError(error.inner);
+			}
+			if (!Is.empty(error.cause)) {
+				error.cause = Iota.extractPayloadError(error.cause);
 			}
 
 			if (error.code === "InsufficientGas") {
@@ -456,10 +459,14 @@ export class Iota {
 
 			return true;
 		} catch (error) {
-			throw new GeneralError(Iota._CLASS_NAME, "packageNotFoundOnNetwork", {
-				packageId,
-				error: Iota.extractPayloadError(error)
-			});
+			throw new GeneralError(
+				Iota._CLASS_NAME,
+				"packageNotFoundOnNetwork",
+				{
+					packageId
+				},
+				Iota.extractPayloadError(error)
+			);
 		}
 	}
 
