@@ -85,5 +85,13 @@
 	],
 	"bin": {
 		"move-to-json": "bin/index.js"
-	}
+	},
+	"keywords": [
+		"twin",
+		"trade",
+		"iota",
+		"framework",
+		"blockchain",
+		"dlt"
+	]
 }
