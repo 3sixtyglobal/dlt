@@ -1,5 +1,19 @@
 # @twin.org/move-to-json - Changelog
 
+## [0.0.2-next.11](https://github.com/twinfoundation/dlt/compare/move-to-json-v0.0.2-next.10...move-to-json-v0.0.2-next.11) (2025-10-09)
+
+
+### Features
+
+* add validate-locales ([8465099](https://github.com/twinfoundation/dlt/commit/8465099626ab1891d419a35870fae447efc3008d))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @twin.org/dlt-iota bumped from 0.0.2-next.10 to 0.0.2-next.11
+
 ## [0.0.2-next.10](https://github.com/twinfoundation/dlt/compare/move-to-json-v0.0.2-next.9...move-to-json-v0.0.2-next.10) (2025-09-29)
 
 
