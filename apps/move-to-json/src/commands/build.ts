@@ -94,7 +94,7 @@ export async function actionCommandBuild(
 				2
 			);
 		} else if (matchedFiles.length > 1) {
-			throw new GeneralError("commands", "commands.build.warnings.multipleFilesNotSupported", {
+			throw new GeneralError("commands", "commands.build.multipleFilesNotSupported", {
 				fileCount: matchedFiles.length,
 				fileList: matchedFiles.map(f => path.basename(f)).join(", ")
 			});

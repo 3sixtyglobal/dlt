@@ -58,17 +58,17 @@ export class IotaSmartContractUtils {
 			const txb = new Transaction();
 			txb.setGasBudget(gasBudget);
 
-			const moduleName = this.getModuleName(namespace);
+			const moduleName = IotaSmartContractUtils.getModuleName(namespace);
 
 			// Get admin address for the transaction
-			const adminAddress = await this.getPackageControllerAddress(
+			const adminAddress = await IotaSmartContractUtils.getPackageControllerAddress(
 				walletConnector,
 				identity,
 				walletAddressIndex
 			);
 
 			// Get the required object IDs from deployment config
-			const { adminCapId, migrationStateId } = await this.getContractObjectIds(
+			const { adminCapId, migrationStateId } = await IotaSmartContractUtils.getContractObjectIds(
 				client,
 				namespace,
 				config.network as NetworkTypes,
@@ -143,17 +143,17 @@ export class IotaSmartContractUtils {
 			const txb = new Transaction();
 			txb.setGasBudget(gasBudget);
 
-			const moduleName = this.getModuleName(namespace);
+			const moduleName = IotaSmartContractUtils.getModuleName(namespace);
 
 			// Get admin address for the transaction
-			const adminAddress = await this.getPackageControllerAddress(
+			const adminAddress = await IotaSmartContractUtils.getPackageControllerAddress(
 				walletConnector,
 				identity,
 				walletAddressIndex
 			);
 
 			// Get the required object IDs from deployment config
-			const { adminCapId, migrationStateId } = await this.getContractObjectIds(
+			const { adminCapId, migrationStateId } = await IotaSmartContractUtils.getContractObjectIds(
 				client,
 				namespace,
 				config.network as NetworkTypes,
@@ -227,17 +227,17 @@ export class IotaSmartContractUtils {
 			const txb = new Transaction();
 			txb.setGasBudget(gasBudget);
 
-			const moduleName = this.getModuleName(namespace);
+			const moduleName = IotaSmartContractUtils.getModuleName(namespace);
 
 			// Get admin address for the transaction
-			const adminAddress = await this.getPackageControllerAddress(
+			const adminAddress = await IotaSmartContractUtils.getPackageControllerAddress(
 				walletConnector,
 				identity,
 				walletAddressIndex
 			);
 
 			// Get the required object IDs from deployment config
-			const { adminCapId, migrationStateId } = await this.getContractObjectIds(
+			const { adminCapId, migrationStateId } = await IotaSmartContractUtils.getContractObjectIds(
 				client,
 				namespace,
 				config.network as NetworkTypes,
@@ -303,14 +303,14 @@ export class IotaSmartContractUtils {
 	): Promise<boolean> {
 		try {
 			// Get admin address for discovery
-			const adminAddress = await this.getPackageControllerAddress(
+			const adminAddress = await IotaSmartContractUtils.getPackageControllerAddress(
 				walletConnector,
 				identity,
 				walletAddressIndex
 			);
 
 			// Get the migration state ID
-			const { migrationStateId } = await this.getContractObjectIds(
+			const { migrationStateId } = await IotaSmartContractUtils.getContractObjectIds(
 				client,
 				namespace,
 				config.network as NetworkTypes,
@@ -372,14 +372,14 @@ export class IotaSmartContractUtils {
 	): Promise<number> {
 		try {
 			const tx = new Transaction();
-			const moduleName = this.getModuleName(namespace);
+			const moduleName = IotaSmartContractUtils.getModuleName(namespace);
 
 			tx.moveCall({
 				target: `${packageId}::${moduleName}::get_current_version`,
 				arguments: []
 			});
 
-			const controllerAddress = await this.getPackageControllerAddress(
+			const controllerAddress = await IotaSmartContractUtils.getPackageControllerAddress(
 				walletConnector,
 				identity,
 				walletAddressIndex
@@ -400,7 +400,7 @@ export class IotaSmartContractUtils {
 				// Convert to Uint8Array if it's a regular array
 				const byteData = versionBytes[0];
 				if (!Is.arrayValue(byteData) && !Is.uint8Array(byteData)) {
-					throw new GeneralError(this.CLASS_NAME, "invalidVersionData");
+					throw new GeneralError(IotaSmartContractUtils.CLASS_NAME, "invalidVersionData");
 				}
 
 				// Convert to Uint8Array for BCS parsing
@@ -453,7 +453,7 @@ export class IotaSmartContractUtils {
 	): Promise<boolean> {
 		try {
 			// Get current contract version
-			const currentVersion = await this.getCurrentContractVersion(
+			const currentVersion = await IotaSmartContractUtils.getCurrentContractVersion(
 				config,
 				client,
 				namespace,
@@ -552,7 +552,12 @@ export class IotaSmartContractUtils {
 				const migrationStateId = networkConfig.migrationStateId;
 
 				// AdminCap must be discovered from blockchain (not stored in JSON)
-				const adminCapId = await this.discoverAdminCap(client, packageId, namespace, adminAddress);
+				const adminCapId = await IotaSmartContractUtils.discoverAdminCap(
+					client,
+					packageId,
+					namespace,
+					adminAddress
+				);
 
 				if (Is.stringValue(migrationStateId) && Is.stringValue(adminCapId)) {
 					return { adminCapId, migrationStateId };
@@ -560,7 +565,7 @@ export class IotaSmartContractUtils {
 			}
 
 			// Fallback: discover both from blockchain
-			return await this.discoverContractObjectsFromBlockchain(
+			return await IotaSmartContractUtils.discoverContractObjectsFromBlockchain(
 				client,
 				packageId,
 				namespace,
@@ -591,7 +596,7 @@ export class IotaSmartContractUtils {
 		namespace: string,
 		adminAddress: string
 	): Promise<string> {
-		const adminCapType = `${packageId}::${this.getModuleName(namespace)}::AdminCap`;
+		const adminCapType = `${packageId}::${IotaSmartContractUtils.getModuleName(namespace)}::AdminCap`;
 
 		const adminCapObjects = await client.getOwnedObjects({
 			owner: adminAddress,
@@ -633,10 +638,15 @@ export class IotaSmartContractUtils {
 		adminAddress: string
 	): Promise<{ adminCapId: string; migrationStateId: string }> {
 		// Discover AdminCap
-		const adminCapId = await this.discoverAdminCap(client, packageId, namespace, adminAddress);
+		const adminCapId = await IotaSmartContractUtils.discoverAdminCap(
+			client,
+			packageId,
+			namespace,
+			adminAddress
+		);
 
 		// Discover MigrationState through transaction history
-		const migrationStateType = `${packageId}::${this.getModuleName(namespace)}::MigrationState`;
+		const migrationStateType = `${packageId}::${IotaSmartContractUtils.getModuleName(namespace)}::MigrationState`;
 
 		const transactions = await client.queryTransactionBlocks({
 			filter: {

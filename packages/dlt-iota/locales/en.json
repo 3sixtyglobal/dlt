@@ -8,8 +8,7 @@
 			"transactionFailed": "The transaction failed",
 			"addressNotFound": "The address is missing could not be found from the seed \"{address}\"",
 			"gasStationTransactionFailed": "The gas station transaction failed",
-			"gasReservationFailed": "The gas reservation failed",
-			"gasStationExecutionFailed": "The gas station execution failed"
+			"dryRunFailed": "The dry run execution failed"
 		},
 		"iotaSmartContractUtils": {
 			"migrationFailed": "Smart contract migration failed",
@@ -27,6 +26,11 @@
 			"getContractObjectIdsFailed": "Failed to get contract object IDs for namespace \"{namespace}\" on network \"{network}\"",
 			"adminCapNotFound": "AdminCap object not found for type \"{adminCapType}\" and address \"{adminAddress}\"",
 			"migrationStateNotFound": "MigrationState object not found for type \"{migrationStateType}\" and address \"{adminAddress}\""
+		}
+	},
+	"info": {
+		"iota": {
+			"transactionCosts": "Transaction costs for operation \"{operation}\", \"{cost}\""
 		}
 	}
 }

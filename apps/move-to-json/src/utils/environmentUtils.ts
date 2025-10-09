@@ -21,20 +21,19 @@ export async function execAsyncWithError(
 		const { stdout, stderr } = await execAsync(command, options);
 		return { stdout: stdout.toString(), stderr: stderr.toString() };
 	} catch (error) {
-		let additionalInfo = {
-			command,
-			output: ""
-		};
+		let cmd;
+		let output;
 		if (
 			Is.object<{ cmd: string; stdout: string; stderr: string }>(error) &&
 			Is.stringValue(error.cmd)
 		) {
-			additionalInfo = {
-				command: error.cmd,
-				output: `${error.stdout}\n${error.stderr}`.trim()
-			};
+			cmd = error.cmd;
+			output = `${error.stdout}\n${error.stderr}`.trim();
 		}
-		throw new GeneralError("environmentUtils", "commandExecutionFailedParams", additionalInfo);
+		throw new GeneralError("environmentUtils", "commandExecutionFailedParams", {
+			command: cmd ?? "",
+			output: output ?? ""
+		});
 	}
 }
 

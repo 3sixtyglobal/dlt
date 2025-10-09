@@ -52,6 +52,14 @@ Default scan range.
 
 Default inclusion timeout.
 
+***
+
+### CLASS\_NAME
+
+> `readonly` `static` **CLASS\_NAME**: `string`
+
+Runtime name for the class.
+
 ## Methods
 
 ### createClient()

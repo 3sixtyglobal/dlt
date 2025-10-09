@@ -281,7 +281,7 @@ describe("move-to-json CLI", () => {
 
 		expect(exitCode).toBe(1);
 		const errOutput = errorBuffer.join("\n");
-		expect(errOutput).toContain("commands.build.warnings.multipleFilesNotSupported");
+		expect(errOutput).toContain("Multiple Move files detected");
 
 		// Cleanup
 		await rm(multiFileTestDir, { recursive: true, force: true });

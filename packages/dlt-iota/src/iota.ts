@@ -57,9 +57,8 @@ export class Iota {
 
 	/**
 	 * Runtime name for the class.
-	 * @internal
 	 */
-	private static readonly _CLASS_NAME: string = nameof<Iota>();
+	public static readonly CLASS_NAME: string = nameof<Iota>();
 
 	/**
 	 * Create a new IOTA client.
@@ -67,9 +66,9 @@ export class Iota {
 	 * @returns The client instance.
 	 */
 	public static createClient(config: IIotaConfig): IotaClient {
-		Guards.object(Iota._CLASS_NAME, nameof(config), config);
-		Guards.object(Iota._CLASS_NAME, nameof(config.clientOptions), config.clientOptions);
-		Guards.string(Iota._CLASS_NAME, nameof(config.clientOptions.url), config.clientOptions.url);
+		Guards.object(Iota.CLASS_NAME, nameof(config), config);
+		Guards.object(Iota.CLASS_NAME, nameof(config.clientOptions), config.clientOptions);
+		Guards.string(Iota.CLASS_NAME, nameof(config.clientOptions.url), config.clientOptions.url);
 
 		return new IotaClient(config.clientOptions);
 	}
@@ -80,7 +79,7 @@ export class Iota {
 	 */
 	public static populateConfig(config: IIotaConfig): void {
 		Guards.object<IIotaConfig["clientOptions"]>(
-			Iota._CLASS_NAME,
+			Iota.CLASS_NAME,
 			nameof(config.clientOptions),
 			config.clientOptions
 		);
@@ -109,10 +108,10 @@ export class Iota {
 		count: number,
 		isInternal?: boolean
 	): string[] {
-		Guards.integer(Iota._CLASS_NAME, nameof(coinType), coinType);
-		Guards.integer(Iota._CLASS_NAME, nameof(accountIndex), accountIndex);
-		Guards.integer(Iota._CLASS_NAME, nameof(startAddressIndex), startAddressIndex);
-		Guards.integer(Iota._CLASS_NAME, nameof(count), count);
+		Guards.integer(Iota.CLASS_NAME, nameof(coinType), coinType);
+		Guards.integer(Iota.CLASS_NAME, nameof(accountIndex), accountIndex);
+		Guards.integer(Iota.CLASS_NAME, nameof(startAddressIndex), startAddressIndex);
+		Guards.integer(Iota.CLASS_NAME, nameof(count), count);
 
 		const addresses: string[] = [];
 
@@ -153,9 +152,9 @@ export class Iota {
 		privateKey: Uint8Array;
 		publicKey: Uint8Array;
 	} {
-		Guards.integer(Iota._CLASS_NAME, nameof(coinType), coinType);
-		Guards.integer(Iota._CLASS_NAME, nameof(accountIndex), accountIndex);
-		Guards.integer(Iota._CLASS_NAME, nameof(addressIndex), addressIndex);
+		Guards.integer(Iota.CLASS_NAME, nameof(coinType), coinType);
+		Guards.integer(Iota.CLASS_NAME, nameof(accountIndex), accountIndex);
+		Guards.integer(Iota.CLASS_NAME, nameof(addressIndex), addressIndex);
 
 		const keyPair = Bip44.keyPair(
 			seed,
@@ -200,7 +199,7 @@ export class Iota {
 
 			// Check if gas station configuration is present
 			if (Is.object<IGasStationConfig>(config.gasStation)) {
-				return await this.prepareAndPostGasStationTransaction(
+				return await Iota.prepareAndPostGasStationTransaction(
 					config,
 					vaultConnector,
 					identity,
@@ -210,7 +209,7 @@ export class Iota {
 				);
 			}
 
-			const result = await this.prepareAndPostTransaction(
+			const result = await Iota.prepareAndPostTransaction(
 				config,
 				vaultConnector,
 				logging,
@@ -223,7 +222,7 @@ export class Iota {
 			return result;
 		} catch (error) {
 			throw new GeneralError(
-				Iota._CLASS_NAME,
+				Iota.CLASS_NAME,
 				"valueTransactionFailed",
 				undefined,
 				Iota.extractPayloadError(error)
@@ -255,7 +254,7 @@ export class Iota {
 	): Promise<IotaTransactionBlockResponse> {
 		// Check if gas station configuration is present
 		if (Is.object<IGasStationConfig>(config.gasStation)) {
-			return this.prepareAndPostGasStationTransaction(
+			return Iota.prepareAndPostGasStationTransaction(
 				config,
 				vaultConnector,
 				identity,
@@ -272,7 +271,7 @@ export class Iota {
 			await Iota.dryRunTransaction(client, logging, transaction, owner, options.dryRunLabel);
 		}
 
-		const seed = await this.getSeed(config, vaultConnector, identity);
+		const seed = await Iota.getSeed(config, vaultConnector, identity);
 		const addressKeyPair = Iota.findAddress(
 			config.maxAddressScanRange ?? Iota.DEFAULT_SCAN_RANGE,
 			config.coinType ?? Iota.DEFAULT_COIN_TYPE,
@@ -312,7 +311,7 @@ export class Iota {
 			return response;
 		} catch (error) {
 			throw new GeneralError(
-				Iota._CLASS_NAME,
+				Iota.CLASS_NAME,
 				"transactionFailed",
 				undefined,
 				Iota.extractPayloadError(error)
@@ -373,7 +372,7 @@ export class Iota {
 			}
 		}
 
-		throw new GeneralError(Iota._CLASS_NAME, "addressNotFound", { address });
+		throw new GeneralError(Iota.CLASS_NAME, "addressNotFound", { address });
 	}
 
 	/**
@@ -392,7 +391,7 @@ export class Iota {
 			}
 
 			if (error.code === "InsufficientGas") {
-				return new GeneralError(Iota._CLASS_NAME, "insufficientFunds");
+				return new GeneralError(Iota.CLASS_NAME, "insufficientFunds");
 			} else if (error.message?.startsWith("ErrorObject")) {
 				const msg = /message: "(.*)"/.exec(error.message);
 				if (msg && msg.length > 1) {
@@ -404,7 +403,7 @@ export class Iota {
 		const baseError = BaseError.fromError(error);
 		if (baseError.name === "Base" && !Is.stringValue(baseError.source)) {
 			baseError.name = "IOTA";
-			baseError.source = Iota._CLASS_NAME;
+			baseError.source = Iota.CLASS_NAME;
 		}
 		return baseError;
 	}
@@ -451,7 +450,7 @@ export class Iota {
 				if (packageObject?.error?.code === "notExists") {
 					return false;
 				}
-				throw new GeneralError(Iota._CLASS_NAME, "packageObjectError", {
+				throw new GeneralError(Iota.CLASS_NAME, "packageObjectError", {
 					packageId,
 					error: packageObject.error
 				});
@@ -460,7 +459,7 @@ export class Iota {
 			return true;
 		} catch (error) {
 			throw new GeneralError(
-				Iota._CLASS_NAME,
+				Iota.CLASS_NAME,
 				"packageNotFoundOnNetwork",
 				{
 					packageId
@@ -499,7 +498,7 @@ export class Iota {
 			});
 
 			if (dryRunResult.effects.status?.status !== "success") {
-				throw new GeneralError(this._CLASS_NAME, "dryRunFailed", {
+				throw new GeneralError(Iota.CLASS_NAME, "dryRunFailed", {
 					error: dryRunResult.effects?.status?.error
 				});
 			}
@@ -518,26 +517,24 @@ export class Iota {
 				objectChanges: dryRunResult.objectChanges ?? []
 			};
 
-			if (logging) {
-				await logging.log({
-					level: "info",
-					source: Iota._CLASS_NAME,
-					ts: Date.now(),
-					message: "transactionCosts",
-					data: {
-						operation,
-						...result
-					}
-				});
-			}
+			await logging?.log({
+				level: "info",
+				source: Iota.CLASS_NAME,
+				ts: Date.now(),
+				message: "transactionCosts",
+				data: {
+					operation,
+					cost: JSON.stringify(result)
+				}
+			});
 
 			return result;
 		} catch (error) {
-			if (error instanceof GeneralError) {
+			if (BaseError.isErrorName(error, GeneralError.CLASS_NAME)) {
 				throw error;
 			}
 			throw new GeneralError(
-				Iota._CLASS_NAME,
+				Iota.CLASS_NAME,
 				"dryRunFailed",
 				undefined,
 				Iota.extractPayloadError(error)
@@ -616,12 +613,12 @@ export class Iota {
 		transaction: Transaction,
 		options?: IIotaResponseOptions
 	): Promise<IotaTransactionBlockResponse> {
-		Guards.object(this._CLASS_NAME, nameof(config.gasStation), config.gasStation);
+		Guards.object(Iota.CLASS_NAME, nameof(config.gasStation), config.gasStation);
 
 		try {
 			// Reserve gas from the gas station
 			const gasBudget = config.gasBudget ?? 50000000;
-			const gasReservation = await this.reserveGas(config, gasBudget);
+			const gasReservation = await Iota.reserveGas(config, gasBudget);
 
 			// Set transaction parameters for sponsoring
 			transaction.setSender(owner);
@@ -633,7 +630,7 @@ export class Iota {
 			const unsignedTxBytes = await transaction.build({ client });
 
 			// Sign the transaction with the user's private key
-			const seed = await this.getSeed(config, vaultConnector, identity);
+			const seed = await Iota.getSeed(config, vaultConnector, identity);
 			const addressKeyPair = Iota.findAddress(
 				config.maxAddressScanRange ?? Iota.DEFAULT_SCAN_RANGE,
 				config.coinType ?? Iota.DEFAULT_COIN_TYPE,
@@ -643,7 +640,7 @@ export class Iota {
 			const keypair = Ed25519Keypair.fromSecretKey(addressKeyPair.privateKey);
 			const signature = await keypair.signTransaction(unsignedTxBytes);
 
-			return await this.executeAndConfirmGasStationTransaction(
+			return await Iota.executeAndConfirmGasStationTransaction(
 				config,
 				client,
 				gasReservation.reservationId,
@@ -653,7 +650,7 @@ export class Iota {
 			);
 		} catch (error) {
 			throw new GeneralError(
-				Iota._CLASS_NAME,
+				Iota.CLASS_NAME,
 				"gasStationTransactionFailed",
 				undefined,
 				Iota.extractPayloadError(error)
@@ -671,7 +668,7 @@ export class Iota {
 		config: IIotaConfig,
 		gasBudget: number
 	): Promise<IGasReservationResult> {
-		Guards.object(this._CLASS_NAME, nameof(config.gasStation), config.gasStation);
+		Guards.object(Iota.CLASS_NAME, nameof(config.gasStation), config.gasStation);
 
 		const requestData = {
 			// eslint-disable-next-line camelcase
@@ -682,7 +679,7 @@ export class Iota {
 
 		const baseUrl = StringHelper.trimTrailingSlashes(config.gasStation.gasStationUrl);
 		const result = await FetchHelper.fetchJson<typeof requestData, IGasStationReserveGasResponse>(
-			this._CLASS_NAME,
+			Iota.CLASS_NAME,
 			`${baseUrl}/v1/reserve_gas`,
 			HttpMethod.POST,
 			requestData,
@@ -716,11 +713,7 @@ export class Iota {
 		transactionBytes: Uint8Array,
 		userSignature: string
 	): Promise<IotaTransactionBlockResponse> {
-		Guards.object<IGasStationConfig>(
-			this._CLASS_NAME,
-			nameof(config.gasStation),
-			config.gasStation
-		);
+		Guards.object<IGasStationConfig>(Iota.CLASS_NAME, nameof(config.gasStation), config.gasStation);
 
 		const requestData = {
 			// eslint-disable-next-line camelcase
@@ -733,7 +726,7 @@ export class Iota {
 
 		const baseUrl = StringHelper.trimTrailingSlashes(config.gasStation.gasStationUrl);
 		const result = await FetchHelper.fetchJson<typeof requestData, IGasStationExecuteResponse>(
-			this._CLASS_NAME,
+			Iota.CLASS_NAME,
 			`${baseUrl}/v1/execute_tx`,
 			HttpMethod.POST,
 			requestData,
@@ -774,13 +767,9 @@ export class Iota {
 		userSignature: string,
 		options?: IIotaResponseOptions
 	): Promise<IotaTransactionBlockResponse> {
-		Guards.object<IGasStationConfig>(
-			this._CLASS_NAME,
-			nameof(config.gasStation),
-			config.gasStation
-		);
+		Guards.object<IGasStationConfig>(Iota.CLASS_NAME, nameof(config.gasStation), config.gasStation);
 
-		const response = await this.executeGasStationTransaction(
+		const response = await Iota.executeGasStationTransaction(
 			config,
 			reservationId,
 			transactionBytes,

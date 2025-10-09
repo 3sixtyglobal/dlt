@@ -2,19 +2,15 @@
 	"error": {
 		"commands": {
 			"build": {
-				"invalidNetwork": "Invalid network: {network}. Must be one of: {validNetworks}",
-				"failedReadingOutputJson": "Failed to read output JSON file: {file}",
 				"contractProcessingFailed": "Failed to process contract: {file}",
-				"mkdirFailed": "Failed to create output directory: {dir}",
 				"buildFailed": "Build failed on for file {file}",
-				"sdkNotInstalled": "The SDK is not installed. Please install it first."
+				"sdkNotInstalled": "The SDK is not installed. Please install it first.",
+				"multipleFilesNotSupported": "Multiple Move files detected. Found {fileCount} files: {fileList}. Please specify a single .move file per build command."
 			},
 			"deploy": {
-				"environmentNotFound": "IOTA CLI environment \"{network}\" not found. Please configure it first.",
 				"environmentSwitchFailed": "Failed to switch to {network} environment. Active environment: {activeEnv}",
 				"environmentOperationFailed": "Failed to {operation} {network} environment. Make sure IOTA CLI is configured with this environment.",
 				"noContractsFound": "No contracts found for network: {network}",
-				"envFileLoadFailed": "Failed to load environment file: {envFilePath}",
 				"networkConfigInvalid": "Invalid network configuration",
 				"networkMismatch": "Network mismatch",
 				"deployerCredentialRequired": "Missing required deployer credentials. Provide either DEPLOYER_MNEMONIC or DEPLOYER_SEED environment variable, or use --deployer-mnemonic or --deployer-seed options.",
@@ -22,40 +18,29 @@
 				"invalidContractsFile": "Invalid contracts file: must contain an object",
 				"contractsLoadFailed": "Failed to load compiled contracts",
 				"insufficientBalance": "Insufficient wallet balance for deployment",
-				"deploymentEnvironmentCheckFailed": "Deployment environment validation failed",
-				"addressNotFound": "Could not find address at index {addressIndex}",
-				"balanceCheckFailed": "Failed to get wallet balance",
 				"deploymentFailed": "Contract deployment failed",
 				"packageIdNotFound": "Could not find package ID in deployment result",
 				"contractsFileUpdateFailed": "Failed to update contracts file",
-				"invalidJsonResponse": "Invalid JSON response from IOTA CLI",
-				"unexpectedResponseFormat": "Unexpected response format from IOTA CLI: {message}",
-				"invalidCoinObject": "Invalid coin object at index {index}: {actualType}",
-				"invalidCoinBalance": "Invalid coin balance at index {index}: {balance}",
-				"contractDataNotFound": "Contract data not found for network {network}. Available networks: {availableNetworks}",
-				"noPackageData": "No package data found for contract in compiled modules",
-				"packageNotFoundOnNetwork": "Package {packageId} not found on network {network}. Please ensure the package is deployed.",
-				"dryRunInvalidConfig": "Dry run failed due to invalid configuration",
 				"noMoveTomlFilesFound": "No Move.toml files found in current directory or subdirectories. Make sure you're running this from a directory containing Move projects.",
 				"addressSwitchFailed": "Failed to switch to active address {targetAddress} for {network}. Active address: {activeAddress}",
 				"addressNotInClient": "Address {expectedAddress} not found in IOTA client addresses for alias {aliasName}",
 				"noFaucetConfigured": "No faucet URL configured, cannot request funds for deployment.",
 				"noPreviousDeploymentForUpgrade": "Cannot upgrade contract: no previous deployment found. Use initial deployment instead.",
 				"upgradePackageIdNotFound": "Upgrade failed: new package ID not found in response",
-				"moveTomlUpdateFailed": "Failed to update Move.toml file for upgrade",
 				"upgradeCapabilityNotFound": "Upgrade capability not found in deployment data",
-				"moveTomlNotFound": "Move.toml not found. Expected at: {moveTomlPath}",
 				"contractNotBuilt": "Contract has not been built. Run 'move-to-json build' first.",
 				"contractDataOutdated": "Contract data is missing or outdated. Run 'move-to-json build' first.",
 				"upgradeFailed": "Contract upgrade failed",
-				"buildPathNotDirectory": "Build path exists but is not a directory: {buildDir}"
+				"buildPathNotDirectory": "Build path exists but is not a directory: {buildDir}",
+				"rpcUrlRequired": "Missing required ROC Url.",
+				"contractsFileNotFound": "The contracts file is not found \"{contractsPath}\".",
+				"fundingFailed": "Funding failed",
+				"deployerKeySetupFailed": "Deployer key setup failed network: \"{network}\" alias: \"{aliasName}\" expectedAddress: \"{expectedAddress}\""
 			}
 		},
 		"envSetup": {
-			"envFileLoadFailed": "Failed to load environment file: {envFilePath}",
 			"mnemonicMissing": "Missing required DEPLOYER_MNEMONIC environment variable for {network}. Set DEPLOYER_MNEMONIC in your environment or use --load-env to load from configuration file (e.g., configs/{network}.env).\n\nYou can generate a mnemonic using:\nnpx \"@twin.org/wallet-cli\" mnemonic --env wallet.env\n\nThen add the MNEMONIC value to your configs/{network}.env file:\n{mnemonicVar}=\"word1 word2 word3 ... word24\"\n\nSee configs/{network}.env.example for reference.",
-			"mnemonicInvalidFormat": "Invalid DEPLOYER_MNEMONIC environment variable format for {network}. Expected 24 words, got {wordCount}.\nPlease ensure {mnemonicVar} in your environment or configs/{network}.env contains a valid 24-word mnemonic phrase.",
-			"mnemonicValidationFailed": "Mnemonic validation failed",
+			"mnemonicInvalidFormat": "Invalid DEPLOYER_MNEMONIC environment variable format for {network}. Please ensure {mnemonicVar} in your environment or configs/{network}.env contains a valid 24-word mnemonic phrase.",
 			"seedInvalidFormat": "Invalid DEPLOYER_SEED environment variable format for {network}. Expected hex string starting with 0x and at least 64 characters.\nPlease ensure {seedVar} in your environment or configs/{network}.env contains a valid hex seed value."
 		},
 		"environmentUtils": {
@@ -70,7 +55,6 @@
 	},
 	"commands": {
 		"build": {
-			"summary": "Compile Move contracts for specified network and generate network-aware JSON structure",
 			"description": "Compiles Move smart contracts using the IOTA CLI and generates a network-aware JSON structure containing compiled bytecode modules.",
 			"options": {
 				"inputGlob": {
@@ -119,12 +103,10 @@
 			"warnings": {
 				"noMoveFilesFound": "No Move files found for pattern: {inputGlob}",
 				"noBytecodeModulesFolder": "No bytecode_modules folder found for contract: {contractName}",
-				"noMvFilesFound": "No .mv files found for contract: {contractName}",
-				"multipleFilesNotSupported": "Multiple Move files detected. Found {fileCount} files: {fileList}. Please specify a single .move file per build command."
+				"noMvFilesFound": "No .mv files found for contract: {contractName}"
 			}
 		},
 		"deploy": {
-			"summary": "Deploy compiled contracts to the specified network",
 			"description": "Deploys previously compiled Move contracts to the specified IOTA network using the configured environment.",
 			"options": {
 				"contracts": {
@@ -177,31 +159,19 @@
 				}
 			},
 			"labels": {
-				"contractsFile": "Contracts File",
-				"network": "Network",
-				"dryRunMode": "Dry Run Mode",
-				"forceMode": "Force Mode",
-				"deployedPackageId": "Deployed Package ID",
-				"upgradeCapabilityId": "Upgrade Capability ID",
-				"gasUsed": "Gas Used",
-				"deploymentStatus": "Deployment Status",
 				"iotaEnvironmentCheck": "IOTA environment check",
 				"switchedIotaEnvironment": "Switched IOTA environment",
-				"contractAlreadyDeployed": "Contract already deployed",
 				"dryRunWouldDeploy": "DRY RUN: Would deploy contract",
 				"dryRunPackageId": "DRY RUN: Package ID",
 				"dryRunGasBudget": "DRY RUN: Gas Budget",
 				"dryRunRpcUrl": "DRY RUN: RPC URL",
 				"dryRunWalletAddress": "DRY RUN: Wallet Address",
 				"dryRunWalletBalance": "DRY RUN: Wallet Balance",
-				"dryRunRequiredBalance": "DRY RUN: Required Balance",
-				"dryRunBalanceStatus": "DRY RUN: Balance Status",
 				"walletAddress": "Wallet Address",
 				"walletBalance": "Wallet Balance",
 				"deployedPackageIdResult": "Deployed Package ID",
 				"upgradeCapabilityIdResult": "Upgrade Capability ID",
 				"migrationStateIdResult": "Migration State ID",
-				"importedDeployerAddress": "Imported deployer address",
 				"switchedActiveAddress": "Switched active address",
 				"moveProjectRoot": "Move Project Root",
 				"publishCommand": "Publish Command",
@@ -211,10 +181,7 @@
 				"insufficientBalanceWarning": "Insufficient balance: {currentBalance} IOTA < {requiredBalance} IOTA",
 				"environmentValidationWarning": "Environment validation failed: {message}",
 				"gasBudget": "Gas Budget",
-				"requiredBalance": "Required Balance",
-				"balanceStatus": "Balance Status",
 				"faucetFundsRequested": "Faucet funds requested",
-				"faucetRequestFailed": "Faucet request failed for {network}: {error}",
 				"insufficientBalanceAfterFaucet": "Insufficient balance after faucet request on {network}: {balance} IOTA < {required} IOTA for wallet {walletAddress}. Attempting deployment anyway.",
 				"updatedWalletBalance": "Updated wallet balance",
 				"balanceCheck": "Balance check",
@@ -233,19 +200,14 @@
 				"moveTomlRestored": "Move.toml Restored",
 				"contractStatus": "Contract Status",
 				"upgradeGuidance": "Upgrade Guidance",
-				"lastDeployment": "Last Deployment",
 				"previousDeployment": "Previous Deployment",
-				"deploymentStrategy": "Deployment Strategy",
 				"currentDeployment": "Current Deployment",
 				"buildValidation": "Build Validation"
 			},
 			"progress": {
-				"loadingContracts": "Loading compiled contracts...",
 				"checkingEnvironment": "Checking IOTA CLI environment...",
 				"settingEnvironment": "Setting IOTA CLI environment...",
-				"importingDeployerAddress": "Importing deployer address to IOTA CLI...",
 				"deployingContract": "Deploying contract: {contractName} ({network})",
-				"updatingContractsFile": "Updating contracts file...",
 				"requestingFaucetFunds": "Requesting funds from {network} faucet...",
 				"requestingAdditionalFaucetFunds": "Requesting additional funds from faucet...",
 				"renamingConflictingKey": "Renaming conflicting key alias \"{aliasName}\" to preserve existing key",
@@ -260,14 +222,12 @@
 				"contractBuiltAndReadyForUpgrade": "Contract has been built and is ready for upgrade"
 			},
 			"section": {
-				"deploymentConfiguration": "Deployment Configuration",
-				"deploymentResults": "Deployment Results",
-				"deployContracts": "Deploy Contracts",
-				"contractsFile": "Contracts File"
+				"deployContracts": "Deploy Contracts"
 			}
 		},
 		"common": {
 			"info": {
+				"createdEnvironment": "Created IOTA environment",
 				"creatingDefaultEnvironments": "Creating default IOTA environments",
 				"noEnvironments": "No IOTA environments found",
 				"creatingDefaults": "Creating Defaults",
