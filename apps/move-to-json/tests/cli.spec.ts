@@ -682,11 +682,11 @@ describe("generateUniqueBackupAlias", () => {
 			// Verify this alias would be unique
 			expect(existingAliases.has(potentialBackupAlias)).toBe(false);
 
-			console.log("✅ Enhanced key conflict resolution logic verified:");
-			console.log(`  - Old mnemonic generated: ${oldExpectedAddress}`);
-			console.log(`  - New mnemonic generated: ${newExpectedAddress}`);
-			console.log(`  - Generated unique backup alias: ${potentialBackupAlias}`);
-			console.log(`  - Avoids conflicts with ${existingAliases.size} existing keys`);
+			console.debug("✅ Enhanced key conflict resolution logic verified:");
+			console.debug(`  - Old mnemonic generated: ${oldExpectedAddress}`);
+			console.debug(`  - New mnemonic generated: ${newExpectedAddress}`);
+			console.debug(`  - Generated unique backup alias: ${potentialBackupAlias}`);
+			console.debug(`  - Avoids conflicts with ${existingAliases.size} existing keys`);
 		}
 
 		// Test edge case: many existing backups
@@ -727,8 +727,8 @@ describe("generateUniqueBackupAlias", () => {
 
 		expect(manyBackupsSet.has(testBackupAlias)).toBe(false);
 
-		console.log("✅ Edge case verified: unique naming works with many existing backups");
-		console.log(`  - Generated ${manyBackups.length} random backup keys`);
-		console.log(`  - Test alias "${testBackupAlias}" is unique`);
+		console.debug("✅ Edge case verified: unique naming works with many existing backups");
+		console.debug(`  - Generated ${manyBackups.length} random backup keys`);
+		console.debug(`  - Test alias "${testBackupAlias}" is unique`);
 	});
 });
