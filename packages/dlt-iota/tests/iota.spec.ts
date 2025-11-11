@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0.
 import type { IotaClientOptions } from "@iota/iota-sdk/client";
 import { Bip39 } from "@twin.org/crypto";
-import { TEST_CLIENT_OPTIONS, TEST_COIN_TYPE, TEST_NETWORK } from "./setupTestEnv";
-import { Iota } from "../src/iota";
-import type { IIotaConfig } from "../src/models/IIotaConfig";
+import { TEST_CLIENT_OPTIONS, TEST_COIN_TYPE, TEST_NETWORK } from "./setupTestEnv.js";
+import { Iota } from "../src/iota.js";
+import type { IIotaConfig } from "../src/models/IIotaConfig.js";
 
 describe("Iota", () => {
 	const TEST_IDENTITY = "test-identity";

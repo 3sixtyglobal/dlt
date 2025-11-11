@@ -9,14 +9,14 @@ import {
 	upgradeToV2UsingSmartDeploy,
 	cleanupTestArtifacts,
 	loadDeploymentConfig
-} from "./helpers/upgradeTestHelpers";
+} from "./helpers/upgradeTestHelpers.js";
 import {
 	TEST_NETWORK,
 	TEST_DEPLOYMENT_JSON_V1,
 	TEST_DEPLOYMENT_JSON_V2,
 	setupTestEnv,
 	cleanupTestEnv
-} from "./setupTestEnv";
+} from "./setupTestEnv.js";
 
 describe("Smart Deploy Upgrade Functionality", () => {
 	let v1Deployment: IContractData;

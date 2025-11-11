@@ -3,7 +3,7 @@
 import path from "node:path";
 import { Guards } from "@twin.org/core";
 import dotenv from "dotenv";
-import { Iota } from "../src/iota";
+import { Iota } from "../src/iota.js";
 
 console.debug("Setting up test environment from .env and .env.dev files");
 

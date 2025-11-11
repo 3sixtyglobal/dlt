@@ -14,7 +14,7 @@ runs:
       shell: bash
       run: |
         cd ..
-        wget https://github.com/iotaledger/iota/releases/download/v1.7.0-rc/iota-v1.7.0-rc-linux-x86_64.tgz -O iota-cli.tgz
+        wget https://github.com/iotaledger/iota/releases/download/v1.10.0-rc/iota-v1.10.0-rc-linux-x86_64.tgz -O iota-cli.tgz
         tar xzf iota-cli.tgz
         rm iota-cli.tgz
         chmod +x iota

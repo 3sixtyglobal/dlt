@@ -9,11 +9,11 @@ import { GeneralError } from "@twin.org/core";
 import { Bip39 } from "@twin.org/crypto";
 import { Iota } from "@twin.org/dlt-iota";
 import { vi } from "vitest";
-import { CLI } from "../src/cli";
-import { copyFixtures } from "./utils/copyFixtures";
-import { ensureCorrectDeployerKey, generateUniqueBackupAlias } from "../src/commands/deploy";
-import * as environmentUtils from "../src/utils/environmentUtils";
-import { validateDeploymentEnvironment, getDeploymentMnemonic } from "../src/utils/envSetup";
+import { CLI } from "../src/cli.js";
+import { copyFixtures } from "./utils/copyFixtures.js";
+import { ensureCorrectDeployerKey, generateUniqueBackupAlias } from "../src/commands/deploy.js";
+import * as environmentUtils from "../src/utils/environmentUtils.js";
+import { validateDeploymentEnvironment, getDeploymentMnemonic } from "../src/utils/envSetup.js";
 
 const TEST_DATA_LOCATION = path.resolve(path.join(__dirname, ".tmp"));
 const TEST_INPUT_GLOB = path.join(TEST_DATA_LOCATION, "contracts");

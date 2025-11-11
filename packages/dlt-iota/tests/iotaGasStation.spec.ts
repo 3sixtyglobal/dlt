@@ -20,8 +20,8 @@ import {
 	GAS_STATION_URL,
 	GAS_STATION_AUTH_TOKEN,
 	GAS_BUDGET
-} from "./setupTestEnv";
-import { Iota, type IIotaConfig, type IGasStationConfig } from "../src/index";
+} from "./setupTestEnv.js";
+import { Iota, type IIotaConfig, type IGasStationConfig } from "../src/index.js";
 
 describe("Iota Gas Station Integration", () => {
 	const gasStationConfig: IIotaConfig = {
@@ -102,6 +102,7 @@ describe("Iota Gas Station Integration", () => {
 
 	describe("Live Integration (requires running gas station)", () => {
 		test("Should connect to running gas station", async () => {
+			console.log(GAS_STATION_URL);
 			const response = await fetch(GAS_STATION_URL, {
 				method: "GET"
 			});

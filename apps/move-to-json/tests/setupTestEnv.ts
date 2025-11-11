@@ -104,6 +104,7 @@ export const TEST_CLIENT_OPTIONS = {
 
 export const TEST_FAUCET_CONNECTOR = new IotaFaucetConnector({
 	config: {
+		// @ts-expect-error this will be remedied in future versions and can be removed then
 		clientOptions: TEST_CLIENT_OPTIONS,
 		endpoint: TEST_FAUCET_ENDPOINT,
 		vaultMnemonicId: TEST_MNEMONIC_NAME,

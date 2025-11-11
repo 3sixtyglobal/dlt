@@ -1,6 +1,5 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import { toB64 } from "@iota/bcs";
 import { IotaClient, type IotaTransactionBlockResponse } from "@iota/iota-sdk/client";
 import { Ed25519Keypair } from "@iota/iota-sdk/keypairs/ed25519";
 import { Transaction } from "@iota/iota-sdk/transactions";
@@ -18,13 +17,13 @@ import type { ILoggingComponent } from "@twin.org/logging-models";
 import { nameof } from "@twin.org/nameof";
 import type { IVaultConnector } from "@twin.org/vault-models";
 import { FetchHelper, HttpMethod } from "@twin.org/web";
-import type { IGasReservationResult } from "./models/IGasReservationResult";
-import type { IGasStationConfig } from "./models/IGasStationConfig";
-import type { IGasStationExecuteResponse } from "./models/IGasStationExecuteResponse";
-import type { IGasStationReserveGasResponse } from "./models/IGasStationReserveGasResponse";
-import type { IIotaConfig } from "./models/IIotaConfig";
-import type { IIotaDryRun } from "./models/IIotaDryRun";
-import type { IIotaResponseOptions } from "./models/IIotaResponseOptions";
+import type { IGasReservationResult } from "./models/IGasReservationResult.js";
+import type { IGasStationConfig } from "./models/IGasStationConfig.js";
+import type { IGasStationExecuteResponse } from "./models/IGasStationExecuteResponse.js";
+import type { IGasStationReserveGasResponse } from "./models/IGasStationReserveGasResponse.js";
+import type { IIotaConfig } from "./models/IIotaConfig.js";
+import type { IIotaDryRun } from "./models/IIotaDryRun.js";
+import type { IIotaResponseOptions } from "./models/IIotaResponseOptions.js";
 
 /**
  * Class for performing operations on IOTA.
@@ -719,7 +718,7 @@ export class Iota {
 			// eslint-disable-next-line camelcase
 			reservation_id: reservationId,
 			// eslint-disable-next-line camelcase
-			tx_bytes: toB64(transactionBytes),
+			tx_bytes: Converter.bytesToBase64(transactionBytes),
 			// eslint-disable-next-line camelcase
 			user_sig: userSignature
 		};

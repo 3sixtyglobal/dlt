@@ -1,7 +1,7 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
 import type { IotaClientOptions } from "@iota/iota-sdk/client";
-import type { IGasStationConfig } from "./IGasStationConfig";
+import type { IGasStationConfig } from "./IGasStationConfig.js";
 
 /**
  * Configuration for IOTA.

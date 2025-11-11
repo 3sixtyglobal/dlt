@@ -8,10 +8,10 @@ import type { ILoggingComponent } from "@twin.org/logging-models";
 import { nameof } from "@twin.org/nameof";
 import type { IVaultConnector } from "@twin.org/vault-models";
 import type { IWalletConnector } from "@twin.org/wallet-models";
-import { Iota } from "./iota";
-import type { IIotaConfig } from "./models/IIotaConfig";
-import type { ISmartContractDeployments } from "./models/ISmartContractDeployments";
-import type { NetworkTypes } from "./models/networkTypes";
+import { Iota } from "./iota.js";
+import type { IIotaConfig } from "./models/IIotaConfig.js";
+import type { ISmartContractDeployments } from "./models/ISmartContractDeployments.js";
+import type { NetworkTypes } from "./models/networkTypes.js";
 
 /**
  * Utility class providing common smart contract operations for IOTA-based contracts.

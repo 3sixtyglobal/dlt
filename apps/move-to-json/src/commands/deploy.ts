@@ -15,7 +15,7 @@ import {
 } from "@twin.org/dlt-iota";
 import { nameof } from "@twin.org/nameof";
 import type { Command } from "commander";
-import type { INetworkConfig } from "../models/INetworkConfig";
+import type { INetworkConfig } from "../models/INetworkConfig.js";
 import { cleanBuildArtifactsInPath } from "../utils/buildArtifactUtils.js";
 import { ensureEnvironment, execAsyncWithError } from "../utils/environmentUtils.js";
 import {

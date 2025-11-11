@@ -1,10 +1,10 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
 
-export * from "./cli";
-export * from "./commands/build";
-export * from "./commands/deploy";
-export * from "./models/INetworkConfig";
-export * from "./utils/envSetup";
-export * from "./utils/iotaUtils";
-export * from "./utils/moveToJsonUtils";
+export * from "./cli.js";
+export * from "./commands/build.js";
+export * from "./commands/deploy.js";
+export * from "./models/INetworkConfig.js";
+export * from "./utils/envSetup.js";
+export * from "./utils/iotaUtils.js";
+export * from "./utils/moveToJsonUtils.js";

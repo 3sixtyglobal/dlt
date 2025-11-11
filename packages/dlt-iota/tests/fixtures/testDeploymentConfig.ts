@@ -1,6 +1,6 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import type { ISmartContractDeployments } from "../../src/models/ISmartContractDeployments";
+import type { ISmartContractDeployments } from "../../src/models/ISmartContractDeployments.js";
 
 /**
  * Test deployment configurations for IotaSmartContractUtils testing

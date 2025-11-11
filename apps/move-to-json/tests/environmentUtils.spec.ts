@@ -1,13 +1,12 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-
 import { describe, it, expect } from "vitest";
 import {
 	checkEnvironmentExists,
 	execAsyncWithTimeout,
 	verifyIotaCliInstalled,
 	ensureEnvironment
-} from "../src/utils/environmentUtils";
+} from "../src/utils/environmentUtils.js";
 
 describe("environmentUtils", () => {
 	describe("execAsyncWithTimeout", () => {

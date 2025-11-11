@@ -2,16 +2,16 @@
 // SPDX-License-Identifier: Apache-2.0.
 import type { IotaClient } from "@iota/iota-sdk/client";
 import type { IWalletConnector } from "@twin.org/wallet-models";
-import { describe, test, expect, vi, beforeEach } from "vitest";
-import { TEST_CLIENT_OPTIONS, TEST_NETWORK } from "./setupTestEnv";
-import { IotaSmartContractUtils } from "../src/iotaSmartContractUtils";
+import { beforeEach, describe, expect, test, vi } from "vitest";
+import { IotaSmartContractUtils } from "../src/iotaSmartContractUtils.js";
 import {
-	testDeploymentConfig,
+	TEST_IDENTITY,
 	TEST_NAMESPACE,
-	TEST_IDENTITY
-} from "./fixtures/testDeploymentConfig";
-import type { IIotaConfig } from "../src/models/IIotaConfig";
-import type { NetworkTypes } from "../src/models/networkTypes";
+	testDeploymentConfig
+} from "./fixtures/testDeploymentConfig.js";
+import { TEST_CLIENT_OPTIONS, TEST_NETWORK } from "./setupTestEnv.js";
+import type { IIotaConfig } from "../src/models/IIotaConfig.js";
+import type { NetworkTypes } from "../src/models/networkTypes.js";
 
 const MOCK_PACKAGE_ID = "0x1234567890abcdef1234567890abcdef12345678";
 const MOCK_ADMIN_ADDRESS = "0x5555555555555555555555555555555555555555";

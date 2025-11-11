@@ -19,7 +19,7 @@ import {
 	TEST_NETWORK,
 	TEST_NODE_ENDPOINT,
 	createTempEnvConfig
-} from "../setupTestEnv";
+} from "../setupTestEnv.js";
 
 /**
  * Build V1 contract using move-to-json build command.
