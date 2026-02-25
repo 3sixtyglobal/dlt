@@ -1,5 +1,12 @@
 # @twin.org/dlt-iota - Changelog
 
+## [0.0.3-next.4](https://github.com/twinfoundation/dlt/compare/dlt-iota-v0.0.3-next.3...dlt-iota-v0.0.3-next.4) (2026-02-25)
+
+
+### Features
+
+* support more abort code errors formats ([b6d0d88](https://github.com/twinfoundation/dlt/commit/b6d0d880e62175de2d0d0c80d5df8c84605a6759))
+
 ## [0.0.3-next.3](https://github.com/twinfoundation/dlt/compare/dlt-iota-v0.0.3-next.2...dlt-iota-v0.0.3-next.3) (2026-02-25)
 
 
