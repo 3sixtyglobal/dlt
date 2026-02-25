@@ -645,9 +645,9 @@ The confirmed transaction response.
 
 ### isAbortError()
 
-> `static` **isAbortError**(`error`, `code?`): `boolean`
+> `static` **isAbortError**(`error`, `code`): `boolean`
 
-Check if the error is an abort error.
+Check if the error is an abort error with a specific code.
 
 #### Parameters
 
@@ -657,7 +657,7 @@ Check if the error is an abort error.
 
 The error to check.
 
-##### code?
+##### code
 
 `number`
 

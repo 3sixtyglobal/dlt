@@ -238,4 +238,34 @@ describe("Iota", () => {
 		const addresses2 = Iota.getAddresses(seed, TEST_COIN_TYPE, 0, 0, 2);
 		expect(addresses1).toEqual(addresses2);
 	});
+
+	test("detects MoveAbort error with code 401", () => {
+		const error = {
+			properties: {
+				error: "MoveAbort: 401"
+			}
+		};
+
+		expect(Iota.isAbortError(error, 401)).toBe(true);
+	});
+
+	test("detects abort code 401 in command failure message", () => {
+		const error = {
+			properties: {
+				error: "Error in 1st command, from '0x9932d9548ee68486d60d8743e446e9df9e7a20b1d39f3df7bbcf84851bc48945::verifiable_storage::update_data' (instruction 15), abort code: 401"
+			}
+		};
+
+		expect(Iota.isAbortError(error, 401)).toBe(true);
+	});
+
+	test("does not match abort error when code differs", () => {
+		const error = {
+			properties: {
+				error: "MoveAbort: 401"
+			}
+		};
+
+		expect(Iota.isAbortError(error, 402)).toBe(false);
+	});
 });

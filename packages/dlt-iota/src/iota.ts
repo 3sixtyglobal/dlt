@@ -576,18 +576,26 @@ export class Iota {
 	}
 
 	/**
-	 * Check if the error is an abort error.
+	 * Check if the error is an abort error with a specific code.
 	 * @param error The error to check.
 	 * @param code The error code to check for.
 	 * @returns True if the error is an abort error, false otherwise.
 	 */
-	public static isAbortError(error: unknown, code?: number): boolean {
+	public static isAbortError(error: unknown, code: number): boolean {
 		const err = BaseError.fromError(error);
-		if (Is.stringValue(err.properties?.error) && err.properties.error.startsWith("MoveAbort")) {
-			if (Is.number(code)) {
+		if (Is.stringValue(err.properties?.error)) {
+			if (err.properties.error.startsWith("MoveAbort")) {
 				return err.properties.error.includes(code.toString());
 			}
-			return true;
+			const abortCodeIndex = err.properties.error.indexOf("abort code:");
+			if (abortCodeIndex !== -1) {
+				const abortCodeStr = err.properties.error
+					.slice(abortCodeIndex + 11)
+					.trim();
+				return abortCodeStr.startsWith(code.toString());
+			}
+
+			return false;
 		}
 		return false;
 	}
