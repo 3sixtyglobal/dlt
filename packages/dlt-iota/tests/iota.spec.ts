@@ -239,14 +239,14 @@ describe("Iota", () => {
 		expect(addresses1).toEqual(addresses2);
 	});
 
-	test("detects MoveAbort error with code 401", () => {
+	test("does not detect MoveAbort error with code 401", () => {
 		const error = {
 			properties: {
 				error: "MoveAbort: 401"
 			}
 		};
 
-		expect(Iota.isAbortError(error, 401)).toBe(true);
+		expect(Iota.isAbortError(error, 401)).toBe(false);
 	});
 
 	test("detects abort code 401 in command failure message", () => {
@@ -260,10 +260,22 @@ describe("Iota", () => {
 		expect(Iota.isAbortError(error, 401)).toBe(true);
 	});
 
+	test("detects abort code 401 in Move Runtime Abort message", () => {
+		const error = {
+			properties: {
+				error:
+					"Move Runtime Abort. Location: 75ee00505d2b4d731d10216d69cff74cbc4d91f1bc72b0f6888ac311d632bc19::verifiable_storage::update_data (function index 4) at offset 15, Abort Code: 401 in command 0"
+			}
+		};
+
+		expect(Iota.isAbortError(error, 401)).toBe(true);
+	});
+
 	test("does not match abort error when code differs", () => {
 		const error = {
 			properties: {
-				error: "MoveAbort: 401"
+				error:
+					"Error in 1st command, from '0x9932d9548ee68486d60d8743e446e9df9e7a20b1d39f3df7bbcf84851bc48945::verifiable_storage::update_data' (instruction 15), abort code: 401"
 			}
 		};
 

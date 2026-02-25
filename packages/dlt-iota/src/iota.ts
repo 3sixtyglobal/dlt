@@ -584,16 +584,8 @@ export class Iota {
 	public static isAbortError(error: unknown, code: number): boolean {
 		const err = BaseError.fromError(error);
 		if (Is.stringValue(err.properties?.error)) {
-			if (err.properties.error.startsWith("MoveAbort")) {
-				return err.properties.error.includes(code.toString());
-			}
-			const abortCodeIndex = err.properties.error.indexOf("abort code:");
-			if (abortCodeIndex !== -1) {
-				const abortCodeStr = err.properties.error.slice(abortCodeIndex + 11).trim();
-				return abortCodeStr.startsWith(code.toString());
-			}
-
-			return false;
+			const abortCodeMatch = /abort\s+code\s*:\s*(\d+)/i.exec(err.properties.error);
+			return abortCodeMatch?.[1] === code.toString();
 		}
 		return false;
 	}
