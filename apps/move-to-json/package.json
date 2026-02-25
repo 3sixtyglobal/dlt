@@ -29,7 +29,7 @@
 		"dist:no-test": "npm run clean && npm run build && npm run merge-locales && npm run docs"
 	},
 	"dependencies": {
-		"@iota/iota-sdk": "1.7.1",
+		"@iota/iota-sdk": "1.10.1",
 		"@twin.org/cli-core": "next",
 		"@twin.org/core": "next",
 		"@twin.org/crypto": "next",
