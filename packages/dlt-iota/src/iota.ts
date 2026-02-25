@@ -589,9 +589,7 @@ export class Iota {
 			}
 			const abortCodeIndex = err.properties.error.indexOf("abort code:");
 			if (abortCodeIndex !== -1) {
-				const abortCodeStr = err.properties.error
-					.slice(abortCodeIndex + 11)
-					.trim();
+				const abortCodeStr = err.properties.error.slice(abortCodeIndex + 11).trim();
 				return abortCodeStr.startsWith(code.toString());
 			}
 

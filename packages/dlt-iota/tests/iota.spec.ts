@@ -252,7 +252,8 @@ describe("Iota", () => {
 	test("detects abort code 401 in command failure message", () => {
 		const error = {
 			properties: {
-				error: "Error in 1st command, from '0x9932d9548ee68486d60d8743e446e9df9e7a20b1d39f3df7bbcf84851bc48945::verifiable_storage::update_data' (instruction 15), abort code: 401"
+				error:
+					"Error in 1st command, from '0x9932d9548ee68486d60d8743e446e9df9e7a20b1d39f3df7bbcf84851bc48945::verifiable_storage::update_data' (instruction 15), abort code: 401"
 			}
 		};
 
