@@ -1,5 +1,17 @@
 # @twin.org/dlt-iota - Changelog
 
+## [0.0.3-next.2](https://github.com/twinfoundation/dlt/compare/dlt-iota-v0.0.3-next.1...dlt-iota-v0.0.3-next.2) (2026-02-25)
+
+
+### Features
+
+* support alternate abort error format ([72c4136](https://github.com/twinfoundation/dlt/commit/72c41364f0ff8fd5e5859a096c05eaba46e353c7))
+
+
+### Bug Fixes
+
+* missing dependency ([40ec9bc](https://github.com/twinfoundation/dlt/commit/40ec9bce5936c801f22d499fe1098884b2c1974d))
+
 ## [0.0.3-next.1](https://github.com/twinfoundation/dlt/compare/dlt-iota-v0.0.3-next.0...dlt-iota-v0.0.3-next.1) (2025-11-11)
 
 
