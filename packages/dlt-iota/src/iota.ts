@@ -1,6 +1,6 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import { IotaClient, type IotaTransactionBlockResponse } from "@iota/iota-sdk/client";
+import { IotaClient } from "@iota/iota-sdk/client";
 import { Ed25519Keypair } from "@iota/iota-sdk/keypairs/ed25519";
 import { Transaction } from "@iota/iota-sdk/transactions";
 import {
@@ -21,9 +21,12 @@ import type { IGasReservationResult } from "./models/IGasReservationResult.js";
 import type { IGasStationConfig } from "./models/IGasStationConfig.js";
 import type { IGasStationExecuteResponse } from "./models/IGasStationExecuteResponse.js";
 import type { IGasStationReserveGasResponse } from "./models/IGasStationReserveGasResponse.js";
+import type { IIotaClient } from "./models/IIotaClient.js";
 import type { IIotaConfig } from "./models/IIotaConfig.js";
 import type { IIotaDryRun } from "./models/IIotaDryRun.js";
 import type { IIotaResponseOptions } from "./models/IIotaResponseOptions.js";
+import type { IIotaTransaction } from "./models/IIotaTransaction.js";
+import type { IIotaTransactionBlockResponse } from "./models/IIotaTransactionBlockResponse.js";
 
 /**
  * Class for performing operations on IOTA.
@@ -64,7 +67,7 @@ export class Iota {
 	 * @param config The configuration.
 	 * @returns The client instance.
 	 */
-	public static createClient(config: IIotaConfig): IotaClient {
+	public static createClient(config: IIotaConfig): IIotaClient {
 		Guards.object(Iota.CLASS_NAME, nameof(config), config);
 		Guards.object(Iota.CLASS_NAME, nameof(config.clientOptions), config.clientOptions);
 		Guards.string(Iota.CLASS_NAME, nameof(config.clientOptions.url), config.clientOptions.url);
@@ -168,6 +171,14 @@ export class Iota {
 	}
 
 	/**
+	 * Create a new transaction instance.
+	 * @returns A new transaction instance.
+	 */
+	public static createTransaction(): IIotaTransaction {
+		return new Transaction();
+	}
+
+	/**
 	 * Prepare and post a transaction.
 	 * @param config The configuration.
 	 * @param vaultConnector The vault connector.
@@ -185,12 +196,12 @@ export class Iota {
 		vaultConnector: IVaultConnector,
 		logging: ILoggingComponent | undefined,
 		identity: string,
-		client: IotaClient,
+		client: IIotaClient,
 		source: string,
 		amount: bigint,
 		recipient: string,
 		options?: IIotaResponseOptions
-	): Promise<IotaTransactionBlockResponse> {
+	): Promise<IIotaTransactionBlockResponse> {
 		try {
 			const txb = new Transaction();
 			const [coin] = txb.splitCoins(txb.gas, [txb.pure.u64(amount)]);
@@ -246,11 +257,11 @@ export class Iota {
 		vaultConnector: IVaultConnector,
 		logging: ILoggingComponent | undefined,
 		identity: string,
-		client: IotaClient,
+		client: IIotaClient,
 		owner: string,
-		transaction: Transaction,
+		transaction: IIotaTransaction,
 		options?: IIotaResponseOptions
-	): Promise<IotaTransactionBlockResponse> {
+	): Promise<IIotaTransactionBlockResponse> {
 		// Check if gas station configuration is present
 		if (Is.object<IGasStationConfig>(config.gasStation)) {
 			return Iota.prepareAndPostGasStationTransaction(
@@ -434,7 +445,7 @@ export class Iota {
 	 * @returns True if the package exists, false otherwise.
 	 */
 	public static async packageExistsOnNetwork(
-		client: IotaClient,
+		client: IIotaClient,
 		packageId: string
 	): Promise<boolean> {
 		try {
@@ -478,9 +489,9 @@ export class Iota {
 	 * @returns void.
 	 */
 	public static async dryRunTransaction(
-		client: IotaClient,
+		client: IIotaClient,
 		logging: ILoggingComponent | undefined,
-		txb: Transaction,
+		txb: IIotaTransaction,
 		sender: string,
 		operation: string
 	): Promise<IIotaDryRun> {
@@ -553,7 +564,7 @@ export class Iota {
 	 * @returns The confirmed transaction response.
 	 */
 	public static async waitForTransactionConfirmation(
-		client: IotaClient,
+		client: IIotaClient,
 		digest: string,
 		config: IIotaConfig,
 		options?: {
@@ -561,7 +572,7 @@ export class Iota {
 			showEvents?: boolean;
 			showObjectChanges?: boolean;
 		}
-	): Promise<IotaTransactionBlockResponse> {
+	): Promise<IIotaTransactionBlockResponse> {
 		const timeoutMs = (config.inclusionTimeoutSeconds ?? Iota.DEFAULT_INCLUSION_TIMEOUT) * 1000;
 
 		return client.waitForTransaction({
@@ -605,11 +616,11 @@ export class Iota {
 		config: IIotaConfig,
 		vaultConnector: IVaultConnector,
 		identity: string,
-		client: IotaClient,
+		client: IIotaClient,
 		owner: string,
-		transaction: Transaction,
+		transaction: IIotaTransaction,
 		options?: IIotaResponseOptions
-	): Promise<IotaTransactionBlockResponse> {
+	): Promise<IIotaTransactionBlockResponse> {
 		Guards.object(Iota.CLASS_NAME, nameof(config.gasStation), config.gasStation);
 
 		try {
@@ -709,7 +720,7 @@ export class Iota {
 		reservationId: number,
 		transactionBytes: Uint8Array,
 		userSignature: string
-	): Promise<IotaTransactionBlockResponse> {
+	): Promise<IIotaTransactionBlockResponse> {
 		Guards.object<IGasStationConfig>(Iota.CLASS_NAME, nameof(config.gasStation), config.gasStation);
 
 		const requestData = {
@@ -743,7 +754,7 @@ export class Iota {
 			events: [],
 			objectChanges: [],
 			confirmedLocalExecution: true
-		} as unknown as IotaTransactionBlockResponse;
+		} as unknown as IIotaTransactionBlockResponse;
 	}
 
 	/**
@@ -758,12 +769,12 @@ export class Iota {
 	 */
 	public static async executeAndConfirmGasStationTransaction(
 		config: IIotaConfig,
-		client: IotaClient,
+		client: IIotaClient,
 		reservationId: number,
 		transactionBytes: Uint8Array,
 		userSignature: string,
 		options?: IIotaResponseOptions
-	): Promise<IotaTransactionBlockResponse> {
+	): Promise<IIotaTransactionBlockResponse> {
 		Guards.object<IGasStationConfig>(Iota.CLASS_NAME, nameof(config.gasStation), config.gasStation);
 
 		const response = await Iota.executeGasStationTransaction(

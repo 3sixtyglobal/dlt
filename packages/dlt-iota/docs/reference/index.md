@@ -22,6 +22,9 @@
 
 ## Type Aliases
 
+- [IIotaClient](type-aliases/IIotaClient.md)
+- [IIotaTransaction](type-aliases/IIotaTransaction.md)
+- [IIotaTransactionBlockResponse](type-aliases/IIotaTransactionBlockResponse.md)
 - [ISmartContractDeployments](type-aliases/ISmartContractDeployments.md)
 - [NetworkTypes](type-aliases/NetworkTypes.md)
 

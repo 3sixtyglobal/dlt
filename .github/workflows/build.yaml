@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   dist-all-packages:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     # Add env vars for tests
     env:

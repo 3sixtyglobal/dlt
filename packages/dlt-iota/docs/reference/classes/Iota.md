@@ -210,6 +210,20 @@ The key pair containing private key and public key.
 
 ***
 
+### createTransaction()
+
+> `static` **createTransaction**(): `Transaction`
+
+Create a new transaction instance.
+
+#### Returns
+
+`Transaction`
+
+A new transaction instance.
+
+***
+
 ### prepareAndPostValueTransaction()
 
 > `static` **prepareAndPostValueTransaction**(`config`, `vaultConnector`, `logging`, `identity`, `client`, `source`, `amount`, `recipient`, `options?`): `Promise`\<`IotaTransactionBlockResponse`\>
