@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   dist-all-packages:
-    runs-on: [self-hosted, Linux, X64]
+    runs-on: self-hosted
 
     # Add env vars for tests
     env:
