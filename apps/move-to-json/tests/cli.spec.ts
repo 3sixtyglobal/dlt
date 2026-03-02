@@ -108,6 +108,15 @@ describe("move-to-json CLI", () => {
 			{ overrideOutputWidth: 1000 }
 		);
 
+		if (exitCode !== 0) {
+			const standardOutput = writeBuffer.join("\n");
+			console.log("Build command failed with standard output:");
+			console.log(standardOutput);
+			const errOutput = errorBuffer.join("\n");
+			console.error("Build command failed with error output:");
+			console.error(errOutput);
+		}
+
 		expect(exitCode).toBe(0);
 		const compiledFileExists = existsSync(TEST_OUTPUT_JSON);
 		expect(compiledFileExists).toBe(true);
