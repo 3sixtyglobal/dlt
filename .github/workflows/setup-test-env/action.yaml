@@ -21,6 +21,12 @@ runs:
         sudo mv iota /usr/local/bin/iota
         iota --version
 
+    - name: Remove Existing Twin Gas Station Test Container
+      shell: bash
+      run: |
+        echo "Removing existing twin-gas-station-test container if it exists..."
+        docker rm -f twin-gas-station-test 2>/dev/null || true
+
     - name: Start Twin Gas Station Test Environment
       shell: bash
       run: |
