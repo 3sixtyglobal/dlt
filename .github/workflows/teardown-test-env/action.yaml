@@ -1,0 +1,12 @@
+name: 'Teardown Testing Environment'
+description: 'Stop and remove test environment services after workflow completion.'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Stop and Remove Twin Gas Station Test Container
+      shell: bash
+      run: |
+        echo "Stopping and removing twin-gas-station-test container..."
+        docker stop twin-gas-station-test 2>/dev/null || true
+        docker rm twin-gas-station-test 2>/dev/null || true

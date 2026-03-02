@@ -57,3 +57,7 @@ jobs:
         run: |
           npm run lint
           npm run dist
+
+      - name: Teardown Test Environment
+        if: always()
+        uses: ./.github/workflows/teardown-test-env
