@@ -176,3 +176,8 @@ jobs:
             gpg --batch --yes --delete-secret-keys "$FINGERPRINT" || true
             gpg --batch --yes --delete-keys "$FINGERPRINT" || true
           fi
+
+      # Always teardown the environment, necessary to cleanup self-hosted
+      - name: Teardown Test Environment
+        if: always()
+        uses: ./.github/workflows/teardown-test-env
