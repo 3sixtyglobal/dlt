@@ -1,5 +1,12 @@
 # @twin.org/dlt-iota - Changelog
 
+## [0.0.3-next.5](https://github.com/twinfoundation/dlt/compare/dlt-iota-v0.0.3-next.4...dlt-iota-v0.0.3-next.5) (2026-03-03)
+
+
+### Miscellaneous Chores
+
+* **dlt-iota:** Synchronize repo versions
+
 ## [0.0.3-next.4](https://github.com/twinfoundation/dlt/compare/dlt-iota-v0.0.3-next.3...dlt-iota-v0.0.3-next.4) (2026-02-25)
 
 
