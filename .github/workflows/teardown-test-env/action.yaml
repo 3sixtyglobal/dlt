@@ -4,9 +4,10 @@ description: 'Stop and remove test environment services after workflow completio
 runs:
   using: 'composite'
   steps:
-    - name: Stop and Remove Twin Gas Station Test Container
+    - name: Teardown Docker Test Environment
       shell: bash
       run: |
-        echo "Stopping and removing twin-gas-station-test container..."
         docker stop twin-gas-station-test 2>/dev/null || true
         docker rm twin-gas-station-test 2>/dev/null || true
+        docker image rm -f twinfoundation/twin-gas-station-test:latest 2>/dev/null || true
+        sudo rm -f /usr/local/bin/iota 2>/dev/null || true

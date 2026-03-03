@@ -24,7 +24,7 @@ jobs:
   # This job extracts all workspace packages from package.json
   # and prepares them for the matrix strategy in the publish job
   process-workspaces:
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.event.repository.private && 'self-hosted' || 'ubuntu-latest' }}
     permissions:
       contents: read
     outputs:
@@ -74,7 +74,7 @@ jobs:
   # This job publishes each package to NPM
   # It runs once per package pattern from the read-workspaces job
   publish-packages:
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.event.repository.private && 'self-hosted' || 'ubuntu-latest' }}
     permissions:
       contents: read
       id-token: write # Needed for npm provenance
@@ -105,7 +105,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           registry-url: 'https://registry.npmjs.org' # Required for npm publish
 
       # Setup any services required for tests here
@@ -208,11 +208,15 @@ jobs:
             sleep $SLEEP_SECONDS
           done
 
+      - name: Teardown Test Environment
+        if: always()
+        uses: ./.github/workflows/teardown-test-env
+
   # Once the packages have been published we create the releases on GitHub
   # No need to use a patched version of please-release here as the version
   # numbers were already incremented in the prepare-release action
   publish-gh-releases:
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.event.repository.private && 'self-hosted' || 'ubuntu-latest' }}
     permissions:
       contents: read
     needs: [process-workspaces, publish-packages]
@@ -230,7 +234,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           registry-url: 'https://registry.npmjs.org' # Required for npm publish
 
       # Publish the GitHub releases

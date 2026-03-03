@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   dist-all-packages:
-    runs-on: self-hosted
+    runs-on: ${{ github.event.repository.private && 'self-hosted' || 'ubuntu-latest' }}
 
     # Add env vars for tests
     env:
@@ -58,6 +58,7 @@ jobs:
           npm run lint
           npm run dist
 
+      # Always teardown the environment, necessary to cleanup self-hosted
       - name: Teardown Test Environment
         if: always()
         uses: ./.github/workflows/teardown-test-env
