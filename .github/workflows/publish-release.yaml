@@ -56,6 +56,13 @@ jobs:
           token: ${{ github.token }} # Use the built-in token for GitHub Actions
           ref: ${{ steps.set-branch.outputs.branch }} # Checkout the calculated branch
 
+      # Configure Node.js and NPM settings
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: 'https://registry.npmjs.org' # Required for npm publish
+
       # Extract workspace package patterns from package.json
       # Note: This only extracts the patterns (e.g. "packages/*"), not the resolved directories
       # The matrix will receive these patterns and each job will process one pattern
