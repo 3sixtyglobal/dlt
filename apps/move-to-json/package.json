@@ -25,8 +25,8 @@
 		"docs:clean": "rimraf docs/reference",
 		"docs:generate": "typedoc",
 		"docs": "npm run docs:clean && npm run docs:generate",
-		"dist": "npm run clean && npm run build && npm run merge-locales && npm run validate-locales && npm run test:build && npm run test && npm run docs",
-		"dist:no-test": "npm run clean && npm run build && npm run merge-locales && npm run docs"
+		"dist": "npm run clean && npm run build && npm run merge-locales && npm run validate-locales && npm run test:build && npm run test",
+		"dist:no-test": "npm run clean && npm run build && npm run merge-locales"
 	},
 	"dependencies": {
 		"@iota/iota-sdk": "1.11.0",
