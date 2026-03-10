@@ -10,11 +10,18 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - name: Set IOTA CLI versions
+      shell: bash
+      run: |
+        echo "IOTA_CLI_VERSION_MAINNET=1.17.2" >> $GITHUB_ENV
+        echo "IOTA_CLI_VERSION_TESTNET=1.18.1-rc" >> $GITHUB_ENV
+        echo "IOTA_CLI_VERSION_DEVNET=1.18.0-beta" >> $GITHUB_ENV
+
     - name: Download IOTA CLI
       shell: bash
       run: |
         cd ..
-        wget https://github.com/iotaledger/iota/releases/download/v1.17.2/iota-v1.17.2-linux-x86_64.tgz -O iota-cli.tgz
+        wget https://github.com/iotaledger/iota/releases/download/v$IOTA_CLI_VERSION_TESTNET/iota-v$IOTA_CLI_VERSION_TESTNET-linux-x86_64.tgz -O iota-cli.tgz
         tar xzf iota-cli.tgz
         rm iota-cli.tgz
         chmod +x iota
@@ -31,7 +38,6 @@ runs:
       shell: bash
       run: |
         echo "Starting Twin Gas Station Test Environment (includes Redis + Gas Station)..."
-        docker pull twinfoundation/twin-gas-station-test:latest
         docker run -d --name twin-gas-station-test \
           -p 6379:6379 -p 9527:9527 -p 9184:9184 \
           -e IOTA_NODE_URL="https://api.testnet.iota.cafe" \
