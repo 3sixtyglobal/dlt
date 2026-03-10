@@ -1,7 +1,7 @@
 {
 	"name": "@twin.org/dlt",
 	"version": "0.0.0",
-	"description": "Distributed Ledger",
+	"description": "Monorepo for distributed ledger utilities and deployment tooling.",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/twinfoundation/dlt.git"

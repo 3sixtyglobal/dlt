@@ -1,7 +1,7 @@
 {
 	"name": "@twin.org/move-to-json",
 	"version": "0.0.3-next.5",
-	"description": "Tool to convert Move source files to JSON",
+	"description": "CLI for compiling Move contracts and preparing deployment JSON for IOTA networks.",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/twinfoundation/dlt.git",

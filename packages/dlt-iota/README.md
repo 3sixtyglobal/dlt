@@ -1,6 +1,6 @@
 # TWIN DLT IOTA
 
-DLT helpers for use with IOTA.
+This package provides utilities for integrating applications with IOTA distributed ledger capabilities, including client construction, transaction submission, sponsored transaction support, and smart contract migration helpers. It is intended for services that need a reliable and repeatable approach to ledger operations without rebuilding common primitives.
 
 ## Installation
 
@@ -8,14 +8,12 @@ DLT helpers for use with IOTA.
 npm install @twin.org/dlt-iota
 ```
 
-## Testing
+## Docker
 
-The tests developed are functional tests and need an instance of the IOTA Gas Station and Redis up and running.
-
-The simplest way to set up the testing environment using our unified container:
+To perform testing of this component it may be necessary to launch a local instance to communicate with.
 
 ```shell
-docker run -d --name twin-gas-station-test -p 9527:9527 -p 6379:6379 -p 9184:9184 twinfoundation/twin-gas-station-test:latest
+docker run -d --name twin-dlt-iota -p 9527:9527 -p 6379:6379 -p 9184:9184 twinfoundation/twin-gas-station-test:latest
 ```
 
 ## Examples
