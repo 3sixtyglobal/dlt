@@ -31,8 +31,8 @@ runs:
       shell: bash
       run: |
         echo "Starting Twin Gas Station Test Environment (includes Redis + Gas Station)..."
-        docker run -d --name twin-gas-station-test \
         docker pull twinfoundation/twin-gas-station-test:latest
+        docker run -d --name twin-gas-station-test \
           -p 6379:6379 -p 9527:9527 -p 9184:9184 \
           -e IOTA_NODE_URL="https://api.testnet.iota.cafe" \
           -e GAS_STATION_AUTH="qEyCL6d9BKKFl/tfDGAKeGFkhUlf7FkqiGV7Xw4JUsI=" \
