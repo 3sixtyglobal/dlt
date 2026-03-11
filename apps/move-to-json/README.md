@@ -8,9 +8,9 @@ This app provides a command line workflow for compiling Move contracts and produ
 npm install -D @twin.org/move-to-json
 ```
 
-## Examples
+## Usage
 
-Usage of the APIs is shown in the examples [docs/examples.md](docs/examples.md)
+Usage of the CLI is shown in the examples [docs/usage.md](docs/usage.md)
 
 ## Reference
 

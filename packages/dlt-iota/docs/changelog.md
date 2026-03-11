@@ -1,4 +1,4 @@
-# @twin.org/dlt-iota - Changelog
+# Changelog
 
 ## [0.0.3-next.5](https://github.com/twinfoundation/dlt/compare/dlt-iota-v0.0.3-next.4...dlt-iota-v0.0.3-next.5) (2026-03-03)
 

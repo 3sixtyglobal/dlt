@@ -1,4 +1,4 @@
-# @twin.org/move-to-json - Changelog
+# Changelog
 
 ## [0.0.3-next.5](https://github.com/twinfoundation/dlt/compare/move-to-json-v0.0.3-next.4...move-to-json-v0.0.3-next.5) (2026-03-03)
 
