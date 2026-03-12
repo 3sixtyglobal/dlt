@@ -3,6 +3,7 @@
 ## Classes
 
 - [Iota](classes/Iota.md)
+- [IotaIdentityUtils](classes/IotaIdentityUtils.md)
 - [IotaSmartContractUtils](classes/IotaSmartContractUtils.md)
 
 ## Interfaces
@@ -15,6 +16,7 @@
 - [IGasStationReserveGasResponse](interfaces/IGasStationReserveGasResponse.md)
 - [IGasStationReserveGasResult](interfaces/IGasStationReserveGasResult.md)
 - [IIotaConfig](interfaces/IIotaConfig.md)
+- [IIotaControllerCapInfo](interfaces/IIotaControllerCapInfo.md)
 - [IIotaDryRun](interfaces/IIotaDryRun.md)
 - [IIotaResponseOptions](interfaces/IIotaResponseOptions.md)
 - [IMigrationStateFields](interfaces/IMigrationStateFields.md)

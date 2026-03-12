@@ -26,12 +26,6 @@ The network the operations are being performed on.
 
 The id of the entry in the vault containing the mnemonic.
 
-#### Default
-
-```ts
-mnemonic
-```
-
 ***
 
 ### vaultSeedId?
@@ -39,12 +33,6 @@ mnemonic
 > `optional` **vaultSeedId**: `string`
 
 The id of the entry in the vault containing the seed.
-
-#### Default
-
-```ts
-seed
-```
 
 ***
 
@@ -54,12 +42,6 @@ seed
 
 The coin type.
 
-#### Default
-
-```ts
-IOTA 4218
-```
-
 ***
 
 ### maxAddressScanRange?
@@ -68,12 +50,6 @@ IOTA 4218
 
 The maximum range to scan for addresses.
 
-#### Default
-
-```ts
-1000
-```
-
 ***
 
 ### inclusionTimeoutSeconds?
@@ -81,12 +57,6 @@ The maximum range to scan for addresses.
 > `optional` **inclusionTimeoutSeconds**: `number`
 
 The length of time to wait for the inclusion of a transaction in seconds.
-
-#### Default
-
-```ts
-60
-```
 
 ***
 
@@ -105,12 +75,6 @@ If provided, transactions will be processed through the gas station.
 
 The default gas budget for all transactions (including sponsored and direct).
 
-#### Default
-
-```ts
-50000000
-```
-
 ***
 
 ### enableCostLogging?
@@ -118,9 +82,3 @@ The default gas budget for all transactions (including sponsored and direct).
 > `optional` **enableCostLogging**: `boolean`
 
 Enable cost logging for transactions.
-
-#### Default
-
-```ts
-false
-```

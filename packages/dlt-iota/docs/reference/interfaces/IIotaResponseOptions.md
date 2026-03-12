@@ -14,12 +14,6 @@ Configuration for IOTA.
 
 Wait for confirmation of the transaction.
 
-#### Default
-
-```ts
-true
-```
-
 ***
 
 ### dryRunLabel?
