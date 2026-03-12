@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.0.3-next.6](https://github.com/twinfoundation/dlt/compare/move-to-json-v0.0.3-next.5...move-to-json-v0.0.3-next.6) (2026-03-12)
+
+
+### Features
+
+* add IotaIdentityUtils to resolve IOTA identity controller cap info ([#57](https://github.com/twinfoundation/dlt/issues/57)) ([f15281a](https://github.com/twinfoundation/dlt/commit/f15281af3b2812bde5130a1813f9c0143f1462bf))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @twin.org/dlt-iota bumped from 0.0.3-next.5 to 0.0.3-next.6
+
 ## [0.0.3-next.5](https://github.com/twinfoundation/dlt/compare/move-to-json-v0.0.3-next.4...move-to-json-v0.0.3-next.5) (2026-03-03)
 
 
