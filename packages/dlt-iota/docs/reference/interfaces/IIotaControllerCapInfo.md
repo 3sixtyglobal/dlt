@@ -4,7 +4,7 @@ On-chain object IDs needed to call mint_with_identity() on the NFT Move contract
 
 ## Properties
 
-### identityObjectId
+### identityObjectId {#identityobjectid}
 
 > **identityObjectId**: `string`
 
@@ -13,7 +13,7 @@ Used as the Identity argument in mint_with_identity().
 
 ***
 
-### controllerCapObjectId
+### controllerCapObjectId {#controllercapobjectid}
 
 > **controllerCapObjectId**: `string`
 

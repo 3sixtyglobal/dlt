@@ -4,7 +4,7 @@ Interface for contract data stored in smart-contract-deployments.json
 
 ## Properties
 
-### packageId
+### packageId {#packageid}
 
 > **packageId**: `string`
 
@@ -12,7 +12,7 @@ Package ID generated during build
 
 ***
 
-### packageBytecode
+### packageBytecode {#packagebytecode}
 
 > **packageBytecode**: `string` \| `string`[]
 
@@ -20,7 +20,7 @@ Base64-encoded package bytecode
 
 ***
 
-### deployedPackageId?
+### deployedPackageId? {#deployedpackageid}
 
 > `optional` **deployedPackageId**: `string`
 
@@ -28,7 +28,7 @@ Package ID from actual deployment
 
 ***
 
-### lastDeployedPackageId?
+### lastDeployedPackageId? {#lastdeployedpackageid}
 
 > `optional` **lastDeployedPackageId**: `string`
 
@@ -36,7 +36,7 @@ Previous deployed package ID for upgrade chain tracking
 
 ***
 
-### upgradeCapabilityId?
+### upgradeCapabilityId? {#upgradecapabilityid}
 
 > `optional` **upgradeCapabilityId**: `string`
 
@@ -44,7 +44,7 @@ UpgradeCap object ID for package upgrades
 
 ***
 
-### migrationStateId?
+### migrationStateId? {#migrationstateid}
 
 > `optional` **migrationStateId**: `string`
 

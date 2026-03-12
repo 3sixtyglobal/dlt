@@ -15,7 +15,7 @@ This class uses composition pattern to provide shared functionality without inhe
 
 ## Properties
 
-### CLASS\_NAME
+### CLASS\_NAME {#class_name}
 
 > `readonly` `static` **CLASS\_NAME**: `string`
 
@@ -23,7 +23,7 @@ Runtime name for the class.
 
 ## Methods
 
-### migrateSmartContract()
+### migrateSmartContract() {#migratesmartcontract}
 
 > `static` **migrateSmartContract**(`config`, `client`, `vaultConnector`, `walletConnector`, `logging`, `gasBudget`, `identity`, `objectId`, `namespace`, `packageId`, `deploymentConfig`, `walletAddressIndex?`): `Promise`\<`void`\>
 
@@ -112,7 +112,7 @@ Promise that resolves when migration is complete.
 
 ***
 
-### enableMigration()
+### enableMigration() {#enablemigration}
 
 > `static` **enableMigration**(`config`, `client`, `vaultConnector`, `walletConnector`, `logging`, `gasBudget`, `identity`, `namespace`, `packageId`, `deploymentConfig`, `walletAddressIndex?`): `Promise`\<`void`\>
 
@@ -194,7 +194,7 @@ Promise that resolves when migration is enabled.
 
 ***
 
-### disableMigration()
+### disableMigration() {#disablemigration}
 
 > `static` **disableMigration**(`config`, `client`, `vaultConnector`, `walletConnector`, `logging`, `gasBudget`, `identity`, `namespace`, `packageId`, `deploymentConfig`, `walletAddressIndex?`): `Promise`\<`void`\>
 
@@ -276,7 +276,7 @@ Promise that resolves when migration is disabled.
 
 ***
 
-### isMigrationActive()
+### isMigrationActive() {#ismigrationactive}
 
 > `static` **isMigrationActive**(`config`, `client`, `namespace`, `packageId`, `deploymentConfig`, `identity`, `walletConnector`, `walletAddressIndex?`): `Promise`\<`boolean`\>
 
@@ -340,7 +340,7 @@ True if migration is enabled, false otherwise.
 
 ***
 
-### getCurrentContractVersion()
+### getCurrentContractVersion() {#getcurrentcontractversion}
 
 > `static` **getCurrentContractVersion**(`config`, `client`, `namespace`, `packageId`, `identity`, `walletConnector`, `walletAddressIndex?`): `Promise`\<`number`\>
 
@@ -398,7 +398,7 @@ The current version number of the contract.
 
 ***
 
-### validateObjectVersion()
+### validateObjectVersion() {#validateobjectversion}
 
 > `static` **validateObjectVersion**\<`T`\>(`config`, `client`, `namespace`, `packageId`, `identity`, `objectId`, `walletConnector`, `versionExtractor`, `walletAddressIndex?`): `Promise`\<`boolean`\>
 

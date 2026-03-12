@@ -4,7 +4,7 @@ Configuration for IOTA.
 
 ## Properties
 
-### clientOptions
+### clientOptions {#clientoptions}
 
 > **clientOptions**: `NetworkOrTransport`
 
@@ -12,7 +12,7 @@ The configuration for the client.
 
 ***
 
-### network
+### network {#network}
 
 > **network**: `string`
 
@@ -20,7 +20,7 @@ The network the operations are being performed on.
 
 ***
 
-### vaultMnemonicId?
+### vaultMnemonicId? {#vaultmnemonicid}
 
 > `optional` **vaultMnemonicId**: `string`
 
@@ -28,7 +28,7 @@ The id of the entry in the vault containing the mnemonic.
 
 ***
 
-### vaultSeedId?
+### vaultSeedId? {#vaultseedid}
 
 > `optional` **vaultSeedId**: `string`
 
@@ -36,7 +36,7 @@ The id of the entry in the vault containing the seed.
 
 ***
 
-### coinType?
+### coinType? {#cointype}
 
 > `optional` **coinType**: `number`
 
@@ -44,7 +44,7 @@ The coin type.
 
 ***
 
-### maxAddressScanRange?
+### maxAddressScanRange? {#maxaddressscanrange}
 
 > `optional` **maxAddressScanRange**: `number`
 
@@ -52,7 +52,7 @@ The maximum range to scan for addresses.
 
 ***
 
-### inclusionTimeoutSeconds?
+### inclusionTimeoutSeconds? {#inclusiontimeoutseconds}
 
 > `optional` **inclusionTimeoutSeconds**: `number`
 
@@ -60,7 +60,7 @@ The length of time to wait for the inclusion of a transaction in seconds.
 
 ***
 
-### gasStation?
+### gasStation? {#gasstation}
 
 > `optional` **gasStation**: [`IGasStationConfig`](IGasStationConfig.md)
 
@@ -69,7 +69,7 @@ If provided, transactions will be processed through the gas station.
 
 ***
 
-### gasBudget?
+### gasBudget? {#gasbudget}
 
 > `optional` **gasBudget**: `number`
 
@@ -77,7 +77,7 @@ The default gas budget for all transactions (including sponsored and direct).
 
 ***
 
-### enableCostLogging?
+### enableCostLogging? {#enablecostlogging}
 
 > `optional` **enableCostLogging**: `boolean`
 

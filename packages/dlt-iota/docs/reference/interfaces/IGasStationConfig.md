@@ -4,7 +4,7 @@ Configuration for gas station operations.
 
 ## Properties
 
-### gasStationUrl
+### gasStationUrl {#gasstationurl}
 
 > **gasStationUrl**: `string`
 
@@ -12,7 +12,7 @@ The gas station service URL.
 
 ***
 
-### gasStationAuthToken
+### gasStationAuthToken {#gasstationauthtoken}
 
 > **gasStationAuthToken**: `string`
 

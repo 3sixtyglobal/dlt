@@ -14,7 +14,7 @@ Class for performing operations on IOTA.
 
 ## Properties
 
-### DEFAULT\_MNEMONIC\_SECRET\_NAME
+### DEFAULT\_MNEMONIC\_SECRET\_NAME {#default_mnemonic_secret_name}
 
 > `readonly` `static` **DEFAULT\_MNEMONIC\_SECRET\_NAME**: `string` = `"mnemonic"`
 
@@ -22,7 +22,7 @@ Default name for the mnemonic secret.
 
 ***
 
-### DEFAULT\_SEED\_SECRET\_NAME
+### DEFAULT\_SEED\_SECRET\_NAME {#default_seed_secret_name}
 
 > `readonly` `static` **DEFAULT\_SEED\_SECRET\_NAME**: `string` = `"seed"`
 
@@ -30,7 +30,7 @@ Default name for the seed secret.
 
 ***
 
-### DEFAULT\_COIN\_TYPE
+### DEFAULT\_COIN\_TYPE {#default_coin_type}
 
 > `readonly` `static` **DEFAULT\_COIN\_TYPE**: `number` = `4218`
 
@@ -38,7 +38,7 @@ Default coin type.
 
 ***
 
-### DEFAULT\_SCAN\_RANGE
+### DEFAULT\_SCAN\_RANGE {#default_scan_range}
 
 > `readonly` `static` **DEFAULT\_SCAN\_RANGE**: `number` = `1000`
 
@@ -46,7 +46,7 @@ Default scan range.
 
 ***
 
-### DEFAULT\_INCLUSION\_TIMEOUT
+### DEFAULT\_INCLUSION\_TIMEOUT {#default_inclusion_timeout}
 
 > `readonly` `static` **DEFAULT\_INCLUSION\_TIMEOUT**: `number` = `60`
 
@@ -54,7 +54,7 @@ Default inclusion timeout.
 
 ***
 
-### CLASS\_NAME
+### CLASS\_NAME {#class_name}
 
 > `readonly` `static` **CLASS\_NAME**: `string`
 
@@ -62,7 +62,7 @@ Runtime name for the class.
 
 ## Methods
 
-### createClient()
+### createClient() {#createclient}
 
 > `static` **createClient**(`config`): `IotaClient`
 
@@ -84,7 +84,7 @@ The client instance.
 
 ***
 
-### populateConfig()
+### populateConfig() {#populateconfig}
 
 > `static` **populateConfig**(`config`): `void`
 
@@ -104,7 +104,7 @@ The configuration to populate.
 
 ***
 
-### getAddresses()
+### getAddresses() {#getaddresses}
 
 > `static` **getAddresses**(`seed`, `coinType`, `accountIndex`, `startAddressIndex`, `count`, `isInternal?`): `string`[]
 
@@ -156,7 +156,7 @@ The list of addresses.
 
 ***
 
-### getKeyPair()
+### getKeyPair() {#getkeypair}
 
 > `static` **getKeyPair**(`seed`, `coinType`, `accountIndex`, `addressIndex`, `isInternal?`): `object`
 
@@ -210,7 +210,7 @@ The key pair containing private key and public key.
 
 ***
 
-### createTransaction()
+### createTransaction() {#createtransaction}
 
 > `static` **createTransaction**(): `Transaction`
 
@@ -224,7 +224,7 @@ A new transaction instance.
 
 ***
 
-### prepareAndPostValueTransaction()
+### prepareAndPostValueTransaction() {#prepareandpostvaluetransaction}
 
 > `static` **prepareAndPostValueTransaction**(`config`, `vaultConnector`, `logging`, `identity`, `client`, `source`, `amount`, `recipient`, `options?`): `Promise`\<`IotaTransactionBlockResponse`\>
 
@@ -294,7 +294,7 @@ The transaction result.
 
 ***
 
-### prepareAndPostTransaction()
+### prepareAndPostTransaction() {#prepareandposttransaction}
 
 > `static` **prepareAndPostTransaction**(`config`, `vaultConnector`, `logging`, `identity`, `client`, `owner`, `transaction`, `options?`): `Promise`\<`IotaTransactionBlockResponse`\>
 
@@ -358,7 +358,7 @@ The transaction response.
 
 ***
 
-### getSeed()
+### getSeed() {#getseed}
 
 > `static` **getSeed**(`config`, `vaultConnector`, `identity`): `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
@@ -392,7 +392,7 @@ The seed.
 
 ***
 
-### findAddress()
+### findAddress() {#findaddress}
 
 > `static` **findAddress**(`maxScanRange`, `coinType`, `seed`, `address`): `object`
 
@@ -448,7 +448,7 @@ Error if the address is not found.
 
 ***
 
-### extractPayloadError()
+### extractPayloadError() {#extractpayloaderror}
 
 > `static` **extractPayloadError**(`error`): `IError`
 
@@ -471,7 +471,7 @@ The extracted error.
 
 ***
 
-### buildMnemonicKey()
+### buildMnemonicKey() {#buildmnemonickey}
 
 > `static` **buildMnemonicKey**(`identity`, `vaultMnemonicId?`): `string`
 
@@ -499,7 +499,7 @@ The mnemonic key.
 
 ***
 
-### buildSeedKey()
+### buildSeedKey() {#buildseedkey}
 
 > `static` **buildSeedKey**(`identity`, `vaultSeedId?`): `string`
 
@@ -527,7 +527,7 @@ The seed key.
 
 ***
 
-### packageExistsOnNetwork()
+### packageExistsOnNetwork() {#packageexistsonnetwork}
 
 > `static` **packageExistsOnNetwork**(`client`, `packageId`): `Promise`\<`boolean`\>
 
@@ -555,7 +555,7 @@ True if the package exists, false otherwise.
 
 ***
 
-### dryRunTransaction()
+### dryRunTransaction() {#dryruntransaction}
 
 > `static` **dryRunTransaction**(`client`, `logging`, `txb`, `sender`, `operation`): `Promise`\<[`IIotaDryRun`](../interfaces/IIotaDryRun.md)\>
 
@@ -601,7 +601,7 @@ void.
 
 ***
 
-### waitForTransactionConfirmation()
+### waitForTransactionConfirmation() {#waitfortransactionconfirmation}
 
 > `static` **waitForTransactionConfirmation**(`client`, `digest`, `config`, `options?`): `Promise`\<`IotaTransactionBlockResponse`\>
 
@@ -657,7 +657,7 @@ The confirmed transaction response.
 
 ***
 
-### isAbortError()
+### isAbortError() {#isaborterror}
 
 > `static` **isAbortError**(`error`, `code`): `boolean`
 
@@ -685,7 +685,7 @@ True if the error is an abort error, false otherwise.
 
 ***
 
-### prepareAndPostGasStationTransaction()
+### prepareAndPostGasStationTransaction() {#prepareandpostgasstationtransaction}
 
 > `static` **prepareAndPostGasStationTransaction**(`config`, `vaultConnector`, `identity`, `client`, `owner`, `transaction`, `options?`): `Promise`\<`IotaTransactionBlockResponse`\>
 
@@ -743,7 +743,7 @@ The transaction response.
 
 ***
 
-### reserveGas()
+### reserveGas() {#reservegas}
 
 > `static` **reserveGas**(`config`, `gasBudget`): `Promise`\<[`IGasReservationResult`](../interfaces/IGasReservationResult.md)\>
 
@@ -771,7 +771,7 @@ The gas reservation result.
 
 ***
 
-### executeGasStationTransaction()
+### executeGasStationTransaction() {#executegasstationtransaction}
 
 > `static` **executeGasStationTransaction**(`config`, `reservationId`, `transactionBytes`, `userSignature`): `Promise`\<`IotaTransactionBlockResponse`\>
 
@@ -811,7 +811,7 @@ The transaction response.
 
 ***
 
-### executeAndConfirmGasStationTransaction()
+### executeAndConfirmGasStationTransaction() {#executeandconfirmgasstationtransaction}
 
 > `static` **executeAndConfirmGasStationTransaction**(`config`, `client`, `reservationId`, `transactionBytes`, `userSignature`, `options?`): `Promise`\<`IotaTransactionBlockResponse`\>
 

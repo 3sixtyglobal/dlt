@@ -4,7 +4,7 @@ Generic interface representing the storage fields of a MigrationState object.
 
 ## Properties
 
-### id
+### id {#id}
 
 > **id**: `object`
 
@@ -18,7 +18,7 @@ The ID of the MigrationState object.
 
 ***
 
-### enabled
+### enabled {#enabled}
 
 > **enabled**: `boolean`
 

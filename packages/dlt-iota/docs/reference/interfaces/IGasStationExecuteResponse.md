@@ -4,7 +4,7 @@ Interface for the gas station execute transaction response.
 
 ## Properties
 
-### effects
+### effects {#effects}
 
 > **effects**: `object`
 
@@ -26,7 +26,7 @@ The transaction digest.
 
 ***
 
-### error?
+### error? {#error}
 
 > `optional` **error**: `string` \| `null`
 

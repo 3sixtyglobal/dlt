@@ -4,7 +4,7 @@ Network configuration interface
 
 ## Properties
 
-### network
+### network {#network}
 
 > **network**: `NetworkTypes`
 
@@ -12,7 +12,7 @@ The network type
 
 ***
 
-### platform
+### platform {#platform}
 
 > **platform**: `"iota"`
 
@@ -20,7 +20,7 @@ The platform type
 
 ***
 
-### rpc
+### rpc {#rpc}
 
 > **rpc**: `object`
 
@@ -36,7 +36,7 @@ The RPC configuration
 
 ***
 
-### deployment
+### deployment {#deployment}
 
 > **deployment**: `object`
 
@@ -72,7 +72,7 @@ The deployment configuration
 
 ***
 
-### contracts?
+### contracts? {#contracts}
 
 > `optional` **contracts**: `object`
 

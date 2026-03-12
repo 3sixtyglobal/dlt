@@ -4,7 +4,7 @@ Base interface for all smart contract objects with versioning support.
 
 ## Properties
 
-### id
+### id {#id}
 
 > **id**: `object`
 
@@ -18,7 +18,7 @@ The ID of the smart contract object.
 
 ***
 
-### version
+### version {#version}
 
 > **version**: `string`
 

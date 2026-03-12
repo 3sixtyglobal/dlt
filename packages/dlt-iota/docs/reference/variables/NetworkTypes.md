@@ -6,19 +6,19 @@ Network types supported for deployment
 
 ## Type Declaration
 
-### Testnet
+### Testnet {#testnet}
 
 > `readonly` **Testnet**: `"testnet"` = `"testnet"`
 
 Testnet.
 
-### Devnet
+### Devnet {#devnet}
 
 > `readonly` **Devnet**: `"devnet"` = `"devnet"`
 
 Devnet.
 
-### Mainnet
+### Mainnet {#mainnet}
 
 > `readonly` **Mainnet**: `"mainnet"` = `"mainnet"`
 

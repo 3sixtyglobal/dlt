@@ -15,7 +15,7 @@ the NFT mint_with_identity() Move contract function.
 
 ## Properties
 
-### CLASS\_NAME
+### CLASS\_NAME {#class_name}
 
 > `readonly` `static` **CLASS\_NAME**: `string`
 
@@ -23,7 +23,7 @@ Runtime name for the class.
 
 ## Methods
 
-### getControllerCapInfo()
+### getControllerCapInfo() {#getcontrollercapinfo}
 
 > `static` **getControllerCapInfo**(`identityId`, `controllerAddress`, `client`): `Promise`\<[`IIotaControllerCapInfo`](../interfaces/IIotaControllerCapInfo.md)\>
 

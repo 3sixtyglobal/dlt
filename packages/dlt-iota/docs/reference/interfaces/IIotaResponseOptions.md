@@ -8,7 +8,7 @@ Configuration for IOTA.
 
 ## Properties
 
-### waitForConfirmation?
+### waitForConfirmation? {#waitforconfirmation}
 
 > `optional` **waitForConfirmation**: `boolean`
 
@@ -16,7 +16,7 @@ Wait for confirmation of the transaction.
 
 ***
 
-### dryRunLabel?
+### dryRunLabel? {#dryrunlabel}
 
 > `optional` **dryRunLabel**: `string`
 
