@@ -82,7 +82,10 @@ export async function buildV1Contract(): Promise<void> {
 		const buildPromise = cli.run(buildCommand, "./dist/locales", {
 			overrideOutputWidth: 1000
 		});
-		await Promise.race([buildPromise, timeoutPromise]);
+		const exitCode = await Promise.race([buildPromise, timeoutPromise]);
+		if (exitCode !== 0) {
+			throw new Error(`V1 build command failed with exit code ${exitCode}`);
+		}
 
 		console.debug("[buildV1Contract] V1 contract build completed successfully");
 
@@ -164,7 +167,10 @@ export async function deployV1Contract(): Promise<IContractData> {
 		const deployPromise = cli.run(deployCommand, "./dist/locales", {
 			overrideOutputWidth: 1000
 		});
-		await Promise.race([deployPromise, timeoutPromise]);
+		const exitCode = await Promise.race([deployPromise, timeoutPromise]);
+		if (exitCode !== 0) {
+			throw new Error(`V1 deploy command failed with exit code ${exitCode}`);
+		}
 
 		// Load and return populated deployment data
 		const deploymentData = await loadDeploymentConfig(TEST_DEPLOYMENT_JSON_V1);
@@ -285,7 +291,10 @@ export async function buildV2Contract(v1Deployment: IContractData): Promise<void
 		const buildPromise = cli.run(buildCommand, "./dist/locales", {
 			overrideOutputWidth: 1000
 		});
-		await Promise.race([buildPromise, timeoutPromise]);
+		const buildExitCode = await Promise.race([buildPromise, timeoutPromise]);
+		if (buildExitCode !== 0) {
+			throw new Error(`V2 build command failed with exit code ${buildExitCode}`);
+		}
 
 		console.debug("[buildV2Contract] V2 contract build completed successfully");
 
@@ -367,7 +376,10 @@ export async function upgradeToV2UsingSmartDeploy(): Promise<IContractData> {
 		const deployPromise = cli.run(deployCommand, "./dist/locales", {
 			overrideOutputWidth: 1000
 		});
-		await Promise.race([deployPromise, timeoutPromise]);
+		const exitCode = await Promise.race([deployPromise, timeoutPromise]);
+		if (exitCode !== 0) {
+			throw new Error(`V2 upgrade command failed with exit code ${exitCode}`);
+		}
 
 		// Load and return upgraded deployment data
 		const deploymentData = await loadDeploymentConfig(TEST_DEPLOYMENT_JSON_V2);

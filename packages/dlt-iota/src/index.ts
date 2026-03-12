@@ -1,6 +1,7 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
 export * from "./iota.js";
+export * from "./iotaIdentityUtils.js";
 export * from "./iotaSmartContractUtils.js";
 export * from "./models/IAdminCapFields.js";
 export * from "./models/IContractData.js";
@@ -10,6 +11,7 @@ export * from "./models/IGasStationExecuteResponse.js";
 export * from "./models/IGasStationReserveGasResponse.js";
 export * from "./models/IGasStationReserveGasResult.js";
 export * from "./models/IIotaClient.js";
+export * from "./models/IIotaControllerCapInfo.js";
 export * from "./models/IIotaTransaction.js";
 export * from "./models/IIotaTransactionBlockResponse.js";
 export * from "./models/IIotaConfig.js";

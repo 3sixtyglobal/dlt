@@ -1,22 +1,27 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
 module test_contract::simple_counter {
-    use std::string::String;
 
-    /// Version 2 of the test contract - Enhanced with step size
+    /// Version 2 of the test contract - Enhanced with step size via separate config
     const VERSION: u64 = 2;
 
-    /// Enhanced counter with additional features in V2
+    /// Counter struct kept identical to V1 to satisfy upgrade compatibility rules.
+    /// Move does not allow adding fields to existing structs across upgrades.
     public struct Counter has key {
         id: UID,
         value: u64,
         version: u64,
-        step_size: u64,  // NEW: Configurable increment step
     }
 
     /// Admin capability for testing
     public struct AdminCap has key, store {
         id: UID,
+    }
+
+    /// NEW in V2: Separate config object to hold step size without changing Counter layout.
+    public struct CounterConfig has key, store {
+        id: UID,
+        step_size: u64,
     }
 
     /// Initialize the contract by creating and transferring AdminCap to deployer
@@ -27,24 +32,36 @@ module test_contract::simple_counter {
         transfer::transfer(admin_cap, ctx.sender());
     }
 
-    /// Create a new counter with initial value 0 and default step size
+    /// Create a new counter with initial value 0
     public fun create_counter(ctx: &mut TxContext): Counter {
         Counter {
             id: object::new(ctx),
             value: 0,
             version: VERSION,
-            step_size: 1,  // NEW: Default step size
         }
     }
 
-    /// Increment counter value by the configured step size
-    public fun increment(counter: &mut Counter) {
-        counter.value = counter.value + counter.step_size;  // NEW: Use step size
+    /// NEW in V2: Create a counter config with a custom step size
+    public fun create_counter_config(step_size: u64, ctx: &mut TxContext): CounterConfig {
+        CounterConfig {
+            id: object::new(ctx),
+            step_size,
+        }
     }
 
-    /// NEW: Set custom step size for increments
-    public fun set_step_size(counter: &mut Counter, step: u64) {
-        counter.step_size = step;
+	/// Increment counter value by 1 (modified from V1 to use a fixed increment)
+    public fun increment(counter: &mut Counter) {
+        counter.value = counter.value + 1;
+    }
+
+    /// NEW in V2: Increment counter value by the step size in a config object
+    public fun increment_by_step(counter: &mut Counter, config: &CounterConfig) {
+        counter.value = counter.value + config.step_size;
+    }
+
+    /// NEW in V2: Update step size in a config object
+    public fun set_step_size(config: &mut CounterConfig, step: u64) {
+        config.step_size = step;
     }
 
     /// Get the contract version
@@ -62,8 +79,8 @@ module test_contract::simple_counter {
         counter.value
     }
 
-    /// NEW: Get the current step size
-    public fun get_step_size(counter: &Counter): u64 {
-        counter.step_size
+    /// NEW in V2: Get the step size from a config object
+    public fun get_step_size(config: &CounterConfig): u64 {
+        config.step_size
     }
 }
