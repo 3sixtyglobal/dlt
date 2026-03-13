@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.0.3-next.7](https://github.com/twinfoundation/dlt/compare/move-to-json-v0.0.3-next.6...move-to-json-v0.0.3-next.7) (2026-03-13)
+
+
+### Bug Fixes
+
+* buffer usage required for identity ([#60](https://github.com/twinfoundation/dlt/issues/60)) ([0ba7d16](https://github.com/twinfoundation/dlt/commit/0ba7d165662b0083aa2b4c1325dd8c2e65defa2e))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @twin.org/dlt-iota bumped from 0.0.3-next.6 to 0.0.3-next.7
+
 ## [0.0.3-next.6](https://github.com/twinfoundation/dlt/compare/move-to-json-v0.0.3-next.5...move-to-json-v0.0.3-next.6) (2026-03-12)
 
 

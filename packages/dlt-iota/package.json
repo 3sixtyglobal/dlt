@@ -1,6 +1,6 @@
 {
 	"name": "@twin.org/dlt-iota",
-	"version": "0.0.3-next.6",
+	"version": "0.0.3-next.7",
 	"description": "IOTA distributed ledger utilities for clients, transactions, and contract operations.",
 	"repository": {
 		"type": "git",
