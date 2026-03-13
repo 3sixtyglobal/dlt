@@ -14,8 +14,7 @@
 			"getControllerCapInfoFailed": "Getting the controller capability info for the identity failed",
 			"identityNotFound": "The identity could not be found \"{notFoundId}\"",
 			"identityDeleted": "The identity \"{identityId}\" has been deleted and cannot be used for minting",
-			"controllerTokenNotFound": "No controller token found for the identity \"{notFoundId}\" with the provided controller address",
-			"unexpectedSignerCall": "The no-op signer was unexpectedly called during a read-only identity lookup"
+			"controllerTokenNotFound": "No controller token found for the identity \"{notFoundId}\" with the provided controller address"
 		},
 		"iotaSmartContractUtils": {
 			"migrationFailed": "Smart contract migration failed",

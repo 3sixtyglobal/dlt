@@ -3,14 +3,21 @@
 import {
 	IdentityClient,
 	IdentityClientReadOnly,
-	OnChainIdentity
+	Jwk,
+	JwkMemStore,
+	JwkType,
+	JwsAlgorithm,
+	KeyIdMemStore,
+	OnChainIdentity,
+	Storage,
+	StorageSigner
 } from "@iota/identity-wasm/node/index.js";
-import type { IotaClient } from "@iota/iota-sdk/client";
-import type { PublicKey } from "@iota/iota-sdk/cryptography";
-import { Ed25519PublicKey } from "@iota/iota-sdk/keypairs/ed25519";
-import { GeneralError, Guards, Is, NotFoundError } from "@twin.org/core";
+import { decodeIotaPrivateKey } from "@iota/iota-sdk/cryptography";
+import { Ed25519Keypair } from "@iota/iota-sdk/keypairs/ed25519";
+import { Base64Url, GeneralError, Guards, Is, NotFoundError } from "@twin.org/core";
 import { nameof } from "@twin.org/nameof";
 import { Iota } from "./iota.js";
+import type { IIotaClient } from "./models/IIotaClient.js";
 import type { IIotaControllerCapInfo } from "./models/IIotaControllerCapInfo.js";
 
 /**
@@ -36,40 +43,50 @@ export class IotaIdentityUtils {
 	public static async getControllerCapInfo(
 		identityId: string,
 		controllerAddress: string,
-		client: IotaClient
+		client: IIotaClient
 	): Promise<IIotaControllerCapInfo> {
 		Guards.stringValue(IotaIdentityUtils.CLASS_NAME, nameof(identityId), identityId);
 		Guards.stringValue(IotaIdentityUtils.CLASS_NAME, nameof(controllerAddress), controllerAddress);
+		Guards.object(IotaIdentityUtils.CLASS_NAME, nameof(client), client);
 
-		// Extract the Object ID from the DID — last colon-delimited segment, prefixed with 0x.
-		// IOTA DIDs have the format did:iota:<network>:<hex> where <hex> has no 0x prefix.
+		// Extract the Object ID from the DID — last colon-delimited segment.
+		// On-chain DIDs include the 0x prefix in the segment; the check avoids double-prefixing.
 		const idParts = identityId.split(":");
-		const identityObjectId = `0x${idParts[idParts.length - 1]}`;
+		const lastSegment = idParts[idParts.length - 1];
+		const identityObjectId = lastSegment.startsWith("0x") ? lastSegment : `0x${lastSegment}`;
 
 		let onChain: OnChainIdentity | undefined;
 		let controllerToken: Awaited<ReturnType<OnChainIdentity["getControllerTokenForAddress"]>>;
 
 		try {
-			// Both are IotaClient@1.11.0 but TypeScript resolves them from different module
-			// entry points (dist/esm vs dist/cjs). The protected `transport` field causes a
-			// class-compatibility failure even though the runtime types are identical.
-			// Casting through the function's own parameter type keeps this refactor-safe.
+			// IIotaClient and the IotaClient expected by identity-wasm resolve from different
+			// module entry points (dist/esm vs dist/cjs). The protected `transport` field causes
+			// a structural incompatibility even though the runtime types are identical.
 			const identityClientReadOnly = await IdentityClientReadOnly.create(
 				client as unknown as Parameters<(typeof IdentityClientReadOnly)["create"]>[0]
 			);
 
-			// getControllerTokenForAddress requires IdentityClient even though the operation is
-			// read-only — the signer is never called, only the embedded CoreClientReadOnly is
-			// used. TransactionSigner is a structural interface, so a minimal object literal
-			// that satisfies its shape avoids importing the heavyweight JWK store machinery.
-			const noOpSigner = {
-				sign: async (_txData: Uint8Array): Promise<string> => {
-					throw new GeneralError(IotaIdentityUtils.CLASS_NAME, "unexpectedSignerCall", undefined);
-				},
-				publicKey: async (): Promise<PublicKey> => new Ed25519PublicKey(new Uint8Array(32)),
-				iotaPublicKeyBytes: async (): Promise<Uint8Array> => new Uint8Array(32),
-				keyId: (): string => ""
-			};
+			// getControllerTokenForAddress requires IdentityClient even though the operation
+			// is read-only — the signer is never called, only the embedded read-only client.
+			// StorageSigner is used (rather than a plain object satisfying TransactionSigner
+			// structurally) because IdentityClient.create() validates iotaPublicKeyBytes()
+			// through an internal WASM code path that only accepts bytes from the library's
+			// own signer implementations. Plain JS objects fail with "Unsupported curve"
+			// even for valid Ed25519 keys because they take a different callback path.
+			const noOpKeypair = new Ed25519Keypair();
+			const rawPublic = noOpKeypair.getPublicKey().toRawBytes();
+			const { secretKey: rawPrivate } = decodeIotaPrivateKey(noOpKeypair.getSecretKey());
+			const noOpSigner = new StorageSigner(
+				new Storage(new JwkMemStore(), new KeyIdMemStore()),
+				"",
+				new Jwk({
+					kty: JwkType.Okp,
+					crv: "Ed25519",
+					alg: JwsAlgorithm.EdDSA,
+					x: Base64Url.encode(rawPublic),
+					d: Base64Url.encode(rawPrivate)
+				})
+			);
 			const identityClient = await IdentityClient.create(identityClientReadOnly, noOpSigner);
 
 			onChain = await OnChainIdentity.getById(identityObjectId, identityClient);

@@ -5,16 +5,25 @@ import {
 	IdentityClientReadOnly,
 	OnChainIdentity
 } from "@iota/identity-wasm/node/index.js";
-import type { IotaClient } from "@iota/iota-sdk/client";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { IotaIdentityUtils } from "../src/iotaIdentityUtils.js";
+import type { IIotaClient } from "../src/models/IIotaClient.js";
 
 // Mock the entire WASM module — static methods are replaced with vi.fn() so
 // we can control return values per test without hitting the actual WASM binary.
+// StorageSigner and its dependencies are stubbed as no-ops because
+// IdentityClient.create() is also mocked and never inspects the signer.
 vi.mock("@iota/identity-wasm/node/index.js", () => ({
 	IdentityClientReadOnly: { create: vi.fn() },
 	IdentityClient: { create: vi.fn() },
-	OnChainIdentity: { getById: vi.fn() }
+	OnChainIdentity: { getById: vi.fn() },
+	StorageSigner: vi.fn(),
+	Storage: vi.fn(),
+	JwkMemStore: vi.fn(),
+	KeyIdMemStore: vi.fn(),
+	Jwk: vi.fn(),
+	JwkType: { Okp: "OKP" },
+	JwsAlgorithm: { EdDSA: "EdDSA" }
 }));
 
 const MOCK_IDENTITY_ID = "did:iota:testnet:abc123def456abc123def456abc123def456abc1";
@@ -53,7 +62,7 @@ describe("IotaIdentityUtils", () => {
 			const result = await IotaIdentityUtils.getControllerCapInfo(
 				MOCK_IDENTITY_ID,
 				MOCK_CONTROLLER_ADDRESS,
-				{} as IotaClient
+				{} as IIotaClient
 			);
 
 			expect(result.identityObjectId).toBe(MOCK_IDENTITY_OBJECT_ID);
@@ -76,7 +85,7 @@ describe("IotaIdentityUtils", () => {
 			const result = await IotaIdentityUtils.getControllerCapInfo(
 				"did:iota:testnet:abcdef1234",
 				MOCK_CONTROLLER_ADDRESS,
-				{} as IotaClient
+				{} as IIotaClient
 			);
 
 			// Last DID segment prefixed with 0x
@@ -91,7 +100,7 @@ describe("IotaIdentityUtils", () => {
 				IotaIdentityUtils.getControllerCapInfo(
 					MOCK_IDENTITY_ID,
 					MOCK_CONTROLLER_ADDRESS,
-					{} as IotaClient
+					{} as IIotaClient
 				)
 			).rejects.toThrow(
 				expect.objectContaining({
@@ -113,7 +122,7 @@ describe("IotaIdentityUtils", () => {
 				IotaIdentityUtils.getControllerCapInfo(
 					MOCK_IDENTITY_ID,
 					MOCK_CONTROLLER_ADDRESS,
-					{} as IotaClient
+					{} as IIotaClient
 				)
 			).rejects.toThrow(
 				expect.objectContaining({
@@ -138,7 +147,7 @@ describe("IotaIdentityUtils", () => {
 				IotaIdentityUtils.getControllerCapInfo(
 					MOCK_IDENTITY_ID,
 					MOCK_CONTROLLER_ADDRESS,
-					{} as IotaClient
+					{} as IIotaClient
 				)
 			).rejects.toThrow(
 				expect.objectContaining({
@@ -156,7 +165,7 @@ describe("IotaIdentityUtils", () => {
 				IotaIdentityUtils.getControllerCapInfo(
 					MOCK_IDENTITY_ID,
 					MOCK_CONTROLLER_ADDRESS,
-					{} as IotaClient
+					{} as IIotaClient
 				)
 			).rejects.toThrow(
 				expect.objectContaining({
@@ -169,7 +178,7 @@ describe("IotaIdentityUtils", () => {
 
 		test("throws GuardError when identityId is empty", async () => {
 			await expect(
-				IotaIdentityUtils.getControllerCapInfo("", MOCK_CONTROLLER_ADDRESS, {} as IotaClient)
+				IotaIdentityUtils.getControllerCapInfo("", MOCK_CONTROLLER_ADDRESS, {} as IIotaClient)
 			).rejects.toThrow(
 				expect.objectContaining({
 					name: "GuardError",
@@ -180,7 +189,7 @@ describe("IotaIdentityUtils", () => {
 
 		test("throws GuardError when controllerAddress is empty", async () => {
 			await expect(
-				IotaIdentityUtils.getControllerCapInfo(MOCK_IDENTITY_ID, "", {} as IotaClient)
+				IotaIdentityUtils.getControllerCapInfo(MOCK_IDENTITY_ID, "", {} as IIotaClient)
 			).rejects.toThrow(
 				expect.objectContaining({
 					name: "GuardError",
