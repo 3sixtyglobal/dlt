@@ -9,9 +9,11 @@ import { cleanBuildArtifactsInPath } from "../../src/utils/buildArtifactUtils.js
 import {
 	TEST_CONTRACT_PATH_V1,
 	TEST_CONTRACT_PATH_V2,
+	TEST_CONTRACT_PATH_V3,
 	TEST_DEPLOYER_MNEMONIC,
 	TEST_DEPLOYMENT_JSON_V1,
 	TEST_DEPLOYMENT_JSON_V2,
+	TEST_DEPLOYMENT_JSON_V3,
 	TEST_FAUCET_ENDPOINT,
 	TEST_GAS_BUDGET,
 	TEST_GAS_STATION_AUTH_TOKEN,
@@ -428,6 +430,210 @@ export async function upgradeToV2UsingSmartDeploy(): Promise<IContractData> {
 }
 
 /**
+ * Build V3 contract using move-to-json build command.
+ * @param v2Deployment The V2 deployment data to copy upgrade capability from.
+ * @returns Promise that resolves when build is complete.
+ */
+export async function buildV3Contract(v2Deployment: IContractData): Promise<void> {
+	let tempConfigPath: string | undefined;
+	try {
+		console.debug("[buildV3Contract] Starting V3 contract build");
+
+		const deploymentConfig = {
+			network: TEST_NETWORK,
+			nodeEndpoint: TEST_NODE_ENDPOINT,
+			faucetEndpoint: TEST_FAUCET_ENDPOINT,
+			deployerMnemonic: TEST_DEPLOYER_MNEMONIC,
+			gasBudget: TEST_GAS_BUDGET,
+			gasStationUrl: TEST_GAS_STATION_URL,
+			gasStationAuthToken: TEST_GAS_STATION_AUTH_TOKEN
+		};
+
+		tempConfigPath = await createTempEnvConfig(deploymentConfig);
+
+		// Prepare V3 deployment JSON with V2 upgrade capability data
+		const v3Config: ISmartContractDeployments = {
+			[TEST_NETWORK]: {
+				packageId: "", // Will be populated by build
+				packageBytecode: "", // Will be populated by build
+				deployedPackageId: v2Deployment.deployedPackageId, // Current V2 deployment
+				lastDeployedPackageId: v2Deployment.lastDeployedPackageId, // Preserve original package ID
+				upgradeCapabilityId: v2Deployment.upgradeCapabilityId, // Preserve upgrade capability
+				migrationStateId: v2Deployment.migrationStateId // Preserve migration state
+			}
+		};
+
+		await fs.writeFile(TEST_DEPLOYMENT_JSON_V3, JSON.stringify(v3Config, null, "\t"));
+
+		// Clean up any existing V3 build artifacts
+		await cleanupV3BuildArtifacts();
+
+		const contractSources = path.join(TEST_CONTRACT_PATH_V3, "test-contract/sources/*.move");
+		const buildCommand = [
+			"node",
+			"move-to-json",
+			"build",
+			contractSources,
+			"--network",
+			TEST_NETWORK,
+			"--output",
+			TEST_DEPLOYMENT_JSON_V3,
+			"--load-env",
+			tempConfigPath
+		];
+		console.debug(`[buildV3Contract] Executing: ${buildCommand.join(" ")}`);
+
+		const timeoutPromise = new Promise<never>((resolve, reject) => {
+			setTimeout(
+				() =>
+					reject(
+						new GeneralError(
+							"upgradeTestHelpers",
+							"buildTimeoutReached",
+							undefined,
+							"V3 build command timed out after 120 seconds"
+						)
+					),
+				120000
+			);
+		});
+
+		const cli = new CLI();
+		const buildPromise = cli.run(buildCommand, "./dist/locales", {
+			overrideOutputWidth: 1000
+		});
+		const buildExitCode = await Promise.race([buildPromise, timeoutPromise]);
+		if (buildExitCode !== 0) {
+			throw new Error(`V3 build command failed with exit code ${buildExitCode}`);
+		}
+
+		console.debug("[buildV3Contract] V3 contract build completed successfully");
+
+		if (tempConfigPath) {
+			try {
+				await fs.unlink(tempConfigPath);
+			} catch {
+				console.warn("[buildV3Contract] Failed to clean up temporary config file");
+			}
+		}
+	} catch (error) {
+		if (tempConfigPath) {
+			try {
+				await fs.unlink(tempConfigPath);
+			} catch {
+				console.warn("[buildV3Contract] Failed to clean up temporary config file after error");
+			}
+		}
+		console.error("[buildV3Contract] Error:", error);
+		throw new Error("Building V3 contract failed", { cause: error });
+	}
+}
+
+/**
+ * Upgrade V2 to V3 using move-to-json deploy command with smart upgrade detection.
+ * @returns Promise that resolves to upgraded deployment data.
+ */
+export async function upgradeToV3UsingSmartDeploy(): Promise<IContractData> {
+	let tempConfigPath: string | undefined;
+	try {
+		console.debug("[upgradeToV3UsingSmartDeploy] Starting smart deploy upgrade to V3");
+
+		const deploymentConfig = {
+			network: TEST_NETWORK,
+			nodeEndpoint: TEST_NODE_ENDPOINT,
+			faucetEndpoint: TEST_FAUCET_ENDPOINT,
+			deployerMnemonic: TEST_DEPLOYER_MNEMONIC,
+			gasBudget: TEST_GAS_BUDGET,
+			gasStationUrl: TEST_GAS_STATION_URL,
+			gasStationAuthToken: TEST_GAS_STATION_AUTH_TOKEN
+		};
+
+		tempConfigPath = await createTempEnvConfig(deploymentConfig);
+
+		const deployCommand = [
+			"node",
+			"move-to-json",
+			"deploy",
+			"--network",
+			TEST_NETWORK,
+			"--contracts",
+			TEST_DEPLOYMENT_JSON_V3,
+			"--load-env",
+			tempConfigPath
+		];
+
+		console.debug(`[upgradeToV3UsingSmartDeploy] Executing: ${deployCommand.join(" ")}`);
+
+		const timeoutPromise = new Promise<never>((resolve, reject) => {
+			setTimeout(
+				() =>
+					reject(
+						new GeneralError(
+							"upgradeTestHelpers",
+							"upgradeTimeoutReached",
+							undefined,
+							"V3 upgrade command timed out after 180 seconds"
+						)
+					),
+				180000
+			);
+		});
+
+		const cli = new CLI();
+		const deployPromise = cli.run(deployCommand, "./dist/locales", {
+			overrideOutputWidth: 1000
+		});
+		const exitCode = await Promise.race([deployPromise, timeoutPromise]);
+		if (exitCode !== 0) {
+			throw new Error(`V3 upgrade command failed with exit code ${exitCode}`);
+		}
+
+		const deploymentData = await loadDeploymentConfig(TEST_DEPLOYMENT_JSON_V3);
+		const contractData = deploymentData[TEST_NETWORK as keyof ISmartContractDeployments];
+
+		if (!contractData?.deployedPackageId || !contractData?.upgradeCapabilityId) {
+			throw new Error(
+				`V3 upgrade completed but required data is missing, deployedPackageId: ${contractData?.deployedPackageId}, upgradeCapabilityId: ${contractData?.upgradeCapabilityId}, migrationStateId: ${contractData?.migrationStateId}`
+			);
+		}
+
+		const result = {
+			packageId: contractData.packageId,
+			packageBytecode: contractData.packageBytecode,
+			deployedPackageId: contractData.deployedPackageId,
+			lastDeployedPackageId: contractData.lastDeployedPackageId,
+			upgradeCapabilityId: contractData.upgradeCapabilityId,
+			migrationStateId: contractData.migrationStateId
+		};
+
+		console.debug(
+			"[upgradeToV3UsingSmartDeploy] Smart deploy upgrade to V3 completed successfully"
+		);
+
+		if (tempConfigPath) {
+			try {
+				await fs.unlink(tempConfigPath);
+			} catch {
+				console.warn("[upgradeToV3UsingSmartDeploy] Failed to clean up temporary config file");
+			}
+		}
+
+		return result;
+	} catch (error) {
+		if (tempConfigPath) {
+			try {
+				await fs.unlink(tempConfigPath);
+			} catch {
+				console.warn(
+					"[upgradeToV3UsingSmartDeploy] Failed to clean up temporary config file after error"
+				);
+			}
+		}
+		throw new Error("Smart deploy upgrade to V3 failed", { cause: error });
+	}
+}
+
+/**
  * Load deployment configuration from JSON file.
  * @param jsonPath Path to the deployment JSON file.
  * @returns Promise that resolves to smart contract deployments configuration.
@@ -473,9 +679,19 @@ export async function cleanupTestArtifacts(): Promise<void> {
 		};
 		await fs.writeFile(TEST_DEPLOYMENT_JSON_V2, JSON.stringify(cleanV2Config, null, "\t"));
 
+		// Clean V3 deployment JSON
+		const cleanV3Config: ISmartContractDeployments = {
+			[TEST_NETWORK]: {
+				packageId: "",
+				packageBytecode: ""
+			}
+		};
+		await fs.writeFile(TEST_DEPLOYMENT_JSON_V3, JSON.stringify(cleanV3Config, null, "\t"));
+
 		// Clean build artifacts
 		await cleanupV1BuildArtifacts();
 		await cleanupV2BuildArtifacts();
+		await cleanupV3BuildArtifacts();
 
 		// Clean temporary files
 		const tempDir = path.join(__dirname, "..", ".tmp");
@@ -506,5 +722,14 @@ async function cleanupV1BuildArtifacts(): Promise<void> {
  */
 async function cleanupV2BuildArtifacts(): Promise<void> {
 	const contractPath = path.join(TEST_CONTRACT_PATH_V2, "test-contract");
+	await cleanBuildArtifactsInPath(contractPath);
+}
+
+/**
+ * Clean V3 build artifacts (Move.lock and build directory).
+ * @returns Promise that resolves when cleanup is complete.
+ */
+export async function cleanupV3BuildArtifacts(): Promise<void> {
+	const contractPath = path.join(TEST_CONTRACT_PATH_V3, "test-contract");
 	await cleanBuildArtifactsInPath(contractPath);
 }

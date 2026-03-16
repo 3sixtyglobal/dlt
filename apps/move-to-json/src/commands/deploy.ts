@@ -5,7 +5,7 @@ import path from "node:path";
 import { IotaClient } from "@iota/iota-sdk/client";
 import { requestIotaFromFaucetV0 } from "@iota/iota-sdk/faucet";
 import { CLIDisplay, CLIParam, CLIUtils } from "@twin.org/cli-core";
-import { Converter, GeneralError, Guards, I18n, Is, RandomHelper } from "@twin.org/core";
+import { Coerce, Converter, GeneralError, Guards, I18n, Is, RandomHelper } from "@twin.org/core";
 import { Bip39, Bip44 } from "@twin.org/crypto";
 import {
 	Iota,
@@ -683,6 +683,43 @@ async function determineDeploymentStrategy(
 }
 
 /**
+ * Query the on-chain UpgradeCap object to get the actual latest package ID.
+ * This is used to validate/correct the `published-at` value before upgrades,
+ * preventing failures when the deployment JSON is stale.
+ * @param rpcUrl RPC endpoint URL for the network.
+ * @param upgradeCapabilityId The UpgradeCap object ID on-chain.
+ * @returns The on-chain package ID and version, or undefined if query fails.
+ */
+async function queryUpgradeCapPackage(
+	rpcUrl: string,
+	upgradeCapabilityId: string
+): Promise<{ package: string; version: number } | undefined> {
+	try {
+		const client = new IotaClient({ url: rpcUrl });
+		const response = await client.getObject({
+			id: upgradeCapabilityId,
+			options: { showContent: true }
+		});
+
+		if (response.data?.content?.dataType === "moveObject") {
+			const fields = response.data.content.fields as { [key: string]: unknown };
+			const fieldPackage = Coerce.string(fields.package);
+			const fieldVersion = Coerce.number(fields.version);
+			if (Is.stringValue(fieldPackage) && Is.number(fieldVersion)) {
+				return {
+					package: fieldPackage,
+					version: fieldVersion
+				};
+			}
+		}
+		return undefined;
+	} catch {
+		// If query fails (e.g. network issue), return undefined to fall back to JSON value
+		return undefined;
+	}
+}
+
+/**
  * Execute contract upgrade using iota client upgrade command.
  * @param contractData Contract data containing upgrade capability.
  * @param config Network configuration.
@@ -692,10 +729,45 @@ async function executeContractUpgrade(
 	contractData: IContractData,
 	config: INetworkConfig
 ): Promise<{ packageId: string; upgradeCap: string; migrationStateId?: string }> {
-	// Store the previous deployedPackageId for "published-at" field in Move.toml
-	// Use lastDeployedPackageId which tracks the previous deployment for upgrade chain
-	const previousDeployedPackageId = contractData.lastDeployedPackageId;
-	if (!previousDeployedPackageId) {
+	// Start with lastDeployedPackageId from JSON as the candidate for "published-at"
+	let publishedAtPackageId = contractData.lastDeployedPackageId;
+
+	// Query the on-chain UpgradeCap to get the actual latest package ID.
+	// This prevents failures when the JSON is stale
+	if (Is.stringValue(contractData.upgradeCapabilityId)) {
+		CLIDisplay.task(I18n.formatMessage("commands.deploy.progress.queryingUpgradeCap"));
+		const onChainCap = await queryUpgradeCapPackage(
+			config.rpc.url,
+			contractData.upgradeCapabilityId
+		);
+		if (onChainCap) {
+			CLIDisplay.value(
+				I18n.formatMessage("commands.deploy.labels.onChainPackageId"),
+				onChainCap.package,
+				1
+			);
+			CLIDisplay.value(
+				I18n.formatMessage("commands.deploy.labels.onChainVersion"),
+				String(onChainCap.version),
+				1
+			);
+
+			if (publishedAtPackageId !== onChainCap.package) {
+				CLIDisplay.value(
+					I18n.formatMessage("commands.deploy.labels.warning"),
+					I18n.formatMessage("commands.deploy.messages.staleJsonDetected", {
+						jsonPackageId: publishedAtPackageId ?? "none",
+						onChainPackageId: onChainCap.package
+					}),
+					2
+				);
+				publishedAtPackageId = onChainCap.package;
+				contractData.lastDeployedPackageId = onChainCap.package;
+			}
+		}
+	}
+
+	if (!publishedAtPackageId) {
 		throw new GeneralError("commands", "commands.deploy.noPreviousDeploymentForUpgrade");
 	}
 
@@ -716,8 +788,8 @@ async function executeContractUpgrade(
 	const backupPath = await backupMoveToml(moveTomlPath);
 
 	try {
-		// Update Move.toml with "published-at" = previous deployedPackageId
-		await updateMoveTomlPublishedAt(moveTomlPath, previousDeployedPackageId);
+		// Update Move.toml with "published-at" = validated package ID (from chain or JSON)
+		await updateMoveTomlPublishedAt(moveTomlPath, publishedAtPackageId);
 
 		await validateContractIsBuilt(contractData, projectRoot);
 

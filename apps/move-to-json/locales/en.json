@@ -202,7 +202,9 @@
 				"upgradeGuidance": "Upgrade Guidance",
 				"previousDeployment": "Previous Deployment",
 				"currentDeployment": "Current Deployment",
-				"buildValidation": "Build Validation"
+				"buildValidation": "Build Validation",
+				"onChainPackageId": "On-chain UpgradeCap Package",
+				"onChainVersion": "On-chain UpgradeCap Version"
 			},
 			"progress": {
 				"checkingEnvironment": "Checking IOTA CLI environment...",
@@ -211,7 +213,8 @@
 				"requestingFaucetFunds": "Requesting funds from {network} faucet...",
 				"requestingAdditionalFaucetFunds": "Requesting additional funds from faucet...",
 				"renamingConflictingKey": "Renaming conflicting key alias \"{aliasName}\" to preserve existing key",
-				"importingDeployerKey": "Importing deployer key as \"{aliasName}\""
+				"importingDeployerKey": "Importing deployer key as \"{aliasName}\"",
+				"queryingUpgradeCap": "Querying on-chain UpgradeCap to validate published-at..."
 			},
 			"messages": {
 				"contractAlreadyDeployed": "Contract already deployed, no changes detected",
@@ -219,7 +222,8 @@
 				"noneInitialDeployment": "None - Initial deployment",
 				"noneNeedsDeploymentUpgrade": "None - Needs deployment/upgrade",
 				"originalConfigurationRestored": "Original configuration restored",
-				"contractBuiltAndReadyForUpgrade": "Contract has been built and is ready for upgrade"
+				"contractBuiltAndReadyForUpgrade": "Contract has been built and is ready for upgrade",
+				"staleJsonDetected": "Stale deployment JSON detected. JSON has \"{jsonPackageId}\" but on-chain UpgradeCap has \"{onChainPackageId}\". Using on-chain value."
 			},
 			"section": {
 				"deployContracts": "Deploy Contracts"

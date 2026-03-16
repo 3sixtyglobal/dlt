@@ -62,6 +62,7 @@ const MIN_BALANCE_REQUIRED = 1000000000n;
 // Test paths
 export const TEST_CONTRACT_PATH_V1 = path.join(__dirname, "contracts/v1");
 export const TEST_CONTRACT_PATH_V2 = path.join(__dirname, "contracts/v2");
+export const TEST_CONTRACT_PATH_V3 = path.join(__dirname, "contracts/v3");
 export const TEST_DEPLOYMENT_JSON_V1 = path.join(
 	TEST_CONTRACT_PATH_V1,
 	"v1-smart-contract-deployments.json"
@@ -69,6 +70,10 @@ export const TEST_DEPLOYMENT_JSON_V1 = path.join(
 export const TEST_DEPLOYMENT_JSON_V2 = path.join(
 	TEST_CONTRACT_PATH_V2,
 	"v2-smart-contract-deployments.json"
+);
+export const TEST_DEPLOYMENT_JSON_V3 = path.join(
+	TEST_CONTRACT_PATH_V3,
+	"v3-smart-contract-deployments.json"
 );
 
 initSchema();
