@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.0.3-next.8](https://github.com/twinfoundation/dlt/compare/move-to-json-v0.0.3-next.7...move-to-json-v0.0.3-next.8) (2026-03-16)
+
+
+### Features
+
+* validate published-at against on-chain UpgradeCap before upgrade ([#62](https://github.com/twinfoundation/dlt/issues/62)) ([23b49e2](https://github.com/twinfoundation/dlt/commit/23b49e247b89d2e363f9420b01fa35941f73be12))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @twin.org/dlt-iota bumped from 0.0.3-next.7 to 0.0.3-next.8
+
 ## [0.0.3-next.7](https://github.com/twinfoundation/dlt/compare/move-to-json-v0.0.3-next.6...move-to-json-v0.0.3-next.7) (2026-03-13)
 
 
