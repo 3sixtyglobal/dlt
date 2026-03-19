@@ -32,7 +32,7 @@ The RPC configuration
 
 #### timeout?
 
-> `optional` **timeout**: `number`
+> `optional` **timeout?**: `number`
 
 ***
 
@@ -48,7 +48,7 @@ The deployment configuration
 
 #### confirmationTimeout?
 
-> `optional` **confirmationTimeout**: `number`
+> `optional` **confirmationTimeout?**: `number`
 
 #### wallet
 
@@ -60,7 +60,7 @@ The deployment configuration
 
 #### gasStation?
 
-> `optional` **gasStation**: `object`
+> `optional` **gasStation?**: `object`
 
 ##### gasStation.url
 
@@ -74,7 +74,7 @@ The deployment configuration
 
 ### contracts? {#contracts}
 
-> `optional` **contracts**: `object`
+> `optional` **contracts?**: `object`
 
 The contracts configuration
 

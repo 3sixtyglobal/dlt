@@ -246,9 +246,9 @@ The vault connector.
 
 ##### logging
 
-The logging component.
+`ILoggingComponent` \| `undefined`
 
-`ILoggingComponent` | `undefined`
+The logging component.
 
 ##### identity
 
@@ -316,9 +316,9 @@ The vault connector.
 
 ##### logging
 
-The logging component.
+`ILoggingComponent` \| `undefined`
 
-`ILoggingComponent` | `undefined`
+The logging component.
 
 ##### identity
 
@@ -571,9 +571,9 @@ The IOTA client.
 
 ##### logging
 
-The logging component.
+`ILoggingComponent` \| `undefined`
 
-`ILoggingComponent` | `undefined`
+The logging component.
 
 ##### txb
 

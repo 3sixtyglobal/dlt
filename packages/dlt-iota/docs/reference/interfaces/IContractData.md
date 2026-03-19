@@ -22,7 +22,7 @@ Base64-encoded package bytecode
 
 ### deployedPackageId? {#deployedpackageid}
 
-> `optional` **deployedPackageId**: `string`
+> `optional` **deployedPackageId?**: `string`
 
 Package ID from actual deployment
 
@@ -30,7 +30,7 @@ Package ID from actual deployment
 
 ### lastDeployedPackageId? {#lastdeployedpackageid}
 
-> `optional` **lastDeployedPackageId**: `string`
+> `optional` **lastDeployedPackageId?**: `string`
 
 Previous deployed package ID for upgrade chain tracking
 
@@ -38,7 +38,7 @@ Previous deployed package ID for upgrade chain tracking
 
 ### upgradeCapabilityId? {#upgradecapabilityid}
 
-> `optional` **upgradeCapabilityId**: `string`
+> `optional` **upgradeCapabilityId?**: `string`
 
 UpgradeCap object ID for package upgrades
 
@@ -46,6 +46,6 @@ UpgradeCap object ID for package upgrades
 
 ### migrationStateId? {#migrationstateid}
 
-> `optional` **migrationStateId**: `string`
+> `optional` **migrationStateId?**: `string`
 
 Migration state ID for tracking contract migrations
