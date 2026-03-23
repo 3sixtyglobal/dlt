@@ -180,10 +180,10 @@ async function runBuild(): Promise<void> {
 	const tempConfigPath = await createTempEnvConfig(deploymentConfig);
 
 	try {
-		const contractPath = path.join(TEST_CONTRACT_PATH_V1, "test-contract");
+		const contractPath = path.join(TEST_CONTRACT_PATH_V1, "testContract");
 		await cleanBuildArtifactsInPath(contractPath);
 
-		const contractSources = path.join(TEST_CONTRACT_PATH_V1, "test-contract/sources/*.move");
+		const contractSources = path.join(TEST_CONTRACT_PATH_V1, "testContract/sources/*.move");
 		const buildCommand = [
 			"node",
 			"move-to-json",
