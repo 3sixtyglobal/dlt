@@ -48,7 +48,7 @@ export async function buildV1Contract(): Promise<void> {
 		// Clean up any existing build artifacts
 		await cleanupV1BuildArtifacts();
 
-		const contractSources = path.join(TEST_CONTRACT_PATH_V1, "test-contract/sources/*.move");
+		const contractSources = path.join(TEST_CONTRACT_PATH_V1, "testContract/sources/*.move");
 
 		const buildCommand = [
 			"node",
@@ -258,7 +258,7 @@ export async function buildV2Contract(v1Deployment: IContractData): Promise<void
 		// Clean up any existing V2 build artifacts
 		await cleanupV2BuildArtifacts();
 
-		const contractSources = path.join(TEST_CONTRACT_PATH_V2, "test-contract/sources/*.move");
+		const contractSources = path.join(TEST_CONTRACT_PATH_V2, "testContract/sources/*.move");
 		const buildCommand = [
 			"node",
 			"move-to-json",
@@ -468,7 +468,7 @@ export async function buildV3Contract(v2Deployment: IContractData): Promise<void
 		// Clean up any existing V3 build artifacts
 		await cleanupV3BuildArtifacts();
 
-		const contractSources = path.join(TEST_CONTRACT_PATH_V3, "test-contract/sources/*.move");
+		const contractSources = path.join(TEST_CONTRACT_PATH_V3, "testContract/sources/*.move");
 		const buildCommand = [
 			"node",
 			"move-to-json",
@@ -712,7 +712,7 @@ export async function cleanupTestArtifacts(): Promise<void> {
  * @returns Promise that resolves when cleanup is complete.
  */
 async function cleanupV1BuildArtifacts(): Promise<void> {
-	const contractPath = path.join(TEST_CONTRACT_PATH_V1, "test-contract");
+	const contractPath = path.join(TEST_CONTRACT_PATH_V1, "testContract");
 	await cleanBuildArtifactsInPath(contractPath);
 }
 
@@ -721,7 +721,7 @@ async function cleanupV1BuildArtifacts(): Promise<void> {
  * @returns Promise that resolves when cleanup is complete.
  */
 async function cleanupV2BuildArtifacts(): Promise<void> {
-	const contractPath = path.join(TEST_CONTRACT_PATH_V2, "test-contract");
+	const contractPath = path.join(TEST_CONTRACT_PATH_V2, "testContract");
 	await cleanBuildArtifactsInPath(contractPath);
 }
 
@@ -730,6 +730,6 @@ async function cleanupV2BuildArtifacts(): Promise<void> {
  * @returns Promise that resolves when cleanup is complete.
  */
 export async function cleanupV3BuildArtifacts(): Promise<void> {
-	const contractPath = path.join(TEST_CONTRACT_PATH_V3, "test-contract");
+	const contractPath = path.join(TEST_CONTRACT_PATH_V3, "testContract");
 	await cleanBuildArtifactsInPath(contractPath);
 }

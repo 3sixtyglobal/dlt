@@ -165,6 +165,6 @@ move-to-json deploy --network mainnet --contracts <PATH-TO-CONTRACTS> --load-env
 ## Example
 
 ```shell
-npx "@twin.org/move-to-json" build "tests/fixtures/sources/**/*.move" --load-env configs/testnet.env --output tests/fixtures/smart-contract-deployments/smart-contract-deployments.json
-npx "@twin.org/move-to-json" deploy --load-env configs/testnet.env --contracts tests/fixtures/smart-contract-deployments/smart-contract-deployments.json --dry-run
+npx "@twin.org/move-to-json" build "tests/fixtures/sources/**/*.move" --load-env configs/testnet.env --output tests/fixtures/smartContractDeployments/smart-contract-deployments.json
+npx "@twin.org/move-to-json" deploy --load-env configs/testnet.env --contracts tests/fixtures/smartContractDeployments/smart-contract-deployments.json --dry-run
 ```
