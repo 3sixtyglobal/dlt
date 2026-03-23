@@ -13,9 +13,9 @@ runs:
     - name: Set IOTA CLI versions
       shell: bash
       run: |
-        echo "IOTA_CLI_VERSION_MAINNET=1.17.2" >> $GITHUB_ENV
-        echo "IOTA_CLI_VERSION_TESTNET=1.18.1-rc" >> $GITHUB_ENV
-        echo "IOTA_CLI_VERSION_DEVNET=1.18.0-beta" >> $GITHUB_ENV
+        echo "IOTA_CLI_VERSION_MAINNET=1.18.1" >> $GITHUB_ENV
+        echo "IOTA_CLI_VERSION_TESTNET=1.19.1-rc" >> $GITHUB_ENV
+        echo "IOTA_CLI_VERSION_DEVNET=1.19.0-beta" >> $GITHUB_ENV
 
     - name: Download IOTA CLI
       shell: bash
