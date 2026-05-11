@@ -48,19 +48,21 @@ export class Iota {
 	public static readonly DEFAULT_COIN_TYPE: number = 4218;
 
 	/**
-	 * Default scan range.
-	 */
-	public static readonly DEFAULT_SCAN_RANGE: number = 1000;
-
-	/**
-	 * Default inclusion timeout.
-	 */
-	public static readonly DEFAULT_INCLUSION_TIMEOUT: number = 60;
-
-	/**
 	 * Runtime name for the class.
 	 */
 	public static readonly CLASS_NAME: string = nameof<Iota>();
+
+	/**
+	 * Default scan range.
+	 * @internal
+	 */
+	private static readonly _DEFAULT_SCAN_RANGE: number = 1000;
+
+	/**
+	 * Default inclusion timeout.
+	 * @internal
+	 */
+	private static readonly _DEFAULT_INCLUSION_TIMEOUT: number = 60;
 
 	/**
 	 * Create a new IOTA client.
@@ -89,7 +91,7 @@ export class Iota {
 		config.vaultMnemonicId ??= Iota.DEFAULT_MNEMONIC_SECRET_NAME;
 		config.vaultSeedId ??= Iota.DEFAULT_SEED_SECRET_NAME;
 		config.coinType ??= Iota.DEFAULT_COIN_TYPE;
-		config.inclusionTimeoutSeconds ??= Iota.DEFAULT_INCLUSION_TIMEOUT;
+		config.inclusionTimeoutSeconds ??= Iota._DEFAULT_INCLUSION_TIMEOUT;
 	}
 
 	/**
@@ -283,7 +285,7 @@ export class Iota {
 
 		const seed = await Iota.getSeed(config, vaultConnector, identity);
 		const addressKeyPair = Iota.findAddress(
-			config.maxAddressScanRange ?? Iota.DEFAULT_SCAN_RANGE,
+			config.maxAddressScanRange ?? Iota._DEFAULT_SCAN_RANGE,
 			config.coinType ?? Iota.DEFAULT_COIN_TYPE,
 			seed,
 			owner
@@ -573,7 +575,7 @@ export class Iota {
 			showObjectChanges?: boolean;
 		}
 	): Promise<IIotaTransactionBlockResponse> {
-		const timeoutMs = (config.inclusionTimeoutSeconds ?? Iota.DEFAULT_INCLUSION_TIMEOUT) * 1000;
+		const timeoutMs = (config.inclusionTimeoutSeconds ?? Iota._DEFAULT_INCLUSION_TIMEOUT) * 1000;
 
 		return client.waitForTransaction({
 			digest,
@@ -640,7 +642,7 @@ export class Iota {
 			// Sign the transaction with the user's private key
 			const seed = await Iota.getSeed(config, vaultConnector, identity);
 			const addressKeyPair = Iota.findAddress(
-				config.maxAddressScanRange ?? Iota.DEFAULT_SCAN_RANGE,
+				config.maxAddressScanRange ?? Iota._DEFAULT_SCAN_RANGE,
 				config.coinType ?? Iota.DEFAULT_COIN_TYPE,
 				seed,
 				owner
