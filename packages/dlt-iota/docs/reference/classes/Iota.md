@@ -38,22 +38,6 @@ Default coin type.
 
 ***
 
-### DEFAULT\_SCAN\_RANGE {#default_scan_range}
-
-> `readonly` `static` **DEFAULT\_SCAN\_RANGE**: `number` = `1000`
-
-Default scan range.
-
-***
-
-### DEFAULT\_INCLUSION\_TIMEOUT {#default_inclusion_timeout}
-
-> `readonly` `static` **DEFAULT\_INCLUSION\_TIMEOUT**: `number` = `60`
-
-Default inclusion timeout.
-
-***
-
 ### CLASS\_NAME {#class_name}
 
 > `readonly` `static` **CLASS\_NAME**: `string`
