@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.3-next.9](https://github.com/iotaledger/twin-dlt/compare/dlt-iota-v0.0.3-next.8...dlt-iota-v0.0.3-next.9) (2026-05-11)
+
+
+### Features
+
+* private statics ([f6b3684](https://github.com/iotaledger/twin-dlt/commit/f6b3684469256e62d55c250663780d70106b1343))
+
 ## [0.0.3-next.8](https://github.com/iotaledger/twin-dlt/compare/dlt-iota-v0.0.3-next.7...dlt-iota-v0.0.3-next.8) (2026-03-16)
 
 
