@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.3-next.12](https://github.com/iotaledger/twin-dlt/compare/dlt-iota-v0.0.3-next.11...dlt-iota-v0.0.3-next.12) (2026-05-12)
+
+
+### Features
+
+* use bip 44 path for chunks ([c5f8b1c](https://github.com/iotaledger/twin-dlt/commit/c5f8b1c659d33a117a8baa785f1981e557996f5f))
+
 ## [0.0.3-next.11](https://github.com/iotaledger/twin-dlt/compare/dlt-iota-v0.0.3-next.10...dlt-iota-v0.0.3-next.11) (2026-05-12)
 
 
