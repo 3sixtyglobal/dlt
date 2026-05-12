@@ -797,7 +797,7 @@ The transaction response.
 
 ### reserveGas() {#reservegas}
 
-> `static` **reserveGas**(`config`, `gasBudget`): `Promise`\<[`IGasReservationResult`](../interfaces/IGasReservationResult.md)\>
+> `static` **reserveGas**(`config`): `Promise`\<[`IGasReservationResult`](../interfaces/IGasReservationResult.md)\>
 
 Reserve gas from the gas station.
 
@@ -808,12 +808,6 @@ Reserve gas from the gas station.
 [`IIotaConfig`](../interfaces/IIotaConfig.md)
 
 The configuration containing gas station settings.
-
-##### gasBudget
-
-`number`
-
-The gas budget to reserve.
 
 #### Returns
 

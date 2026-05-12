@@ -113,6 +113,20 @@ The default gas budget for all transactions (including sponsored and direct).
 
 ***
 
+### gasReservationDuration? {#gasreservationduration}
+
+> `optional` **gasReservationDuration?**: `number`
+
+The default gas reservation duration in seconds for all transactions (including sponsored and direct).
+
+#### Default
+
+```ts
+60
+```
+
+***
+
 ### enableCostLogging? {#enablecostlogging}
 
 > `optional` **enableCostLogging?**: `boolean`
