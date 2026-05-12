@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.3-next.11](https://github.com/iotaledger/twin-dlt/compare/dlt-iota-v0.0.3-next.10...dlt-iota-v0.0.3-next.11) (2026-05-12)
+
+
+### Features
+
+* increase default gas reservation duration and make configurable ([3e16bd9](https://github.com/iotaledger/twin-dlt/commit/3e16bd9a9bf15e5a9686c36e9bb5ed5ee2dee476))
+
 ## [0.0.3-next.10](https://github.com/iotaledger/twin-dlt/compare/dlt-iota-v0.0.3-next.9...dlt-iota-v0.0.3-next.10) (2026-05-12)
 
 
