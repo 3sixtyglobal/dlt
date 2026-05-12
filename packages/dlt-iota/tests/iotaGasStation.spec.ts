@@ -103,7 +103,7 @@ describe("Iota Gas Station Integration", () => {
 		});
 
 		test("Should reserve gas and examine response format", async () => {
-			const gasReservation = await Iota.reserveGas(gasStationConfig, GAS_BUDGET);
+			const gasReservation = await Iota.reserveGas(gasStationConfig);
 
 			expect(gasReservation).toHaveProperty("sponsorAddress");
 			expect(gasReservation).toHaveProperty("reservationId");
@@ -125,7 +125,7 @@ describe("Iota Gas Station Integration", () => {
 				false
 			);
 
-			const gasReservation = await Iota.reserveGas(gasStationConfig, GAS_BUDGET);
+			const gasReservation = await Iota.reserveGas(gasStationConfig);
 
 			const tx = new Transaction();
 			tx.moveCall({
@@ -165,7 +165,7 @@ describe("Iota Gas Station Integration", () => {
 				0
 			);
 
-			const gasReservation = await Iota.reserveGas(gasStationConfig, GAS_BUDGET);
+			const gasReservation = await Iota.reserveGas(gasStationConfig);
 
 			const tx = new Transaction();
 			tx.moveCall({

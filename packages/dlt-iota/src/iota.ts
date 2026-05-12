@@ -73,6 +73,18 @@ export class Iota {
 	private static readonly _DEFAULT_INCLUSION_TIMEOUT: number = 60;
 
 	/**
+	 * Default gas budget for all transactions (including sponsored and direct).
+	 * @internal
+	 */
+	private static readonly _DEFAULT_GAS_BUDGET: number = 50000000;
+
+	/**
+	 * Default gas reservation duration.
+	 * @internal
+	 */
+	private static readonly _DEFAULT_GAS_RESERVATION_DURATION: number = 60;
+
+	/**
 	 * Create a new IOTA client.
 	 * @param config The configuration.
 	 * @returns The client instance.
@@ -731,14 +743,13 @@ export class Iota {
 
 		try {
 			// Reserve gas from the gas station
-			const gasBudget = config.gasBudget ?? 50000000;
-			const gasReservation = await Iota.reserveGas(config, gasBudget);
+			const gasReservation = await Iota.reserveGas(config);
 
 			// Set transaction parameters for sponsoring
 			transaction.setSender(owner);
 			transaction.setGasOwner(gasReservation.sponsorAddress);
 			transaction.setGasPayment(gasReservation.gasCoins);
-			transaction.setGasBudget(gasBudget);
+			transaction.setGasBudget(config.gasBudget ?? Iota._DEFAULT_GAS_BUDGET);
 
 			// Build and sign transaction
 			const unsignedTxBytes = await transaction.build({ client });
@@ -769,20 +780,16 @@ export class Iota {
 	/**
 	 * Reserve gas from the gas station.
 	 * @param config The configuration containing gas station settings.
-	 * @param gasBudget The gas budget to reserve.
 	 * @returns The gas reservation result.
 	 */
-	public static async reserveGas(
-		config: IIotaConfig,
-		gasBudget: number
-	): Promise<IGasReservationResult> {
+	public static async reserveGas(config: IIotaConfig): Promise<IGasReservationResult> {
 		Guards.object(Iota.CLASS_NAME, nameof(config.gasStation), config.gasStation);
 
 		const requestData = {
 			// eslint-disable-next-line camelcase
-			gas_budget: gasBudget,
+			gas_budget: config.gasBudget ?? Iota._DEFAULT_GAS_BUDGET,
 			// eslint-disable-next-line camelcase
-			reserve_duration_secs: 30
+			reserve_duration_secs: config.gasReservationDuration ?? Iota._DEFAULT_GAS_RESERVATION_DURATION
 		};
 
 		const baseUrl = StringHelper.trimTrailingSlashes(config.gasStation.gasStationUrl);

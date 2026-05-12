@@ -60,6 +60,12 @@ export interface IIotaConfig {
 	gasBudget?: number;
 
 	/**
+	 * The default gas reservation duration in seconds for all transactions (including sponsored and direct).
+	 * @default 60
+	 */
+	gasReservationDuration?: number;
+
+	/**
 	 * Enable cost logging for transactions.
 	 * @default false
 	 */
