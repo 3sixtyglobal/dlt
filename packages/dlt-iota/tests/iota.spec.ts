@@ -153,7 +153,7 @@ describe("Iota", () => {
 			await Iota.storeMnemonic(vault, TEST_CONFIG, TEST_IDENTITY, TEST_MNEMONIC, 0);
 
 			const secrets = secretEntityStorage.getStore();
-			const keypairChunk = secrets.find(s => s.id === `${TEST_IDENTITY}/keypair/0/external/0`);
+			const keypairChunk = secrets.find(s => s.id === `${TEST_IDENTITY}/account/0/0/0`);
 			expect(keypairChunk).toBeDefined();
 			expect(keypairChunk?.data).toEqual(TEST_CHUNK_KEYPAIRS);
 		});
@@ -319,7 +319,7 @@ describe("Iota", () => {
 			await Iota.getAddresses(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0, 1);
 
 			const secrets = secretEntityStorage.getStore();
-			const keypairChunk = secrets.find(s => s.id === `${TEST_IDENTITY}/keypair/0/external/0`);
+			const keypairChunk = secrets.find(s => s.id === `${TEST_IDENTITY}/account/0/0/0`);
 			expect(keypairChunk?.data).toEqual(TEST_CHUNK_KEYPAIRS);
 		});
 
@@ -425,7 +425,7 @@ describe("Iota", () => {
 			await Iota.getKeyPair(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0);
 
 			const secrets = secretEntityStorage.getStore();
-			const keypairChunk = secrets.find(s => s.id === `${TEST_IDENTITY}/keypair/0/external/0`);
+			const keypairChunk = secrets.find(s => s.id === `${TEST_IDENTITY}/account/0/0/0`);
 			expect(keypairChunk?.data).toEqual(TEST_CHUNK_KEYPAIRS);
 		});
 

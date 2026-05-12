@@ -1122,7 +1122,7 @@ export class Iota {
 		internal: boolean,
 		addressIndex: number
 	): Promise<{ privateKey: string; publicKey: string }[]> {
-		const keyPairChunkKey = Iota.buildKeyPairChunkKey(
+		const keyPairChunkKey = Iota.buildAccountChunkKey(
 			identity,
 			accountIndex,
 			internal,
@@ -1175,12 +1175,12 @@ export class Iota {
 	 * @returns The keypair chunk key.
 	 * @internal
 	 */
-	private static buildKeyPairChunkKey(
+	private static buildAccountChunkKey(
 		identity: string,
 		accountIndex: number,
 		internal: boolean,
 		addressIndex: number
 	): string {
-		return `${identity}/keypair/${accountIndex}/${internal ? "internal" : "external"}/${addressIndex % Iota._PRE_CALC_CHUNK_SIZE}`;
+		return `${identity}/account/${accountIndex}/${internal ? "1" : "0"}/${addressIndex % Iota._PRE_CALC_CHUNK_SIZE}`;
 	}
 }
