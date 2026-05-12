@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.0.3-next.10](https://github.com/iotaledger/twin-dlt/compare/move-to-json-v0.0.3-next.9...move-to-json-v0.0.3-next.10) (2026-05-12)
+
+
+### Features
+
+* typescript 6 update ([94a1ed6](https://github.com/iotaledger/twin-dlt/commit/94a1ed60e1da9847a29dc9cc85669067725edcf8))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @twin.org/dlt-iota bumped from 0.0.3-next.9 to 0.0.3-next.10
+
 ## [0.0.3-next.9](https://github.com/iotaledger/twin-dlt/compare/move-to-json-v0.0.3-next.8...move-to-json-v0.0.3-next.9) (2026-05-11)
 
 
