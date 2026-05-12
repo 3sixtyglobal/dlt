@@ -1,19 +1,27 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import crypto from "node:crypto";
 import { existsSync } from "node:fs";
-import { mkdir, rm, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { CLIDisplay, CLIUtils } from "@twin.org/cli-core";
 import { GeneralError } from "@twin.org/core";
 import { Bip39 } from "@twin.org/crypto";
 import { Iota } from "@twin.org/dlt-iota";
-import { vi } from "vitest";
+import { MemoryEntityStorageConnector } from "@twin.org/entity-storage-connector-memory";
+import { EntityStorageConnectorFactory } from "@twin.org/entity-storage-models";
+import { nameof } from "@twin.org/nameof";
+import {
+	EntityStorageVaultConnector,
+	initSchema,
+	type VaultKey,
+	type VaultSecret
+} from "@twin.org/vault-connector-entity-storage";
+import { TEST_IOTA_CONFIG, TEST_MNEMONIC_NAME } from "./setupTestEnv.js";
 import { CLI } from "../src/cli.js";
 import { copyFixtures } from "./utils/copyFixtures.js";
 import { ensureCorrectDeployerKey, generateUniqueBackupAlias } from "../src/commands/deploy.js";
 import * as environmentUtils from "../src/utils/environmentUtils.js";
-import { validateDeploymentEnvironment, getDeploymentMnemonic } from "../src/utils/envSetup.js";
+import { getDeploymentMnemonic, validateDeploymentEnvironment } from "../src/utils/envSetup.js";
 
 const TEST_DATA_LOCATION = path.resolve(path.join(__dirname, ".tmp"));
 const TEST_INPUT_GLOB = path.join(TEST_DATA_LOCATION, "contracts");
@@ -21,6 +29,32 @@ const TEST_OUTPUT_JSON = path.join(TEST_DATA_LOCATION, "compiled-modules.json");
 
 let writeBuffer: string[] = [];
 let errorBuffer: string[] = [];
+
+let keyEntityStorage: MemoryEntityStorageConnector<VaultKey>;
+let secretEntityStorage: MemoryEntityStorageConnector<VaultSecret>;
+
+/**
+ * Creates a fresh vault connector backed by in-memory entity storage.
+ * @returns A new EntityStorageVaultConnector instance.
+ */
+function createVault(): EntityStorageVaultConnector {
+	return new EntityStorageVaultConnector();
+}
+
+/**
+ * Creates a vault pre-populated with the test mnemonic secret.
+ * @param identity The identity under which to store the mnemonic in the vault.
+ * @param mnemonic The mnemonic to store in the vault.
+ * @returns A vault connector ready for use with Iota methods.
+ */
+async function vaultWithMnemonic(
+	identity: string,
+	mnemonic: string
+): Promise<EntityStorageVaultConnector> {
+	const vault = createVault();
+	await vault.setSecret(`${identity}/${TEST_MNEMONIC_NAME}`, mnemonic);
+	return vault;
+}
 
 describe("move-to-json CLI", () => {
 	beforeAll(async () => {
@@ -30,6 +64,8 @@ describe("move-to-json CLI", () => {
 		const fixtureSource = path.join(__dirname, "fixtures");
 		const fixtureDest = path.join(TEST_INPUT_GLOB, "iota");
 		await copyFixtures(fixtureSource, fixtureDest);
+
+		initSchema();
 	});
 
 	afterAll(async () => {
@@ -37,6 +73,16 @@ describe("move-to-json CLI", () => {
 	});
 
 	beforeEach(() => {
+		keyEntityStorage = new MemoryEntityStorageConnector<VaultKey>({
+			entitySchema: nameof<VaultKey>()
+		});
+		secretEntityStorage = new MemoryEntityStorageConnector<VaultSecret>({
+			entitySchema: nameof<VaultSecret>()
+		});
+
+		EntityStorageConnectorFactory.register("vault-key", () => keyEntityStorage);
+		EntityStorageConnectorFactory.register("vault-secret", () => secretEntityStorage);
+
 		writeBuffer = [];
 		errorBuffer = [];
 
@@ -48,6 +94,11 @@ describe("move-to-json CLI", () => {
 		};
 
 		vi.restoreAllMocks();
+	});
+
+	afterEach(() => {
+		EntityStorageConnectorFactory.unregister("vault-key");
+		EntityStorageConnectorFactory.unregister("vault-secret");
 	});
 
 	test("Shows help when no subcommand provided", async () => {
@@ -555,6 +606,27 @@ describe("ensureCorrectDeployerKey", () => {
 });
 
 describe("generateUniqueBackupAlias", () => {
+	beforeAll(async () => {
+		initSchema();
+	});
+
+	beforeEach(() => {
+		keyEntityStorage = new MemoryEntityStorageConnector<VaultKey>({
+			entitySchema: nameof<VaultKey>()
+		});
+		secretEntityStorage = new MemoryEntityStorageConnector<VaultSecret>({
+			entitySchema: nameof<VaultSecret>()
+		});
+
+		EntityStorageConnectorFactory.register("vault-key", () => keyEntityStorage);
+		EntityStorageConnectorFactory.register("vault-secret", () => secretEntityStorage);
+	});
+
+	afterEach(() => {
+		EntityStorageConnectorFactory.unregister("vault-key");
+		EntityStorageConnectorFactory.unregister("vault-secret");
+	});
+
 	test("should generate unique backup alias with crypto random bytes", () => {
 		const existingKeys = [
 			{ alias: "deployer-testnet", iotaAddress: "address1" },
@@ -585,7 +657,7 @@ describe("generateUniqueBackupAlias", () => {
 		expect(alias2).toMatch(/^deployer-testnet-backup-[\da-f]{8}$/);
 	});
 
-	test("Enhanced key conflict detection with random backup names", () => {
+	test("Enhanced key conflict detection with random backup names", async () => {
 		// This test verifies our improved key management logic that uses
 		// random suffixes to avoid conflicts even in rapid succession
 
@@ -593,47 +665,50 @@ describe("generateUniqueBackupAlias", () => {
 		const oldMnemonic = Bip39.randomMnemonic();
 		const newMnemonic = Bip39.randomMnemonic();
 
+		const vaultOldMnemonic = await vaultWithMnemonic("identityOld", oldMnemonic);
+		const vaultNewMnemonic = await vaultWithMnemonic("identityNew", newMnemonic);
+
 		// Generate addresses from mnemonics
-		const oldSeed = Bip39.mnemonicToSeed(oldMnemonic);
-		const newSeed = Bip39.mnemonicToSeed(newMnemonic);
-		const oldExpectedAddress = Iota.getAddresses(
-			oldSeed,
-			Iota.DEFAULT_COIN_TYPE,
+		const oldExpectedAddress = await Iota.getAddress(
+			vaultOldMnemonic,
+			TEST_IOTA_CONFIG,
+			"identityOld",
 			0,
 			0,
-			1,
 			false
-		)[0];
-		const newExpectedAddress = Iota.getAddresses(
-			newSeed,
-			Iota.DEFAULT_COIN_TYPE,
+		);
+		const newExpectedAddress = await Iota.getAddress(
+			vaultNewMnemonic,
+			TEST_IOTA_CONFIG,
+			"identityNew",
 			0,
 			0,
-			1,
 			false
-		)[0];
+		);
 
 		// Generate random backup keys with different mnemonics
 		const backup1Mnemonic = Bip39.randomMnemonic();
 		const backup2Mnemonic = Bip39.randomMnemonic();
-		const backup1Seed = Bip39.mnemonicToSeed(backup1Mnemonic);
-		const backup2Seed = Bip39.mnemonicToSeed(backup2Mnemonic);
-		const backup1Address = Iota.getAddresses(
-			backup1Seed,
-			Iota.DEFAULT_COIN_TYPE,
+
+		const vaultBackup1 = await vaultWithMnemonic("identityBackup1", backup1Mnemonic);
+		const vaultBackup2 = await vaultWithMnemonic("identityBackup2", backup2Mnemonic);
+
+		const backup1Address = await Iota.getAddress(
+			vaultBackup1,
+			TEST_IOTA_CONFIG,
+			"identityBackup1",
 			0,
 			0,
-			1,
 			false
-		)[0];
-		const backup2Address = Iota.getAddresses(
-			backup2Seed,
-			Iota.DEFAULT_COIN_TYPE,
+		);
+		const backup2Address = await Iota.getAddress(
+			vaultBackup2,
+			TEST_IOTA_CONFIG,
+			"identityBackup2",
 			0,
 			0,
-			1,
 			false
-		)[0];
+		);
 
 		// Mock existing keystore with multiple backup keys (simulating previous conflicts)
 		const randomTimestamp1 = Date.now() - Math.floor(Math.random() * 1000000);
@@ -708,15 +783,17 @@ describe("generateUniqueBackupAlias", () => {
 				.toString()
 				.padStart(4, "0");
 			// Generate a random seed for each backup key
-			const randomSeed = crypto.randomBytes(32);
-			const randomAddress = Iota.getAddresses(
-				randomSeed,
-				Iota.DEFAULT_COIN_TYPE,
+			const randomMnemonic = Bip39.randomMnemonic();
+
+			const vaultRandom = await vaultWithMnemonic(`identityBackup${i}`, randomMnemonic);
+
+			const randomAddress = await Iota.getAddress(
+				vaultRandom,
+				TEST_IOTA_CONFIG,
+				`identityBackup${i}`,
 				0,
-				0,
-				1,
-				false
-			)[0];
+				0
+			);
 
 			manyBackups.push({
 				alias: `deployer-testnet-backup-${randomTimestamp}-${randomComponent}`,

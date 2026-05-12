@@ -1,34 +1,37 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
 import type { IotaClient } from "@iota/iota-sdk/client";
-import type { IWalletConnector } from "@twin.org/wallet-models";
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { MemoryEntityStorageConnector } from "@twin.org/entity-storage-connector-memory";
+import { EntityStorageConnectorFactory } from "@twin.org/entity-storage-models";
+import { nameof } from "@twin.org/nameof";
+import {
+	EntityStorageVaultConnector,
+	initSchema,
+	type VaultKey,
+	type VaultSecret
+} from "@twin.org/vault-connector-entity-storage";
+import type { IVaultConnector } from "@twin.org/vault-models";
 import { IotaSmartContractUtils } from "../src/iotaSmartContractUtils.js";
 import {
 	TEST_IDENTITY,
 	TEST_NAMESPACE,
 	testDeploymentConfig
 } from "./fixtures/testDeploymentConfig.js";
-import { TEST_CLIENT_OPTIONS, TEST_NETWORK } from "./setupTestEnv.js";
+import { TEST_CLIENT_OPTIONS, TEST_MNEMONIC, TEST_NETWORK } from "./setupTestEnv.js";
 import type { IIotaConfig } from "../src/models/IIotaConfig.js";
-import type { NetworkTypes } from "../src/models/networkTypes.js";
 
 const MOCK_PACKAGE_ID = "0x1234567890abcdef1234567890abcdef12345678";
-const MOCK_ADMIN_ADDRESS = "0x5555555555555555555555555555555555555555";
 
-// Version extractor function for object version validation
 const mockVersionExtractor = (content: { fields?: { version?: number } }): number =>
 	content?.fields?.version ?? 0;
 
 describe("IotaSmartContractUtils - Phase 2 Methods", () => {
-	// Test configuration
 	const testConfig: IIotaConfig = {
 		clientOptions: TEST_CLIENT_OPTIONS,
-		network: TEST_NETWORK as NetworkTypes,
+		network: TEST_NETWORK,
 		enableCostLogging: false
 	};
 
-	// Mock clients
 	const mockClient = {
 		devInspectTransactionBlock: vi.fn(),
 		getObject: vi.fn(),
@@ -36,17 +39,36 @@ describe("IotaSmartContractUtils - Phase 2 Methods", () => {
 		queryTransactionBlocks: vi.fn()
 	};
 
-	const mockWalletConnector = {
-		getAddresses: vi.fn()
-	};
+	let keyEntityStorage: MemoryEntityStorageConnector<VaultKey>;
+	let secretEntityStorage: MemoryEntityStorageConnector<VaultSecret>;
+
+	function createVault(): EntityStorageVaultConnector {
+		return new EntityStorageVaultConnector();
+	}
+
+	async function vaultWithMnemonic(): Promise<IVaultConnector> {
+		const vault = createVault();
+		await vault.setSecret(`${TEST_IDENTITY}/mnemonic`, TEST_MNEMONIC);
+		return vault;
+	}
+
+	beforeAll(() => {
+		initSchema();
+	});
 
 	beforeEach(() => {
+		keyEntityStorage = new MemoryEntityStorageConnector<VaultKey>({
+			entitySchema: nameof<VaultKey>()
+		});
+		secretEntityStorage = new MemoryEntityStorageConnector<VaultSecret>({
+			entitySchema: nameof<VaultSecret>()
+		});
+
+		EntityStorageConnectorFactory.register("vault-key", () => keyEntityStorage);
+		EntityStorageConnectorFactory.register("vault-secret", () => secretEntityStorage);
+
 		vi.clearAllMocks();
 
-		// Setup default mock returns
-		mockWalletConnector.getAddresses.mockResolvedValue([MOCK_ADMIN_ADDRESS]);
-
-		// Setup default getOwnedObjects mock for AdminCap discovery
 		mockClient.getOwnedObjects.mockResolvedValue({
 			data: [
 				{
@@ -58,13 +80,17 @@ describe("IotaSmartContractUtils - Phase 2 Methods", () => {
 				}
 			],
 			hasNextPage: false
-		} as unknown);
+		});
+	});
+
+	afterEach(() => {
+		EntityStorageConnectorFactory.unregister("vault-key");
+		EntityStorageConnectorFactory.unregister("vault-secret");
 	});
 
 	describe("getCurrentContractVersion", () => {
 		test("can get current contract version", async () => {
-			// Create a simple mock response directly in the test
-			const testMockVersionResponse = {
+			mockClient.devInspectTransactionBlock.mockResolvedValue({
 				results: [
 					{
 						returnValues: [
@@ -72,22 +98,18 @@ describe("IotaSmartContractUtils - Phase 2 Methods", () => {
 						]
 					}
 				],
-				effects: {
-					status: { status: "success" as const }
-				},
+				effects: { status: { status: "success" as const } },
 				events: []
-			};
+			});
 
-			// Ensure the mock returns the response properly
-			mockClient.devInspectTransactionBlock.mockResolvedValue(testMockVersionResponse);
-
+			const vaultConnector = await vaultWithMnemonic();
 			const version = await IotaSmartContractUtils.getCurrentContractVersion(
 				testConfig,
 				mockClient as unknown as IotaClient,
+				vaultConnector,
 				TEST_NAMESPACE,
 				MOCK_PACKAGE_ID,
-				TEST_IDENTITY,
-				mockWalletConnector as unknown as IWalletConnector
+				TEST_IDENTITY
 			);
 
 			expect(version).toBe(1);
@@ -95,18 +117,17 @@ describe("IotaSmartContractUtils - Phase 2 Methods", () => {
 		});
 
 		test("throws error when no version data returned", async () => {
-			mockClient.devInspectTransactionBlock.mockResolvedValue({
-				results: []
-			} as unknown);
+			mockClient.devInspectTransactionBlock.mockResolvedValue({ results: [] });
 
+			const vaultConnector = await vaultWithMnemonic();
 			await expect(
 				IotaSmartContractUtils.getCurrentContractVersion(
 					testConfig,
 					mockClient as unknown as IotaClient,
+					vaultConnector,
 					TEST_NAMESPACE,
 					MOCK_PACKAGE_ID,
-					TEST_IDENTITY,
-					mockWalletConnector as unknown as IWalletConnector
+					TEST_IDENTITY
 				)
 			).rejects.toThrow(
 				expect.objectContaining({
@@ -120,8 +141,7 @@ describe("IotaSmartContractUtils - Phase 2 Methods", () => {
 
 	describe("validateObjectVersion", () => {
 		test("can validate object version", async () => {
-			// Create mock responses directly in the test
-			const testMockVersionResponse = {
+			mockClient.devInspectTransactionBlock.mockResolvedValue({
 				results: [
 					{
 						returnValues: [
@@ -131,9 +151,8 @@ describe("IotaSmartContractUtils - Phase 2 Methods", () => {
 				],
 				effects: { status: { status: "success" as const } },
 				events: []
-			};
-
-			const testMockObjectResponse = {
+			});
+			mockClient.getObject.mockResolvedValue({
 				data: {
 					objectId: "0x9876543210fedcba9876543210fedcba98765432",
 					version: "1",
@@ -141,24 +160,20 @@ describe("IotaSmartContractUtils - Phase 2 Methods", () => {
 					content: {
 						dataType: "moveObject" as const,
 						type: "0x2::test::TestObject",
-						fields: {
-							version: 1
-						}
+						fields: { version: 1 }
 					}
 				}
-			};
+			});
 
-			mockClient.devInspectTransactionBlock.mockResolvedValue(testMockVersionResponse);
-			mockClient.getObject.mockResolvedValue(testMockObjectResponse);
-
+			const vaultConnector = await vaultWithMnemonic();
 			const isValid = await IotaSmartContractUtils.validateObjectVersion(
 				testConfig,
 				mockClient as unknown as IotaClient,
+				vaultConnector,
 				TEST_NAMESPACE,
 				MOCK_PACKAGE_ID,
 				TEST_IDENTITY,
 				"0x9876543210fedcba9876543210fedcba98765432",
-				mockWalletConnector as unknown as IWalletConnector,
 				mockVersionExtractor
 			);
 
@@ -168,25 +183,18 @@ describe("IotaSmartContractUtils - Phase 2 Methods", () => {
 		});
 
 		test("returns false when object version is newer than contract", async () => {
-			// Contract version is 1 (from mockVersionResponse)
-			const testMockVersionResponse = {
+			mockClient.devInspectTransactionBlock.mockResolvedValue({
 				results: [
 					{
 						returnValues: [
-							[new Uint8Array([1, 0, 0, 0, 0, 0, 0, 0])] // BCS encoded u64 value: 1
+							[new Uint8Array([1, 0, 0, 0, 0, 0, 0, 0])] // Contract version: 1
 						]
 					}
 				],
-				effects: {
-					status: { status: "success" as const }
-				},
+				effects: { status: { status: "success" as const } },
 				events: []
-			};
-
-			mockClient.devInspectTransactionBlock.mockResolvedValue(testMockVersionResponse);
-
-			// Object version is 2 (newer than contract)
-			const newerObjectResponse = {
+			});
+			mockClient.getObject.mockResolvedValue({
 				data: {
 					objectId: "0x9876543210fedcba9876543210fedcba98765432",
 					version: "1",
@@ -194,22 +202,20 @@ describe("IotaSmartContractUtils - Phase 2 Methods", () => {
 					content: {
 						dataType: "moveObject" as const,
 						type: "0x2::test::TestObject",
-						fields: {
-							version: 2 // Newer than contract version (1)
-						}
+						fields: { version: 2 } // Newer than contract version (1)
 					}
 				}
-			};
-			mockClient.getObject.mockResolvedValue(newerObjectResponse as unknown);
+			});
 
+			const vaultConnector = await vaultWithMnemonic();
 			const isValid = await IotaSmartContractUtils.validateObjectVersion(
 				testConfig,
 				mockClient as unknown as IotaClient,
+				vaultConnector,
 				TEST_NAMESPACE,
 				MOCK_PACKAGE_ID,
 				TEST_IDENTITY,
 				"0x9876543210fedcba9876543210fedcba98765432",
-				mockWalletConnector as unknown as IWalletConnector,
 				mockVersionExtractor
 			);
 
@@ -219,7 +225,7 @@ describe("IotaSmartContractUtils - Phase 2 Methods", () => {
 
 	describe("isMigrationActive", () => {
 		test("returns true when migration is enabled", async () => {
-			const testMigrationStateEnabledResponse = {
+			mockClient.getObject.mockResolvedValue({
 				data: {
 					objectId: "0x1234567890abcdef1234567890abcdef12345678",
 					version: "1",
@@ -227,23 +233,20 @@ describe("IotaSmartContractUtils - Phase 2 Methods", () => {
 					content: {
 						dataType: "moveObject" as const,
 						type: "0x2::test::MigrationState",
-						fields: {
-							enabled: true
-						}
+						fields: { enabled: true }
 					}
 				}
-			};
+			});
 
-			mockClient.getObject.mockResolvedValue(testMigrationStateEnabledResponse as unknown);
-
+			const vaultConnector = await vaultWithMnemonic();
 			const isActive = await IotaSmartContractUtils.isMigrationActive(
 				testConfig,
 				mockClient as unknown as IotaClient,
+				vaultConnector,
 				TEST_NAMESPACE,
 				MOCK_PACKAGE_ID,
 				testDeploymentConfig,
-				TEST_IDENTITY,
-				mockWalletConnector as unknown as IWalletConnector
+				TEST_IDENTITY
 			);
 
 			expect(isActive).toBe(true);
@@ -251,7 +254,7 @@ describe("IotaSmartContractUtils - Phase 2 Methods", () => {
 		});
 
 		test("returns false when migration is disabled", async () => {
-			const testMigrationStateDisabledResponse = {
+			mockClient.getObject.mockResolvedValue({
 				data: {
 					objectId: "0x1234567890abcdef1234567890abcdef12345678",
 					version: "1",
@@ -259,25 +262,20 @@ describe("IotaSmartContractUtils - Phase 2 Methods", () => {
 					content: {
 						dataType: "moveObject" as const,
 						type: "0x2::test::MigrationState",
-						fields: {
-							fields: {
-								enabled: false
-							}
-						}
+						fields: { enabled: false }
 					}
 				}
-			};
+			});
 
-			mockClient.getObject.mockResolvedValue(testMigrationStateDisabledResponse as unknown);
-
+			const vaultConnector = await vaultWithMnemonic();
 			const isActive = await IotaSmartContractUtils.isMigrationActive(
 				testConfig,
 				mockClient as unknown as IotaClient,
+				vaultConnector,
 				TEST_NAMESPACE,
 				MOCK_PACKAGE_ID,
 				testDeploymentConfig,
-				TEST_IDENTITY,
-				mockWalletConnector as unknown as IWalletConnector
+				TEST_IDENTITY
 			);
 
 			expect(isActive).toBe(false);
@@ -285,17 +283,18 @@ describe("IotaSmartContractUtils - Phase 2 Methods", () => {
 		});
 
 		test("throws error when migration state not found", async () => {
-			mockClient.getObject.mockResolvedValue({ data: null } as unknown);
+			mockClient.getObject.mockResolvedValue({ data: null });
 
+			const vaultConnector = await vaultWithMnemonic();
 			await expect(
 				IotaSmartContractUtils.isMigrationActive(
 					testConfig,
 					mockClient as unknown as IotaClient,
+					vaultConnector,
 					TEST_NAMESPACE,
 					MOCK_PACKAGE_ID,
 					testDeploymentConfig,
-					TEST_IDENTITY,
-					mockWalletConnector as unknown as IWalletConnector
+					TEST_IDENTITY
 				)
 			).rejects.toThrow(
 				expect.objectContaining({

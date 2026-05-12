@@ -7,7 +7,6 @@ import { GeneralError, Is, StringHelper } from "@twin.org/core";
 import type { ILoggingComponent } from "@twin.org/logging-models";
 import { nameof } from "@twin.org/nameof";
 import type { IVaultConnector } from "@twin.org/vault-models";
-import type { IWalletConnector } from "@twin.org/wallet-models";
 import { Iota } from "./iota.js";
 import type { IIotaConfig } from "./models/IIotaConfig.js";
 import type { ISmartContractDeployments } from "./models/ISmartContractDeployments.js";
@@ -29,7 +28,6 @@ export class IotaSmartContractUtils {
 	 * @param config The IOTA configuration.
 	 * @param client The IOTA client instance.
 	 * @param vaultConnector The vault connector for key management.
-	 * @param walletConnector The wallet connector for address generation.
 	 * @param logging Optional logging component.
 	 * @param gasBudget The gas budget for the transaction.
 	 * @param identity The identity of the controller with admin privileges.
@@ -37,6 +35,7 @@ export class IotaSmartContractUtils {
 	 * @param namespace The contract namespace (e.g., "nft", "verifiable_storage").
 	 * @param packageId The deployed package ID for the contract.
 	 * @param deploymentConfig The deployment configuration containing object IDs.
+	 * @param accountAddressIndex Optional account address index for the controller.
 	 * @param walletAddressIndex Optional wallet address index for the controller.
 	 * @returns Promise that resolves when migration is complete.
 	 */
@@ -44,7 +43,6 @@ export class IotaSmartContractUtils {
 		config: IIotaConfig,
 		client: IotaClient,
 		vaultConnector: IVaultConnector,
-		walletConnector: IWalletConnector,
 		logging: ILoggingComponent | undefined,
 		gasBudget: number,
 		identity: string,
@@ -52,6 +50,7 @@ export class IotaSmartContractUtils {
 		namespace: string,
 		packageId: string,
 		deploymentConfig: ISmartContractDeployments,
+		accountAddressIndex?: number,
 		walletAddressIndex?: number
 	): Promise<void> {
 		try {
@@ -62,8 +61,10 @@ export class IotaSmartContractUtils {
 
 			// Get admin address for the transaction
 			const adminAddress = await IotaSmartContractUtils.getPackageControllerAddress(
-				walletConnector,
+				vaultConnector,
+				config,
 				identity,
+				accountAddressIndex,
 				walletAddressIndex
 			);
 
@@ -85,7 +86,7 @@ export class IotaSmartContractUtils {
 			const result = await Iota.prepareAndPostTransaction(
 				config,
 				vaultConnector,
-				logging as ILoggingComponent,
+				logging,
 				identity,
 				client,
 				adminAddress,
@@ -116,13 +117,13 @@ export class IotaSmartContractUtils {
 	 * @param config The IOTA configuration.
 	 * @param client The IOTA client instance.
 	 * @param vaultConnector The vault connector for key management.
-	 * @param walletConnector The wallet connector for address generation.
 	 * @param logging Optional logging component.
 	 * @param gasBudget The gas budget for the transaction.
 	 * @param identity The identity of the controller with admin privileges.
 	 * @param namespace The contract namespace (e.g., "nft", "verifiable_storage").
 	 * @param packageId The deployed package ID for the contract.
 	 * @param deploymentConfig The deployment configuration containing object IDs.
+	 * @param accountAddressIndex Optional account address index for the controller.
 	 * @param walletAddressIndex Optional wallet address index for the controller.
 	 * @returns Promise that resolves when migration is enabled.
 	 */
@@ -130,13 +131,13 @@ export class IotaSmartContractUtils {
 		config: IIotaConfig,
 		client: IotaClient,
 		vaultConnector: IVaultConnector,
-		walletConnector: IWalletConnector,
 		logging: ILoggingComponent | undefined,
 		gasBudget: number,
 		identity: string,
 		namespace: string,
 		packageId: string,
 		deploymentConfig: ISmartContractDeployments,
+		accountAddressIndex?: number,
 		walletAddressIndex?: number
 	): Promise<void> {
 		try {
@@ -147,8 +148,10 @@ export class IotaSmartContractUtils {
 
 			// Get admin address for the transaction
 			const adminAddress = await IotaSmartContractUtils.getPackageControllerAddress(
-				walletConnector,
+				vaultConnector,
+				config,
 				identity,
+				accountAddressIndex,
 				walletAddressIndex
 			);
 
@@ -170,7 +173,7 @@ export class IotaSmartContractUtils {
 			const result = await Iota.prepareAndPostTransaction(
 				config,
 				vaultConnector,
-				logging as ILoggingComponent,
+				logging,
 				identity,
 				client,
 				adminAddress,
@@ -200,13 +203,13 @@ export class IotaSmartContractUtils {
 	 * @param config The IOTA configuration.
 	 * @param client The IOTA client instance.
 	 * @param vaultConnector The vault connector for key management.
-	 * @param walletConnector The wallet connector for address generation.
 	 * @param logging Optional logging component.
 	 * @param gasBudget The gas budget for the transaction.
 	 * @param identity The identity of the controller with admin privileges.
 	 * @param namespace The contract namespace (e.g., "nft", "verifiable_storage").
 	 * @param packageId The deployed package ID for the contract.
 	 * @param deploymentConfig The deployment configuration containing object IDs.
+	 * @param accountAddressIndex Optional account address index for the controller.
 	 * @param walletAddressIndex Optional wallet address index for the controller.
 	 * @returns Promise that resolves when migration is disabled.
 	 */
@@ -214,13 +217,13 @@ export class IotaSmartContractUtils {
 		config: IIotaConfig,
 		client: IotaClient,
 		vaultConnector: IVaultConnector,
-		walletConnector: IWalletConnector,
 		logging: ILoggingComponent | undefined,
 		gasBudget: number,
 		identity: string,
 		namespace: string,
 		packageId: string,
 		deploymentConfig: ISmartContractDeployments,
+		accountAddressIndex?: number,
 		walletAddressIndex?: number
 	): Promise<void> {
 		try {
@@ -231,8 +234,10 @@ export class IotaSmartContractUtils {
 
 			// Get admin address for the transaction
 			const adminAddress = await IotaSmartContractUtils.getPackageControllerAddress(
-				walletConnector,
+				vaultConnector,
+				config,
 				identity,
+				accountAddressIndex,
 				walletAddressIndex
 			);
 
@@ -254,7 +259,7 @@ export class IotaSmartContractUtils {
 			const result = await Iota.prepareAndPostTransaction(
 				config,
 				vaultConnector,
-				logging as ILoggingComponent,
+				logging,
 				identity,
 				client,
 				adminAddress,
@@ -283,29 +288,33 @@ export class IotaSmartContractUtils {
 	 * Check if migration is currently active for a smart contract.
 	 * @param config The IOTA configuration.
 	 * @param client The IOTA client instance.
+	 * @param vaultConnector The vault connector for key management.
 	 * @param namespace The contract namespace (e.g., "nft", "verifiable_storage").
 	 * @param packageId The deployed package ID for the contract.
 	 * @param deploymentConfig The deployment configuration containing object IDs.
 	 * @param identity The identity for MigrationState discovery.
-	 * @param walletConnector The wallet connector for address generation.
-	 * @param walletAddressIndex Optional wallet address index.
+	 * @param accountAddressIndex Optional account address index for the controller.
+	 * @param walletAddressIndex Optional wallet address index for the controller.
 	 * @returns True if migration is enabled, false otherwise.
 	 */
 	public static async isMigrationActive(
 		config: IIotaConfig,
 		client: IotaClient,
+		vaultConnector: IVaultConnector,
 		namespace: string,
 		packageId: string,
 		deploymentConfig: ISmartContractDeployments,
 		identity: string,
-		walletConnector: IWalletConnector,
+		accountAddressIndex?: number,
 		walletAddressIndex?: number
 	): Promise<boolean> {
 		try {
 			// Get admin address for discovery
 			const adminAddress = await IotaSmartContractUtils.getPackageControllerAddress(
-				walletConnector,
+				vaultConnector,
+				config,
 				identity,
+				accountAddressIndex,
 				walletAddressIndex
 			);
 
@@ -354,20 +363,22 @@ export class IotaSmartContractUtils {
 	 * Get the current contract version from the deployed smart contract.
 	 * @param config The IOTA configuration.
 	 * @param client The IOTA client instance.
+	 * @param vaultConnector The vault connector for key management.
 	 * @param namespace The contract namespace (e.g., "nft", "verifiable_storage").
 	 * @param packageId The deployed package ID for the contract.
 	 * @param identity The identity for package controller address.
-	 * @param walletConnector The wallet connector for address generation.
-	 * @param walletAddressIndex Optional wallet address index.
+	 * @param accountAddressIndex Optional account address index for the controller.
+	 * @param walletAddressIndex Optional wallet address index for the controller.
 	 * @returns The current version number of the contract.
 	 */
 	public static async getCurrentContractVersion(
 		config: IIotaConfig,
 		client: IotaClient,
+		vaultConnector: IVaultConnector,
 		namespace: string,
 		packageId: string,
 		identity: string,
-		walletConnector: IWalletConnector,
+		accountAddressIndex?: number,
 		walletAddressIndex?: number
 	): Promise<number> {
 		try {
@@ -380,8 +391,10 @@ export class IotaSmartContractUtils {
 			});
 
 			const controllerAddress = await IotaSmartContractUtils.getPackageControllerAddress(
-				walletConnector,
+				vaultConnector,
+				config,
 				identity,
+				accountAddressIndex,
 				walletAddressIndex
 			);
 
@@ -431,24 +444,26 @@ export class IotaSmartContractUtils {
 	 * Validate that an object version is compatible with the current contract.
 	 * @param config The IOTA configuration.
 	 * @param client The IOTA client instance.
+	 * @param vaultConnector The vault connector for key management.
 	 * @param namespace The contract namespace (e.g., "nft", "verifiable_storage").
 	 * @param packageId The deployed package ID for the contract.
 	 * @param identity The identity for version checking.
 	 * @param objectId The object ID to validate.
-	 * @param walletConnector The wallet connector for address generation.
 	 * @param versionExtractor Function to extract version from object content.
-	 * @param walletAddressIndex Optional wallet address index.
+	 * @param accountAddressIndex Optional account address index for the controller.
+	 * @param walletAddressIndex Optional wallet address index for the controller.
 	 * @returns True if the object version is compatible, false otherwise.
 	 */
 	public static async validateObjectVersion<T>(
 		config: IIotaConfig,
 		client: IotaClient,
+		vaultConnector: IVaultConnector,
 		namespace: string,
 		packageId: string,
 		identity: string,
 		objectId: string,
-		walletConnector: IWalletConnector,
 		versionExtractor: (content: T) => number,
+		accountAddressIndex?: number,
 		walletAddressIndex?: number
 	): Promise<boolean> {
 		try {
@@ -456,10 +471,11 @@ export class IotaSmartContractUtils {
 			const currentVersion = await IotaSmartContractUtils.getCurrentContractVersion(
 				config,
 				client,
+				vaultConnector,
 				namespace,
 				packageId,
 				identity,
-				walletConnector,
+				accountAddressIndex,
 				walletAddressIndex
 			);
 
@@ -511,19 +527,27 @@ export class IotaSmartContractUtils {
 
 	/**
 	 * Get the package controller address for transactions.
-	 * @param walletConnector The wallet connector for address generation.
 	 * @param identity The identity to use.
-	 * @param addressIndex Optional address index to use.
+	 * @param accountAddressIndex Optional account address index to use.
+	 * @param walletAddressIndex Optional address index to use.
 	 * @returns The controller address.
 	 * @internal
 	 */
 	private static async getPackageControllerAddress(
-		walletConnector: IWalletConnector,
+		vaultConnector: IVaultConnector,
+		config: IIotaConfig,
 		identity: string,
-		addressIndex = 0
+		accountAddressIndex?: number,
+		walletAddressIndex?: number
 	): Promise<string> {
-		const addresses = await walletConnector.getAddresses(identity, 0, addressIndex, 1);
-		return addresses[0];
+		const address = await Iota.getAddress(
+			vaultConnector,
+			config,
+			identity,
+			accountAddressIndex ?? 0,
+			walletAddressIndex ?? 0
+		);
+		return address;
 	}
 
 	/**

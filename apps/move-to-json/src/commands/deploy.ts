@@ -13,7 +13,16 @@ import {
 	type IContractData,
 	type ISmartContractDeployments
 } from "@twin.org/dlt-iota";
+import { MemoryEntityStorageConnector } from "@twin.org/entity-storage-connector-memory";
+import { EntityStorageConnectorFactory } from "@twin.org/entity-storage-models";
 import { nameof } from "@twin.org/nameof";
+import {
+	EntityStorageVaultConnector,
+	initSchema,
+	type VaultKey,
+	type VaultSecret
+} from "@twin.org/vault-connector-entity-storage";
+import type { IVaultConnector } from "@twin.org/vault-models";
 import type { Command } from "commander";
 import type { INetworkConfig } from "../models/INetworkConfig.js";
 import { cleanBuildArtifactsInPath } from "../utils/buildArtifactUtils.js";
@@ -1129,6 +1138,8 @@ async function getDeploymentWalletAddress(
 	deployerMnemonic?: string,
 	deployerSeed?: string
 ): Promise<string> {
+	const vault = setupVault();
+
 	// Try to use seed first if available
 	const hexSeed = await getDeploymentSeed(network, deployerSeed);
 	let seed: Uint8Array | undefined;
@@ -1136,12 +1147,33 @@ async function getDeploymentWalletAddress(
 		seed = Converter.hexToBytes(hexSeed);
 	} else {
 		const mnemonic = await getDeploymentMnemonic(network, deployerMnemonic);
+		await vault.setSecret("deployment/mnemonic", mnemonic);
+
 		seed = Bip39.mnemonicToSeed(mnemonic);
 	}
+	await vault.setSecret("deployment/seed", seed);
 
-	const addresses = Iota.getAddresses(seed, Iota.DEFAULT_COIN_TYPE, 0, addressIndex, 1, false);
+	return Iota.getAddress(vault, {}, "deployment", 0, addressIndex);
+}
 
-	return addresses[0];
+/**
+ * Setup vault connectors for storing deployment keys and secrets.
+ * @returns An instance of IVaultConnector for use in deployment.
+ */
+function setupVault(): IVaultConnector {
+	initSchema();
+
+	const keyEntityStorage = new MemoryEntityStorageConnector<VaultKey>({
+		entitySchema: nameof<VaultKey>()
+	});
+	const secretEntityStorage = new MemoryEntityStorageConnector<VaultSecret>({
+		entitySchema: nameof<VaultSecret>()
+	});
+
+	EntityStorageConnectorFactory.register("vault-key", () => keyEntityStorage);
+	EntityStorageConnectorFactory.register("vault-secret", () => secretEntityStorage);
+
+	return new EntityStorageVaultConnector();
 }
 
 /**

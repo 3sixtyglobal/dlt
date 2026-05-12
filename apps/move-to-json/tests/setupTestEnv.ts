@@ -3,8 +3,10 @@
 import { exec } from "node:child_process";
 import path from "node:path";
 import { promisify } from "node:util";
+import type { IotaClientOptions } from "@iota/iota-sdk/client";
 import { Guards } from "@twin.org/core";
 import { Bip39 } from "@twin.org/crypto";
+import { Iota, type IIotaConfig } from "@twin.org/dlt-iota";
 import { MemoryEntityStorageConnector } from "@twin.org/entity-storage-connector-memory";
 import { EntityStorageConnectorFactory } from "@twin.org/entity-storage-models";
 import { nameof } from "@twin.org/nameof";
@@ -15,8 +17,6 @@ import {
 	type VaultSecret
 } from "@twin.org/vault-connector-entity-storage";
 import { VaultConnectorFactory } from "@twin.org/vault-models";
-import { IotaFaucetConnector, IotaWalletConnector } from "@twin.org/wallet-connector-iota";
-import { FaucetConnectorFactory, WalletConnectorFactory } from "@twin.org/wallet-models";
 import dotenv from "dotenv";
 
 const execAsync = promisify(exec);
@@ -103,32 +103,25 @@ await TEST_VAULT_CONNECTOR.setSecret(
 );
 
 // Setup client options
-export const TEST_CLIENT_OPTIONS = {
+export const TEST_CLIENT_OPTIONS: IotaClientOptions = {
 	url: TEST_NODE_ENDPOINT
 };
 
-export const TEST_FAUCET_CONNECTOR = new IotaFaucetConnector({
-	config: {
-		clientOptions: TEST_CLIENT_OPTIONS,
-		endpoint: TEST_FAUCET_ENDPOINT,
-		vaultMnemonicId: TEST_MNEMONIC_NAME,
-		network: TEST_NETWORK
-	}
-});
-FaucetConnectorFactory.register("faucet", () => TEST_FAUCET_CONNECTOR);
+export const TEST_IOTA_CONFIG: IIotaConfig = {
+	clientOptions: TEST_CLIENT_OPTIONS,
+	network: TEST_NETWORK,
+	vaultMnemonicId: TEST_MNEMONIC_NAME,
+	coinType: TEST_COIN_TYPE
+};
 
-export const TEST_WALLET_CONNECTOR = new IotaWalletConnector({
-	config: {
-		clientOptions: TEST_CLIENT_OPTIONS,
-		vaultMnemonicId: TEST_MNEMONIC_NAME,
-		coinType: TEST_COIN_TYPE,
-		network: TEST_NETWORK
-	}
-});
-
-WalletConnectorFactory.register("wallet", () => TEST_WALLET_CONNECTOR);
-
-const deployerAddresses = await TEST_WALLET_CONNECTOR.getAddresses(TEST_DEPLOYER_IDENTITY, 0, 0, 1);
+const deployerAddresses = await Iota.getAddresses(
+	TEST_VAULT_CONNECTOR,
+	TEST_IOTA_CONFIG,
+	TEST_DEPLOYER_IDENTITY,
+	0,
+	0,
+	1
+);
 export const DEPLOYER_ADDRESS = deployerAddresses[0];
 
 /**
@@ -145,7 +138,8 @@ async function verifyIotaCliInstalled(): Promise<void> {
 			(error as Error).message.includes("not found")
 		) {
 			throw new Error(
-				"IOTA CLI is not installed. Please install it from: https://github.com/iotaledger/iota/releases/"
+				"IOTA CLI is not installed. Please install it from: https://github.com/iotaledger/iota/releases/",
+				{ cause: error }
 			);
 		}
 		throw new Error("Failed to check IOTA CLI version", { cause: error });
@@ -166,7 +160,7 @@ export async function setupTestEnv(): Promise<void> {
 
 		// Ensure deployer address has sufficient funds
 		console.debug("[setupTestEnv] Ensuring deployer address has sufficient funds");
-		await ensureFundsForAddress(TEST_DEPLOYER_IDENTITY, DEPLOYER_ADDRESS, TEST_WALLET_CONNECTOR);
+		await ensureFundsForAddress(TEST_DEPLOYER_IDENTITY, DEPLOYER_ADDRESS);
 
 		console.debug("[setupTestEnv] Test environment setup completed");
 	} catch (error) {
@@ -180,24 +174,21 @@ export async function setupTestEnv(): Promise<void> {
  * Only requests from faucet if current balance is below minimum required.
  * @param identity The identity to use for wallet operations.
  * @param address The address to ensure funds for.
- * @param walletConnector The wallet connector to use.
  * @returns Promise that resolves when funds are ensured.
  */
-async function ensureFundsForAddress(
-	identity: string,
-	address: string,
-	walletConnector: IotaWalletConnector
-): Promise<void> {
+async function ensureFundsForAddress(identity: string, address: string): Promise<void> {
 	try {
 		// Use ensureBalance which will automatically request from faucet if needed
-		const success = await walletConnector.ensureBalance(
+		const success = await Iota.ensureBalance(
+			TEST_IOTA_CONFIG,
+			TEST_FAUCET_ENDPOINT,
 			identity,
 			address,
 			MIN_BALANCE_REQUIRED,
 			30
 		);
 
-		const currentBalance = await walletConnector.getBalance(identity, address);
+		const currentBalance = await Iota.getBalance(TEST_IOTA_CONFIG, address);
 		console.debug(`[ensureFundsForAddress] Address ${address} has balance: ${currentBalance}`);
 
 		if (!success) {

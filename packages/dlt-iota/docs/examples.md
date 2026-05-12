@@ -31,9 +31,11 @@ const mnemonic =
   'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
 const seed = Bip39.mnemonicToSeed(mnemonic);
 
-const addresses = Iota.getAddresses(seed, Iota.DEFAULT_COIN_TYPE, 0, 0, 3);
-const keyPair = Iota.getKeyPair(seed, Iota.DEFAULT_COIN_TYPE, 0, 0);
-const found = Iota.findAddress(50, Iota.DEFAULT_COIN_TYPE, seed, addresses[0]);
+const vault = VaultConnectorFactort.get('vault');
+
+const addresses = Iota.getAddresses(vault, {}, 0, 0, 3);
+const keyPair = Iota.getKeyPair(vault, {}, 0, 0);
+const found = Iota.findAddress(vault, {}, addresses[0], 50);
 
 console.log(addresses.length); // 3
 console.log(found.address === addresses[0]); // true
@@ -65,15 +67,7 @@ const vaultConnector: IVaultConnector = {
     }
     throw new Error('Unknown key');
   }
-} as IVaultConnector;
-
-const mnemonicKey = Iota.buildMnemonicKey('deployer', config.vaultMnemonicId);
-const seedKey = Iota.buildSeedKey('deployer', config.vaultSeedId);
-const seed = await Iota.getSeed(config, vaultConnector, 'deployer');
-
-console.log(mnemonicKey); // deployer/deployment-mnemonic
-console.log(seedKey); // deployer/deployment-seed
-console.log(seed.length); // 32
+};
 ```
 
 ```typescript
@@ -351,7 +345,6 @@ await IotaSmartContractUtils.migrateSmartContract(
   config,
   client,
   vaultConnector,
-  walletConnector,
   logging,
   90_000_000,
   'controller',

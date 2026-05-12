@@ -3,7 +3,6 @@
 import { readFile, writeFile, rm, mkdir } from "node:fs/promises";
 import path from "node:path";
 import type { ISmartContractDeployments } from "@twin.org/dlt-iota";
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import {
 	TEST_NETWORK,
 	TEST_CONTRACT_PATH_V1,

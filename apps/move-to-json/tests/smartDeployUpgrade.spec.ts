@@ -1,7 +1,6 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
 import type { IContractData, ISmartContractDeployments } from "@twin.org/dlt-iota";
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import {
 	buildV1Contract,
 	deployV1Contract,

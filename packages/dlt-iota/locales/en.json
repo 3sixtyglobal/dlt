@@ -8,7 +8,9 @@
 			"transactionFailed": "The transaction failed",
 			"addressNotFound": "The address is missing could not be found from the seed \"{address}\"",
 			"gasStationTransactionFailed": "The gas station transaction failed",
-			"dryRunFailed": "The dry run execution failed"
+			"dryRunFailed": "The dry run execution failed",
+			"fundingFailed": "Fund the address from faucet failed",
+			"faucetRateLimit": "Faucet rate limit exceeded"
 		},
 		"iotaIdentityUtils": {
 			"getControllerCapInfoFailed": "Getting the controller capability info for the identity failed",

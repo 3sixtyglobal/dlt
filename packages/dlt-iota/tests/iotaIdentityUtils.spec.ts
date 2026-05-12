@@ -5,7 +5,6 @@ import {
 	IdentityClientReadOnly,
 	OnChainIdentity
 } from "@iota/identity-wasm/node/index.js";
-import { beforeEach, describe, expect, test, vi } from "vitest";
 import { IotaIdentityUtils } from "../src/iotaIdentityUtils.js";
 import type { IIotaClient } from "../src/models/IIotaClient.js";
 
@@ -38,15 +37,15 @@ describe("IotaIdentityUtils", () => {
 	const mockGetById = vi.mocked(OnChainIdentity.getById);
 
 	// Shared mock objects
-	const mockReadOnlyClient = {};
-	const mockIdentityClient = {};
+	const mockReadOnlyClient = {} as unknown as IdentityClientReadOnly;
+	const mockIdentityClient = {} as unknown as IdentityClient;
 
 	beforeEach(() => {
 		vi.clearAllMocks();
 
 		// Default: client construction always succeeds
-		mockReadOnlyCreate.mockResolvedValue(mockReadOnlyClient as never);
-		mockClientCreate.mockResolvedValue(mockIdentityClient as never);
+		mockReadOnlyCreate.mockResolvedValue(mockReadOnlyClient);
+		mockClientCreate.mockResolvedValue(mockIdentityClient);
 	});
 
 	describe("getControllerCapInfo", () => {
@@ -56,8 +55,8 @@ describe("IotaIdentityUtils", () => {
 				getControllerTokenForAddress: vi.fn().mockResolvedValue({
 					id: vi.fn().mockReturnValue(MOCK_CONTROLLER_CAP_OBJECT_ID)
 				})
-			};
-			mockGetById.mockResolvedValue(mockOnChainIdentity as never);
+			} as unknown as OnChainIdentity;
+			mockGetById.mockResolvedValue(mockOnChainIdentity);
 
 			const result = await IotaIdentityUtils.getControllerCapInfo(
 				MOCK_IDENTITY_ID,
@@ -79,8 +78,8 @@ describe("IotaIdentityUtils", () => {
 				getControllerTokenForAddress: vi.fn().mockResolvedValue({
 					id: vi.fn().mockReturnValue(MOCK_CONTROLLER_CAP_OBJECT_ID)
 				})
-			};
-			mockGetById.mockResolvedValue(mockOnChainIdentity as never);
+			} as unknown as OnChainIdentity;
+			mockGetById.mockResolvedValue(mockOnChainIdentity);
 
 			const result = await IotaIdentityUtils.getControllerCapInfo(
 				"did:iota:testnet:abcdef1234",
@@ -94,7 +93,8 @@ describe("IotaIdentityUtils", () => {
 		});
 
 		test("throws NotFoundError when identity does not exist on-chain", async () => {
-			mockGetById.mockResolvedValue(undefined as never);
+			const noIdentity = undefined as unknown as OnChainIdentity;
+			mockGetById.mockResolvedValue(noIdentity);
 
 			await expect(
 				IotaIdentityUtils.getControllerCapInfo(
@@ -115,8 +115,8 @@ describe("IotaIdentityUtils", () => {
 			const mockDeletedIdentity = {
 				hasDeletedDid: vi.fn().mockReturnValue(true),
 				getControllerTokenForAddress: vi.fn()
-			};
-			mockGetById.mockResolvedValue(mockDeletedIdentity as never);
+			} as unknown as OnChainIdentity;
+			mockGetById.mockResolvedValue(mockDeletedIdentity);
 
 			await expect(
 				IotaIdentityUtils.getControllerCapInfo(
@@ -140,8 +140,8 @@ describe("IotaIdentityUtils", () => {
 			const mockOnChainIdentity = {
 				hasDeletedDid: vi.fn().mockReturnValue(false),
 				getControllerTokenForAddress: vi.fn().mockResolvedValue(undefined)
-			};
-			mockGetById.mockResolvedValue(mockOnChainIdentity as never);
+			} as unknown as OnChainIdentity;
+			mockGetById.mockResolvedValue(mockOnChainIdentity);
 
 			await expect(
 				IotaIdentityUtils.getControllerCapInfo(
