@@ -88,25 +88,151 @@ The configuration to populate.
 
 ***
 
+### storeMnemonic() {#storemnemonic}
+
+> `static` **storeMnemonic**(`vaultConnector`, `config`, `identity`, `mnemonic`, `accountIndex`): `Promise`\<`string`\>
+
+Store a mnemonic in the vault, derive and store the seed, and pre-cache the first keypair chunk.
+
+#### Parameters
+
+##### vaultConnector
+
+`IVaultConnector`
+
+The vault connector.
+
+##### config
+
+[`IIotaConfig`](../interfaces/IIotaConfig.md)
+
+The configuration.
+
+##### identity
+
+`string`
+
+The identity of the user to access the vault keys.
+
+##### mnemonic
+
+`string` \| `undefined`
+
+The mnemonic to store, if undefined a new one will be generated and returned.
+
+##### accountIndex
+
+`number`
+
+The account index to pre-cache.
+
+#### Returns
+
+`Promise`\<`string`\>
+
+The mnemonic that was stored.
+
+***
+
+### publicKeyToAddress() {#publickeytoaddress}
+
+> `static` **publicKeyToAddress**(`publicKey`): `string`
+
+Derive an address from a public key.
+
+#### Parameters
+
+##### publicKey
+
+`Uint8Array`
+
+The public key to derive the address from.
+
+#### Returns
+
+`string`
+
+The derived address.
+
+***
+
+### getAddress() {#getaddress}
+
+> `static` **getAddress**(`vaultConnector`, `config`, `identity`, `accountIndex`, `startAddressIndex`, `isInternal?`): `Promise`\<`string`\>
+
+Get address for the identity.
+
+#### Parameters
+
+##### vaultConnector
+
+`IVaultConnector`
+
+The vault connector.
+
+##### config
+
+`Pick`\<[`IIotaConfig`](../interfaces/IIotaConfig.md), `"coinType"` \| `"vaultMnemonicId"` \| `"vaultSeedId"`\>
+
+The configuration.
+
+##### identity
+
+`string`
+
+The identity of the user to access the vault keys.
+
+##### accountIndex
+
+`number`
+
+The account index to get the addresses for.
+
+##### startAddressIndex
+
+`number`
+
+The start index for the addresses.
+
+##### isInternal?
+
+`boolean`
+
+Whether the addresses are internal.
+
+#### Returns
+
+`Promise`\<`string`\>
+
+The address.
+
+***
+
 ### getAddresses() {#getaddresses}
 
-> `static` **getAddresses**(`seed`, `coinType`, `accountIndex`, `startAddressIndex`, `count`, `isInternal?`): `string`[]
+> `static` **getAddresses**(`vaultConnector`, `config`, `identity`, `accountIndex`, `startAddressIndex`, `count`, `isInternal?`): `Promise`\<`string`[]\>
 
 Get addresses for the identity.
 
 #### Parameters
 
-##### seed
+##### vaultConnector
 
-`Uint8Array`
+`IVaultConnector`
 
-The seed to use for generating addresses.
+The vault connector.
 
-##### coinType
+##### config
 
-`number`
+`Pick`\<[`IIotaConfig`](../interfaces/IIotaConfig.md), `"coinType"` \| `"vaultMnemonicId"` \| `"vaultSeedId"`\>
 
-The coin type to use.
+The configuration.
+
+##### identity
+
+`string`
+
+The identity of the user to access the vault keys.
 
 ##### accountIndex
 
@@ -134,7 +260,7 @@ Whether the addresses are internal.
 
 #### Returns
 
-`string`[]
+`Promise`\<`string`[]\>
 
 The list of addresses.
 
@@ -142,23 +268,29 @@ The list of addresses.
 
 ### getKeyPair() {#getkeypair}
 
-> `static` **getKeyPair**(`seed`, `coinType`, `accountIndex`, `addressIndex`, `isInternal?`): `object`
+> `static` **getKeyPair**(`vaultConnector`, `config`, `identity`, `accountIndex`, `addressIndex`, `isInternal?`): `Promise`\<\{ `privateKey`: `Uint8Array`; `publicKey`: `Uint8Array`; \}\>
 
 Get a key pair for the specified index.
 
 #### Parameters
 
-##### seed
+##### vaultConnector
 
-`Uint8Array`
+`IVaultConnector`
 
-The seed to use for generating the key pair.
+The vault connector.
 
-##### coinType
+##### config
 
-`number`
+[`IIotaConfig`](../interfaces/IIotaConfig.md)
 
-The coin type to use.
+The configuration.
+
+##### identity
+
+`string`
+
+The identity of the user to access the vault keys.
 
 ##### accountIndex
 
@@ -180,17 +312,9 @@ Whether the address is internal.
 
 #### Returns
 
-`object`
+`Promise`\<\{ `privateKey`: `Uint8Array`; `publicKey`: `Uint8Array`; \}\>
 
 The key pair containing private key and public key.
-
-##### privateKey
-
-> **privateKey**: `Uint8Array`
-
-##### publicKey
-
-> **publicKey**: `Uint8Array`
 
 ***
 
@@ -342,19 +466,13 @@ The transaction response.
 
 ***
 
-### getSeed() {#getseed}
+### findAddress() {#findaddress}
 
-> `static` **getSeed**(`config`, `vaultConnector`, `identity`): `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
+> `static` **findAddress**(`vaultConnector`, `config`, `identity`, `address`, `accountIndex`, `isInternal?`, `startScanIndex?`, `maxScanRange?`): `Promise`\<\{ `address`: `string`; `privateKey`: `Uint8Array`; `publicKey`: `Uint8Array`; \}\>
 
-Get the seed from the vault.
+Find the address in the seed.
 
 #### Parameters
-
-##### config
-
-[`IIotaConfig`](../interfaces/IIotaConfig.md)
-
-The configuration to use.
 
 ##### vaultConnector
 
@@ -362,45 +480,17 @@ The configuration to use.
 
 The vault connector to use.
 
+##### config
+
+[`IIotaConfig`](../interfaces/IIotaConfig.md)
+
+The configuration to use.
+
 ##### identity
 
 `string`
 
 The identity of the user to access the vault keys.
-
-#### Returns
-
-`Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
-
-The seed.
-
-***
-
-### findAddress() {#findaddress}
-
-> `static` **findAddress**(`maxScanRange`, `coinType`, `seed`, `address`): `object`
-
-Find the address in the seed.
-
-#### Parameters
-
-##### maxScanRange
-
-`number`
-
-The maximum range to scan.
-
-##### coinType
-
-`number`
-
-The coin type to use.
-
-##### seed
-
-`Uint8Array`
-
-The seed to use.
 
 ##### address
 
@@ -408,23 +498,35 @@ The seed to use.
 
 The address to find.
 
+##### accountIndex
+
+`number`
+
+The account index to search.
+
+##### isInternal?
+
+`boolean`
+
+Whether to search internal addresses.
+
+##### startScanIndex?
+
+`number`
+
+The address index to start scanning from.
+
+##### maxScanRange?
+
+`number`
+
+The maximum range to scan.
+
 #### Returns
 
-`object`
+`Promise`\<\{ `address`: `string`; `privateKey`: `Uint8Array`; `publicKey`: `Uint8Array`; \}\>
 
 The address key pair.
-
-##### address
-
-> **address**: `string`
-
-##### privateKey
-
-> **privateKey**: `Uint8Array`
-
-##### publicKey
-
-> **publicKey**: `Uint8Array`
 
 #### Throws
 
@@ -452,62 +554,6 @@ The error to extract.
 `IError`
 
 The extracted error.
-
-***
-
-### buildMnemonicKey() {#buildmnemonickey}
-
-> `static` **buildMnemonicKey**(`identity`, `vaultMnemonicId?`): `string`
-
-Get the key for storing the mnemonic.
-
-#### Parameters
-
-##### identity
-
-`string`
-
-The identity to use.
-
-##### vaultMnemonicId?
-
-`string`
-
-The mnemonic ID to use.
-
-#### Returns
-
-`string`
-
-The mnemonic key.
-
-***
-
-### buildSeedKey() {#buildseedkey}
-
-> `static` **buildSeedKey**(`identity`, `vaultSeedId?`): `string`
-
-Get the key for storing the seed.
-
-#### Parameters
-
-##### identity
-
-`string`
-
-The identity to use.
-
-##### vaultSeedId?
-
-`string`
-
-The seed ID to use.
-
-#### Returns
-
-`string`
-
-The seed key.
 
 ***
 
@@ -666,6 +712,28 @@ The error code to check for.
 `boolean`
 
 True if the error is an abort error, false otherwise.
+
+***
+
+### extractAbortCode() {#extractabortcode}
+
+> `static` **extractAbortCode**(`response`): `number` \| `undefined`
+
+Extracts the abort code from a transaction result if the transaction was aborted.
+
+#### Parameters
+
+##### response
+
+`IotaTransactionBlockResponse`
+
+The transaction result to extract the abort code from.
+
+#### Returns
+
+`number` \| `undefined`
+
+The abort code if the transaction was aborted, or undefined if it was not an abort error or the code could not be extracted.
 
 ***
 
@@ -844,3 +912,129 @@ Response options including confirmation behavior.
 `Promise`\<`IotaTransactionBlockResponse`\>
 
 The transaction response (confirmed if waitForConfirmation is true).
+
+***
+
+### fundAddress() {#fundaddress}
+
+> `static` **fundAddress**(`config`, `faucetUrl`, `identity`, `address`, `timeoutInSeconds?`): `Promise`\<`bigint`\>
+
+Fund an address with IOTA from the faucet.
+
+#### Parameters
+
+##### config
+
+[`IIotaConfig`](../interfaces/IIotaConfig.md)
+
+The configuration containing endpoint information.
+
+##### faucetUrl
+
+`string`
+
+The URL of the faucet to request funds from.
+
+##### identity
+
+`string`
+
+The identity of the user to access the vault keys.
+
+##### address
+
+`string`
+
+The address to fund.
+
+##### timeoutInSeconds?
+
+`number` = `60`
+
+The timeout in seconds to wait for the funding to complete.
+
+#### Returns
+
+`Promise`\<`bigint`\>
+
+The amount funded.
+
+***
+
+### ensureBalance() {#ensurebalance}
+
+> `static` **ensureBalance**(`config`, `faucetUrl`, `identity`, `address`, `ensureBalance`, `timeoutInSeconds?`): `Promise`\<`boolean`\>
+
+Ensure the balance for the given address is at least the given amount.
+
+#### Parameters
+
+##### config
+
+[`IIotaConfig`](../interfaces/IIotaConfig.md)
+
+The configuration containing endpoint information.
+
+##### faucetUrl
+
+`string` \| `undefined`
+
+The URL of the faucet to request funds from.
+
+##### identity
+
+`string`
+
+The identity of the user to access the vault keys.
+
+##### address
+
+`string`
+
+The address to ensure the balance for.
+
+##### ensureBalance
+
+`bigint`
+
+The minimum balance to ensure.
+
+##### timeoutInSeconds?
+
+`number`
+
+Optional timeout in seconds, defaults to 10 seconds.
+
+#### Returns
+
+`Promise`\<`boolean`\>
+
+True if the balance is at least the given amount, false otherwise.
+
+***
+
+### getBalance() {#getbalance}
+
+> `static` **getBalance**(`config`, `address`): `Promise`\<`bigint`\>
+
+Get the balance for the given address.
+
+#### Parameters
+
+##### config
+
+[`IIotaConfig`](../interfaces/IIotaConfig.md)
+
+The configuration containing endpoint information.
+
+##### address
+
+`string`
+
+The address to get the balance for.
+
+#### Returns
+
+`Promise`\<`bigint`\>
+
+The balance of the given address.

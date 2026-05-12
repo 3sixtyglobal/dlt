@@ -25,7 +25,7 @@ Runtime name for the class.
 
 ### migrateSmartContract() {#migratesmartcontract}
 
-> `static` **migrateSmartContract**(`config`, `client`, `vaultConnector`, `walletConnector`, `logging`, `gasBudget`, `identity`, `objectId`, `namespace`, `packageId`, `deploymentConfig`, `walletAddressIndex?`): `Promise`\<`void`\>
+> `static` **migrateSmartContract**(`config`, `client`, `vaultConnector`, `logging`, `gasBudget`, `identity`, `objectId`, `namespace`, `packageId`, `deploymentConfig`, `accountAddressIndex?`, `walletAddressIndex?`): `Promise`\<`void`\>
 
 Migrate a smart contract object to the current version using admin privileges.
 This is a generic migration method that works with any IOTA smart contract.
@@ -49,12 +49,6 @@ The IOTA client instance.
 `IVaultConnector`
 
 The vault connector for key management.
-
-##### walletConnector
-
-`IWalletConnector`
-
-The wallet connector for address generation.
 
 ##### logging
 
@@ -98,6 +92,12 @@ The deployed package ID for the contract.
 
 The deployment configuration containing object IDs.
 
+##### accountAddressIndex?
+
+`number`
+
+Optional account address index for the controller.
+
 ##### walletAddressIndex?
 
 `number`
@@ -114,7 +114,7 @@ Promise that resolves when migration is complete.
 
 ### enableMigration() {#enablemigration}
 
-> `static` **enableMigration**(`config`, `client`, `vaultConnector`, `walletConnector`, `logging`, `gasBudget`, `identity`, `namespace`, `packageId`, `deploymentConfig`, `walletAddressIndex?`): `Promise`\<`void`\>
+> `static` **enableMigration**(`config`, `client`, `vaultConnector`, `logging`, `gasBudget`, `identity`, `namespace`, `packageId`, `deploymentConfig`, `accountAddressIndex?`, `walletAddressIndex?`): `Promise`\<`void`\>
 
 Enable migration operations using admin privileges.
 
@@ -138,12 +138,6 @@ The IOTA client instance.
 
 The vault connector for key management.
 
-##### walletConnector
-
-`IWalletConnector`
-
-The wallet connector for address generation.
-
 ##### logging
 
 `ILoggingComponent` \| `undefined`
@@ -180,6 +174,12 @@ The deployed package ID for the contract.
 
 The deployment configuration containing object IDs.
 
+##### accountAddressIndex?
+
+`number`
+
+Optional account address index for the controller.
+
 ##### walletAddressIndex?
 
 `number`
@@ -196,7 +196,7 @@ Promise that resolves when migration is enabled.
 
 ### disableMigration() {#disablemigration}
 
-> `static` **disableMigration**(`config`, `client`, `vaultConnector`, `walletConnector`, `logging`, `gasBudget`, `identity`, `namespace`, `packageId`, `deploymentConfig`, `walletAddressIndex?`): `Promise`\<`void`\>
+> `static` **disableMigration**(`config`, `client`, `vaultConnector`, `logging`, `gasBudget`, `identity`, `namespace`, `packageId`, `deploymentConfig`, `accountAddressIndex?`, `walletAddressIndex?`): `Promise`\<`void`\>
 
 Disable migration operations using admin privileges.
 
@@ -220,12 +220,6 @@ The IOTA client instance.
 
 The vault connector for key management.
 
-##### walletConnector
-
-`IWalletConnector`
-
-The wallet connector for address generation.
-
 ##### logging
 
 `ILoggingComponent` \| `undefined`
@@ -262,6 +256,12 @@ The deployed package ID for the contract.
 
 The deployment configuration containing object IDs.
 
+##### accountAddressIndex?
+
+`number`
+
+Optional account address index for the controller.
+
 ##### walletAddressIndex?
 
 `number`
@@ -278,7 +278,7 @@ Promise that resolves when migration is disabled.
 
 ### isMigrationActive() {#ismigrationactive}
 
-> `static` **isMigrationActive**(`config`, `client`, `namespace`, `packageId`, `deploymentConfig`, `identity`, `walletConnector`, `walletAddressIndex?`): `Promise`\<`boolean`\>
+> `static` **isMigrationActive**(`config`, `client`, `vaultConnector`, `namespace`, `packageId`, `deploymentConfig`, `identity`, `accountAddressIndex?`, `walletAddressIndex?`): `Promise`\<`boolean`\>
 
 Check if migration is currently active for a smart contract.
 
@@ -295,6 +295,12 @@ The IOTA configuration.
 `IotaClient`
 
 The IOTA client instance.
+
+##### vaultConnector
+
+`IVaultConnector`
+
+The vault connector for key management.
 
 ##### namespace
 
@@ -320,17 +326,17 @@ The deployment configuration containing object IDs.
 
 The identity for MigrationState discovery.
 
-##### walletConnector
+##### accountAddressIndex?
 
-`IWalletConnector`
+`number`
 
-The wallet connector for address generation.
+Optional account address index for the controller.
 
 ##### walletAddressIndex?
 
 `number`
 
-Optional wallet address index.
+Optional wallet address index for the controller.
 
 #### Returns
 
@@ -342,7 +348,7 @@ True if migration is enabled, false otherwise.
 
 ### getCurrentContractVersion() {#getcurrentcontractversion}
 
-> `static` **getCurrentContractVersion**(`config`, `client`, `namespace`, `packageId`, `identity`, `walletConnector`, `walletAddressIndex?`): `Promise`\<`number`\>
+> `static` **getCurrentContractVersion**(`config`, `client`, `vaultConnector`, `namespace`, `packageId`, `identity`, `accountAddressIndex?`, `walletAddressIndex?`): `Promise`\<`number`\>
 
 Get the current contract version from the deployed smart contract.
 
@@ -359,6 +365,12 @@ The IOTA configuration.
 `IotaClient`
 
 The IOTA client instance.
+
+##### vaultConnector
+
+`IVaultConnector`
+
+The vault connector for key management.
 
 ##### namespace
 
@@ -378,17 +390,17 @@ The deployed package ID for the contract.
 
 The identity for package controller address.
 
-##### walletConnector
+##### accountAddressIndex?
 
-`IWalletConnector`
+`number`
 
-The wallet connector for address generation.
+Optional account address index for the controller.
 
 ##### walletAddressIndex?
 
 `number`
 
-Optional wallet address index.
+Optional wallet address index for the controller.
 
 #### Returns
 
@@ -400,7 +412,7 @@ The current version number of the contract.
 
 ### validateObjectVersion() {#validateobjectversion}
 
-> `static` **validateObjectVersion**\<`T`\>(`config`, `client`, `namespace`, `packageId`, `identity`, `objectId`, `walletConnector`, `versionExtractor`, `walletAddressIndex?`): `Promise`\<`boolean`\>
+> `static` **validateObjectVersion**\<`T`\>(`config`, `client`, `vaultConnector`, `namespace`, `packageId`, `identity`, `objectId`, `versionExtractor`, `accountAddressIndex?`, `walletAddressIndex?`): `Promise`\<`boolean`\>
 
 Validate that an object version is compatible with the current contract.
 
@@ -423,6 +435,12 @@ The IOTA configuration.
 `IotaClient`
 
 The IOTA client instance.
+
+##### vaultConnector
+
+`IVaultConnector`
+
+The vault connector for key management.
 
 ##### namespace
 
@@ -448,23 +466,23 @@ The identity for version checking.
 
 The object ID to validate.
 
-##### walletConnector
-
-`IWalletConnector`
-
-The wallet connector for address generation.
-
 ##### versionExtractor
 
 (`content`) => `number`
 
 Function to extract version from object content.
 
+##### accountAddressIndex?
+
+`number`
+
+Optional account address index for the controller.
+
 ##### walletAddressIndex?
 
 `number`
 
-Optional wallet address index.
+Optional wallet address index for the controller.
 
 #### Returns
 
