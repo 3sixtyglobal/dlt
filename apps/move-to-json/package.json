@@ -49,7 +49,7 @@
 		"@twin.org/nameof-vitest-plugin": "next",
 		"@twin.org/validate-locales": "next",
 		"@types/fs-extra": "11.0.4",
-		"@types/node": "25.7.0",
+		"@types/node": "25.9.1",
 		"@vitest/coverage-v8": "4.1.6",
 		"copyfiles": "2.4.1",
 		"dotenv": "17.4.2",
