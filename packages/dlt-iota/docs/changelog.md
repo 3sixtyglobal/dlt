@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.3-next.13](https://github.com/iotaledger/twin-dlt/compare/dlt-iota-v0.0.3-next.12...dlt-iota-v0.0.3-next.13) (2026-05-20)
+
+
+### Features
+
+* update dependencies ([cd1bdef](https://github.com/iotaledger/twin-dlt/commit/cd1bdef487bb3cfe3ea57f584395ad2ae1105245))
+
 ## [0.0.3-next.12](https://github.com/iotaledger/twin-dlt/compare/dlt-iota-v0.0.3-next.11...dlt-iota-v0.0.3-next.12) (2026-05-12)
 
 
