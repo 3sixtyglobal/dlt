@@ -1507,7 +1507,7 @@ export async function ensureCorrectDeployerKey(
 		const { stdout: addressListOutput } = await execAsyncWithError("iota client addresses --json");
 		const addressInfo = JSON.parse(addressListOutput);
 		const addressExists: boolean = addressInfo.addresses.some(
-			([_, addr]: [string, string]) => addr === expectedAddress
+			([a, addr]: [string, string]) => addr === expectedAddress
 		);
 
 		if (!addressExists) {

@@ -1,6 +1,7 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
 import type { NetworkTypes } from "@twin.org/dlt-iota";
+import type { IContractConfig } from "./IContractConfig.js";
 
 /**
  * Network configuration interface
@@ -39,12 +40,6 @@ export interface INetworkConfig {
 	 * The contracts configuration
 	 */
 	contracts?: {
-		[key: string]: {
-			moduleName: string;
-			dependencies?: string[];
-			packageController?: {
-				addressIndex: number;
-			};
-		};
+		[key: string]: IContractConfig;
 	};
 }
