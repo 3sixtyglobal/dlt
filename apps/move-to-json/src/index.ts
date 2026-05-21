@@ -8,4 +8,3 @@ export * from "./models/INetworkConfig.js";
 export * from "./utils/envSetup.js";
 export * from "./utils/iotaUtils.js";
 export * from "./utils/moveToJsonUtils.js";
-
