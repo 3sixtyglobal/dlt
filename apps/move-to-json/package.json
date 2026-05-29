@@ -4,7 +4,7 @@
 	"description": "CLI for compiling Move contracts and preparing deployment JSON for IOTA networks.",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/iotaledger/dlt.git",
+		"url": "git+https://github.com/iotaledger/twin-dlt.git",
 		"directory": "packages/move-to-json"
 	},
 	"author": "cornel.filip@iota.org",
@@ -91,7 +91,7 @@
 		"dlt"
 	],
 	"bugs": {
-		"url": "git+https://github.com/iotaledger/dlt/issues"
+		"url": "git+https://github.com/iotaledger/twin-dlt/issues"
 	},
 	"homepage": "https://twindev.org"
 }
