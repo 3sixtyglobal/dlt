@@ -14,12 +14,6 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Write Test Environment Variables
-      if: inputs.package == 'packages/messaging-connector-aws' || inputs.package == 'all'
-      shell: bash
-      run: |
-        echo "${{ inputs.test_env_vars }}" > /tmp/test_env_vars.txt
-
     - name: Set IOTA CLI versions
       shell: bash
       run: |
@@ -37,12 +31,6 @@ runs:
         chmod +x iota
         sudo mv iota /usr/local/bin/iota
         iota --version
-
-    - name: Remove Existing Twin Gas Station Test Container
-      shell: bash
-      run: |
-        echo "Removing existing twin-gas-station-test container if it exists..."
-        docker rm -f twin-gas-station-test 2>/dev/null || true
 
     - name: Start Twin Gas Station Test Environment
       shell: bash

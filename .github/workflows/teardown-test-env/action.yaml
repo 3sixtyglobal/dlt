@@ -12,8 +12,3 @@ runs:
         docker rmi -f $(docker images -aq) || true
         docker system prune -a --volumes -f || true
         sudo rm -f /usr/local/bin/iota 2>/dev/null || true
-
-    - name: Remove Test Environment Variables File
-      shell: bash
-      run: |
-        rm -f /tmp/test_env_vars.txt
