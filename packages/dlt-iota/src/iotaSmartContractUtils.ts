@@ -527,6 +527,8 @@ export class IotaSmartContractUtils {
 
 	/**
 	 * Get the package controller address for transactions.
+	 * @param vaultConnector The vault connector to use.
+	 * @param config The IOTA configuration.
 	 * @param identity The identity to use.
 	 * @param accountAddressIndex Optional account address index to use.
 	 * @param walletAddressIndex Optional address index to use.
