@@ -83,7 +83,9 @@ describe("IotaSmartContractUtils - Phase 2 Methods", () => {
 		});
 	});
 
-	afterEach(() => {
+	afterEach(async () => {
+		await keyEntityStorage.teardown();
+		await secretEntityStorage.teardown();
 		EntityStorageConnectorFactory.unregister("vault-key");
 		EntityStorageConnectorFactory.unregister("vault-secret");
 	});

@@ -60,7 +60,9 @@ describe("Iota", () => {
 		EntityStorageConnectorFactory.register("vault-secret", () => secretEntityStorage);
 	});
 
-	afterEach(() => {
+	afterEach(async () => {
+		await keyEntityStorage.teardown();
+		await secretEntityStorage.teardown();
 		EntityStorageConnectorFactory.unregister("vault-key");
 		EntityStorageConnectorFactory.unregister("vault-secret");
 	});
@@ -132,7 +134,7 @@ describe("Iota", () => {
 			const vault = createVault();
 			await Iota.storeMnemonic(vault, TEST_CONFIG, TEST_IDENTITY, TEST_MNEMONIC, 0);
 
-			const secrets = secretEntityStorage.getStore();
+			const secrets = await secretEntityStorage.getStore();
 			const mnemonicEntry = secrets.find(s => s.id === `${TEST_IDENTITY}/mnemonic`);
 			expect(mnemonicEntry).toBeDefined();
 			expect(mnemonicEntry?.data).toBe(TEST_MNEMONIC);
@@ -142,7 +144,7 @@ describe("Iota", () => {
 			const vault = createVault();
 			await Iota.storeMnemonic(vault, TEST_CONFIG, TEST_IDENTITY, TEST_MNEMONIC, 0);
 
-			const secrets = secretEntityStorage.getStore();
+			const secrets = await secretEntityStorage.getStore();
 			const seedEntry = secrets.find(s => s.id === `${TEST_IDENTITY}/seed`);
 			expect(seedEntry).toBeDefined();
 			expect(seedEntry?.data).toBe(TEST_SEED_BASE64);
@@ -152,7 +154,7 @@ describe("Iota", () => {
 			const vault = createVault();
 			await Iota.storeMnemonic(vault, TEST_CONFIG, TEST_IDENTITY, TEST_MNEMONIC, 0);
 
-			const secrets = secretEntityStorage.getStore();
+			const secrets = await secretEntityStorage.getStore();
 			const keypairChunk = secrets.find(s => s.id === `${TEST_IDENTITY}/account/0/0/0`);
 			expect(keypairChunk).toBeDefined();
 			expect(keypairChunk?.data).toEqual(TEST_CHUNK_KEYPAIRS);
@@ -221,7 +223,7 @@ describe("Iota", () => {
 			expect(typeof generated).toBe("string");
 			expect(generated.split(" ").length).toBeGreaterThanOrEqual(12);
 
-			const secrets = secretEntityStorage.getStore();
+			const secrets = await secretEntityStorage.getStore();
 			const mnemonicEntry = secrets.find(s => s.id === `${TEST_IDENTITY}/mnemonic`);
 			expect(mnemonicEntry?.data).toBe(generated);
 		});
@@ -318,7 +320,7 @@ describe("Iota", () => {
 			const vault = await vaultWithMnemonic();
 			await Iota.getAddresses(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0, 1);
 
-			const secrets = secretEntityStorage.getStore();
+			const secrets = await secretEntityStorage.getStore();
 			const keypairChunk = secrets.find(s => s.id === `${TEST_IDENTITY}/account/0/0/0`);
 			expect(keypairChunk?.data).toEqual(TEST_CHUNK_KEYPAIRS);
 		});
@@ -424,7 +426,7 @@ describe("Iota", () => {
 			const vault = await vaultWithMnemonic();
 			await Iota.getKeyPair(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0);
 
-			const secrets = secretEntityStorage.getStore();
+			const secrets = await secretEntityStorage.getStore();
 			const keypairChunk = secrets.find(s => s.id === `${TEST_IDENTITY}/account/0/0/0`);
 			expect(keypairChunk?.data).toEqual(TEST_CHUNK_KEYPAIRS);
 		});
