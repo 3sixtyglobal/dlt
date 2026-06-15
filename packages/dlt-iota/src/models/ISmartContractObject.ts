@@ -6,13 +6,13 @@
  */
 export interface ISmartContractObject {
 	/**
-	 * The ID of the smart contract object.
+	 * The UID wrapper of the smart contract object.
 	 */
 	id: {
 		/**
-		 * The ID of the smart contract object.
+		 * The hex string ID of the smart contract object.
 		 */
-		id: string; // UID is an object with an 'id' field
+		id: string;
 	};
 
 	/**

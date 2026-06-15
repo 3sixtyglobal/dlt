@@ -6,13 +6,13 @@
  */
 export interface IMigrationStateFields {
 	/**
-	 * The ID of the MigrationState object.
+	 * The UID wrapper of the MigrationState object.
 	 */
 	id: {
 		/**
-		 * The ID of the MigrationState object.
+		 * The hex string ID of the MigrationState object.
 		 */
-		id: string; // UID is an object with an 'id' field
+		id: string;
 	};
 
 	/**

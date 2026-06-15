@@ -21,8 +21,7 @@ import type { IIotaClient } from "./models/IIotaClient.js";
 import type { IIotaControllerCapInfo } from "./models/IIotaControllerCapInfo.js";
 
 /**
- * Utility class for resolving IOTA Identity on-chain objects required by
- * the NFT mint_with_identity() Move contract function.
+ * Utility class for resolving IOTA Identity on-chain objects and controller tokens.
  */
 export class IotaIdentityUtils {
 	/**
@@ -31,8 +30,7 @@ export class IotaIdentityUtils {
 	public static readonly CLASS_NAME: string = nameof<IotaIdentityUtils>();
 
 	/**
-	 * Resolve the on-chain object IDs for an identity and its controller token.
-	 * Returns the IDs needed to call mint_with_identity() on the NFT Move contract.
+	 * Resolves the on-chain object IDs for an identity and its controller token.
 	 * @param identityId The DID of the identity (e.g. "did:iota:testnet:0x...").
 	 * @param controllerAddress The on-chain address of the controller wallet.
 	 * @param client The IOTA client instance.

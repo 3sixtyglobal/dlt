@@ -587,7 +587,7 @@ export class Iota {
 	 * @param txb The transaction to dry run.
 	 * @param sender The sender address.
 	 * @param operation The operation to log.
-	 * @returns void.
+	 * @returns The dry run result including status, costs, events, and object changes.
 	 */
 	public static async dryRunTransaction(
 		client: IIotaClient,

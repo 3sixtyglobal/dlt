@@ -6,12 +6,12 @@
  */
 export interface IAdminCapFields {
 	/**
-	 * The ID of the AdminCap object.
+	 * The UID wrapper of the AdminCap object.
 	 */
 	id: {
 		/**
-		 * The ID of the AdminCap object.
+		 * The hex string ID of the AdminCap object.
 		 */
-		id: string; // UID is an object with an 'id' field
+		id: string;
 	};
 }

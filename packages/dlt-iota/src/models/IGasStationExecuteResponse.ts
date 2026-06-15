@@ -7,12 +7,10 @@
 export interface IGasStationExecuteResponse {
 	/**
 	 * The transaction effects from the IOTA network.
-	 * This contains the full IOTA transaction effects object.
 	 */
 	effects: {
 		/**
-		 * Additional effects data from the IOTA network.
-		 * This includes messageVersion, status, executedEpoch, gasUsed, etc.
+		 * Additional fields from the IOTA network effects object.
 		 */
 		[key: string]: unknown;
 

@@ -14,7 +14,6 @@ import type { NetworkTypes } from "./models/networkTypes.js";
 
 /**
  * Utility class providing common smart contract operations for IOTA-based contracts.
- * This class uses composition pattern to provide shared functionality without inheritance complexity.
  */
 export class IotaSmartContractUtils {
 	/**
