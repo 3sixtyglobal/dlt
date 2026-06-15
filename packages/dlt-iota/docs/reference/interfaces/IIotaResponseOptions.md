@@ -1,6 +1,6 @@
 # Interface: IIotaResponseOptions
 
-Configuration for IOTA.
+Options for controlling transaction execution and response behaviour.
 
 ## Extends
 

@@ -627,7 +627,7 @@ The operation to log.
 
 `Promise`\<[`IIotaDryRun`](../interfaces/IIotaDryRun.md)\>
 
-void.
+The dry run result including status, costs, events, and object changes.
 
 ***
 

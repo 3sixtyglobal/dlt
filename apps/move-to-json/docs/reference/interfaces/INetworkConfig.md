@@ -80,4 +80,4 @@ The contracts configuration
 
 #### Index Signature
 
-\[`key`: `string`\]: `object`
+\[`key`: `string`\]: [`IContractConfig`](IContractConfig.md)

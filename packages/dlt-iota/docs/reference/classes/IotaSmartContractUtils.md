@@ -1,7 +1,6 @@
 # Class: IotaSmartContractUtils
 
 Utility class providing common smart contract operations for IOTA-based contracts.
-This class uses composition pattern to provide shared functionality without inheritance complexity.
 
 ## Constructors
 

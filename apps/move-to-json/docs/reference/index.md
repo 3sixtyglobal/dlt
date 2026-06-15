@@ -6,6 +6,7 @@
 
 ## Interfaces
 
+- [IContractConfig](interfaces/IContractConfig.md)
 - [INetworkConfig](interfaces/INetworkConfig.md)
 
 ## Functions

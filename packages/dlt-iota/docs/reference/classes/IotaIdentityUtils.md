@@ -1,7 +1,6 @@
 # Class: IotaIdentityUtils
 
-Utility class for resolving IOTA Identity on-chain objects required by
-the NFT mint_with_identity() Move contract function.
+Utility class for resolving IOTA Identity on-chain objects and controller tokens.
 
 ## Constructors
 
@@ -27,8 +26,7 @@ Runtime name for the class.
 
 > `static` **getControllerCapInfo**(`identityId`, `controllerAddress`, `client`): `Promise`\<[`IIotaControllerCapInfo`](../interfaces/IIotaControllerCapInfo.md)\>
 
-Resolve the on-chain object IDs for an identity and its controller token.
-Returns the IDs needed to call mint_with_identity() on the NFT Move contract.
+Resolves the on-chain object IDs for an identity and its controller token.
 
 #### Parameters
 

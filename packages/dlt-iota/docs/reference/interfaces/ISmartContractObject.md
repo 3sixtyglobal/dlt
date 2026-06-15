@@ -8,13 +8,13 @@ Base interface for all smart contract objects with versioning support.
 
 > **id**: `object`
 
-The ID of the smart contract object.
+The UID wrapper of the smart contract object.
 
 #### id
 
 > **id**: `string`
 
-The ID of the smart contract object.
+The hex string ID of the smart contract object.
 
 ***
 

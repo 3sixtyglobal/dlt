@@ -8,10 +8,10 @@ Generic interface representing the storage fields of an AdminCap object.
 
 > **id**: `object`
 
-The ID of the AdminCap object.
+The UID wrapper of the AdminCap object.
 
 #### id
 
 > **id**: `string`
 
-The ID of the AdminCap object.
+The hex string ID of the AdminCap object.

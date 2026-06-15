@@ -8,13 +8,13 @@ Generic interface representing the storage fields of a MigrationState object.
 
 > **id**: `object`
 
-The ID of the MigrationState object.
+The UID wrapper of the MigrationState object.
 
 #### id
 
 > **id**: `string`
 
-The ID of the MigrationState object.
+The hex string ID of the MigrationState object.
 
 ***
 
