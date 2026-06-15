@@ -83,12 +83,14 @@ EntityStorageConnectorFactory.register(
 	"vault-key",
 	() =>
 		new MemoryEntityStorageConnector<VaultKey>({
-			entitySchema: nameof<VaultKey>()
+			entitySchema: nameof<VaultKey>(),
+			config: { storageKey: "vault-key" }
 		})
 );
 
 const secretEntityStorage = new MemoryEntityStorageConnector<VaultSecret>({
-	entitySchema: nameof<VaultSecret>()
+	entitySchema: nameof<VaultSecret>(),
+	config: { storageKey: "vault-secret" }
 });
 EntityStorageConnectorFactory.register("vault-secret", () => secretEntityStorage);
 
