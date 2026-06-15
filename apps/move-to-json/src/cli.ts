@@ -30,7 +30,7 @@ export class CLI extends CLIBase {
 			{
 				title: "TWIN Move to JSON",
 				appName: "move-to-json",
-				version: "0.0.3-next.13", // x-release-please-version
+				version: "0.0.3-next.14", // x-release-please-version
 				icon: "⚙️ ",
 				supportsEnvFiles: true,
 				overrideOutputWidth: options?.overrideOutputWidth

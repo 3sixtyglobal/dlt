@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.0.3-next.14](https://github.com/iotaledger/twin-dlt/compare/move-to-json-v0.0.3-next.13...move-to-json-v0.0.3-next.14) (2026-06-15)
+
+
+### Bug Fixes
+
+* use async getStore in tests ([0a7d4ac](https://github.com/iotaledger/twin-dlt/commit/0a7d4ac3e524481c2ca49d7fbb3507556b42473e))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @twin.org/dlt-iota bumped from 0.0.3-next.13 to 0.0.3-next.14
+
 ## [0.0.3-next.13](https://github.com/iotaledger/twin-dlt/compare/move-to-json-v0.0.3-next.12...move-to-json-v0.0.3-next.13) (2026-05-20)
 
 
