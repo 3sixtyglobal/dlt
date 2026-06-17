@@ -5,6 +5,9 @@
 - [Iota](classes/Iota.md)
 - [IotaIdentityUtils](classes/IotaIdentityUtils.md)
 - [IotaSmartContractUtils](classes/IotaSmartContractUtils.md)
+- [VaultJwtSigner](classes/VaultJwtSigner.md)
+- [VaultSigner](classes/VaultSigner.md)
+- [VaultTransactionSigner](classes/VaultTransactionSigner.md)
 
 ## Interfaces
 
@@ -21,6 +24,7 @@
 - [IIotaResponseOptions](interfaces/IIotaResponseOptions.md)
 - [IMigrationStateFields](interfaces/IMigrationStateFields.md)
 - [ISmartContractObject](interfaces/ISmartContractObject.md)
+- [ITransactionSigner](interfaces/ITransactionSigner.md)
 
 ## Type Aliases
 

@@ -266,11 +266,11 @@ The list of addresses.
 
 ***
 
-### getKeyPair() {#getkeypair}
+### getTransactionSigner() {#gettransactionsigner}
 
-> `static` **getKeyPair**(`vaultConnector`, `config`, `identity`, `accountIndex`, `addressIndex`, `isInternal?`): `Promise`\<\{ `privateKey`: `Uint8Array`; `publicKey`: `Uint8Array`; \}\>
+> `static` **getTransactionSigner**(`vaultConnector`, `config`, `identity`, `accountIndex`, `addressIndex`): `Promise`\<[`VaultTransactionSigner`](VaultTransactionSigner.md)\>
 
-Get a key pair for the specified index.
+Get a vault-backed transaction signer for the given identity and key indices.
 
 #### Parameters
 
@@ -296,25 +296,19 @@ The identity of the user to access the vault keys.
 
 `number`
 
-The account index to get the key pair for.
+The account index.
 
 ##### addressIndex
 
 `number`
 
-The address index to get the key pair for.
-
-##### isInternal?
-
-`boolean`
-
-Whether the address is internal.
+The address index within the account.
 
 #### Returns
 
-`Promise`\<\{ `privateKey`: `Uint8Array`; `publicKey`: `Uint8Array`; \}\>
+`Promise`\<[`VaultTransactionSigner`](VaultTransactionSigner.md)\>
 
-The key pair containing private key and public key.
+A VaultTransactionSigner for the specified key.
 
 ***
 
@@ -463,74 +457,6 @@ The transaction options.
 `Promise`\<`IotaTransactionBlockResponse`\>
 
 The transaction response.
-
-***
-
-### findAddress() {#findaddress}
-
-> `static` **findAddress**(`vaultConnector`, `config`, `identity`, `address`, `accountIndex`, `isInternal?`, `startScanIndex?`, `maxScanRange?`): `Promise`\<\{ `address`: `string`; `privateKey`: `Uint8Array`; `publicKey`: `Uint8Array`; \}\>
-
-Find the address in the seed.
-
-#### Parameters
-
-##### vaultConnector
-
-`IVaultConnector`
-
-The vault connector to use.
-
-##### config
-
-[`IIotaConfig`](../interfaces/IIotaConfig.md)
-
-The configuration to use.
-
-##### identity
-
-`string`
-
-The identity of the user to access the vault keys.
-
-##### address
-
-`string`
-
-The address to find.
-
-##### accountIndex
-
-`number`
-
-The account index to search.
-
-##### isInternal?
-
-`boolean`
-
-Whether to search internal addresses.
-
-##### startScanIndex?
-
-`number`
-
-The address index to start scanning from.
-
-##### maxScanRange?
-
-`number`
-
-The maximum range to scan.
-
-#### Returns
-
-`Promise`\<\{ `address`: `string`; `privateKey`: `Uint8Array`; `publicKey`: `Uint8Array`; \}\>
-
-The address key pair.
-
-#### Throws
-
-Error if the address is not found.
 
 ***
 
@@ -1032,3 +958,25 @@ The address to get the balance for.
 `Promise`\<`bigint`\>
 
 The balance of the given address.
+
+***
+
+### transactionFromBytes() {#transactionfrombytes}
+
+> `static` **transactionFromBytes**(`bytes`): `Transaction`
+
+Create a transaction instance from the given bytes.
+
+#### Parameters
+
+##### bytes
+
+`Uint8Array`
+
+The transaction bytes to create the transaction from.
+
+#### Returns
+
+`Transaction`
+
+The transaction instance created from the given bytes.
