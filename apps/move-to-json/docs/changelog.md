@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.0.3-next.15](https://github.com/iotaledger/twin-dlt/compare/move-to-json-v0.0.3-next.14...move-to-json-v0.0.3-next.15) (2026-06-17)
+
+
+### Features
+
+* add vault signers ([#76](https://github.com/iotaledger/twin-dlt/issues/76)) ([bfdd701](https://github.com/iotaledger/twin-dlt/commit/bfdd701a010ad45d4f0cffb06d829360cf380a40))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @twin.org/dlt-iota bumped from 0.0.3-next.14 to 0.0.3-next.15
+
 ## [0.0.3-next.14](https://github.com/iotaledger/twin-dlt/compare/move-to-json-v0.0.3-next.13...move-to-json-v0.0.3-next.14) (2026-06-15)
 
 
