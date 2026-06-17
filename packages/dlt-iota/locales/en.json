@@ -10,7 +10,11 @@
 			"gasStationTransactionFailed": "The gas station transaction failed",
 			"dryRunFailed": "The dry run execution failed",
 			"fundingFailed": "Fund the address from faucet failed",
-			"faucetRateLimit": "Faucet rate limit exceeded"
+			"faucetRateLimit": "Faucet rate limit exceeded",
+			"missingPublicKey": "The public key is missing for vault key \"{keyName}\""
+		},
+		"vaultJwkStorage": {
+			"generateNotSupported": "Key generation is not supported; keys are managed by the vault"
 		},
 		"iotaIdentityUtils": {
 			"getControllerCapInfoFailed": "Getting the controller capability info for the identity failed",

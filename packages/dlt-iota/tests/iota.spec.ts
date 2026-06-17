@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0.
 import type { IotaClientOptions } from "@iota/iota-sdk/client";
 import { Converter } from "@twin.org/core";
-import { Bip39, Bip44, KeyType } from "@twin.org/crypto";
+import { Bip39 } from "@twin.org/crypto";
 import { MemoryEntityStorageConnector } from "@twin.org/entity-storage-connector-memory";
 import { EntityStorageConnectorFactory } from "@twin.org/entity-storage-models";
 import { nameof } from "@twin.org/nameof";
@@ -17,21 +17,9 @@ import { TEST_CLIENT_OPTIONS, TEST_MNEMONIC, TEST_NETWORK } from "./setupTestEnv
 import { Iota } from "../src/iota.js";
 import type { IIotaConfig } from "../src/models/IIotaConfig.js";
 
-// Pre-compute deterministic values from the fixed test mnemonic so getStore()
-// assertions can match exact content rather than just structural shape.
 const ADDRESS_CHUNK_SIZE = 25;
 const TEST_SEED = Bip39.mnemonicToSeed(TEST_MNEMONIC);
 const TEST_SEED_BASE64 = Converter.bytesToBase64(TEST_SEED);
-
-const TEST_CHUNK_KEYPAIRS: { privateKey: string; publicKey: string }[] = [];
-
-for (let i = 0; i < ADDRESS_CHUNK_SIZE; i++) {
-	const kp = Bip44.keyPair(TEST_SEED, KeyType.Ed25519, Iota.DEFAULT_COIN_TYPE, 0, false, i);
-	TEST_CHUNK_KEYPAIRS.push({
-		privateKey: Converter.bytesToBase64(kp.privateKey),
-		publicKey: Converter.bytesToBase64(kp.publicKey)
-	});
-}
 
 let keyEntityStorage: MemoryEntityStorageConnector<VaultKey>;
 let secretEntityStorage: MemoryEntityStorageConnector<VaultSecret>;
@@ -152,14 +140,15 @@ describe("Iota", () => {
 			expect(seedEntry?.data).toBe(TEST_SEED_BASE64);
 		});
 
-		test("pre-caches the first keypair chunk in the secret store", async () => {
+		test("pre-caches the first keypair range as individual vault keys", async () => {
 			const vault = createVault();
 			await Iota.storeMnemonic(vault, TEST_CONFIG, TEST_IDENTITY, TEST_MNEMONIC, 0);
 
-			const secrets = await secretEntityStorage.getStore();
-			const keypairChunk = secrets.find(s => s.id === `${TEST_IDENTITY}/account/0/0/0`);
-			expect(keypairChunk).toBeDefined();
-			expect(keypairChunk?.data).toEqual(TEST_CHUNK_KEYPAIRS);
+			const keys = await keyEntityStorage.getStore();
+			for (let i = 0; i < ADDRESS_CHUNK_SIZE; i++) {
+				const key = keys.find(k => k.id === `${TEST_IDENTITY}/account/0/0/${i}`);
+				expect(key).toBeDefined();
+			}
 		});
 
 		test("enables getAddresses to work after storage", async () => {
@@ -169,15 +158,6 @@ describe("Iota", () => {
 			const addresses = await Iota.getAddresses(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0, 1);
 			expect(addresses).toHaveLength(1);
 			expect(addresses[0]).toBeDefined();
-		});
-
-		test("enables getKeyPair to work after storage", async () => {
-			const vault = createVault();
-			await Iota.storeMnemonic(vault, TEST_CONFIG, TEST_IDENTITY, TEST_MNEMONIC, 0);
-
-			const keyPair = await Iota.getKeyPair(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0);
-			expect(keyPair.privateKey).toBeInstanceOf(Uint8Array);
-			expect(keyPair.publicKey).toBeInstanceOf(Uint8Array);
 		});
 
 		test("produces the same addresses as a pre-populated vault", async () => {
@@ -195,16 +175,6 @@ describe("Iota", () => {
 				5
 			);
 			expect(addresses1).toEqual(addresses2);
-		});
-
-		test("produces the same keypairs as a pre-populated vault", async () => {
-			const storedVault = createVault();
-			await Iota.storeMnemonic(storedVault, TEST_CONFIG, TEST_IDENTITY, TEST_MNEMONIC, 0);
-			const keyPair1 = await Iota.getKeyPair(storedVault, TEST_CONFIG, TEST_IDENTITY, 0, 0);
-
-			const prePopulatedVault = await vaultWithMnemonic();
-			const keyPair2 = await Iota.getKeyPair(prePopulatedVault, TEST_CONFIG, TEST_IDENTITY, 0, 0);
-			expect(keyPair1).toEqual(keyPair2);
 		});
 
 		test("returns the mnemonic that was stored", async () => {
@@ -318,13 +288,15 @@ describe("Iota", () => {
 			expect(addresses1).toEqual(addresses2);
 		});
 
-		test("caches keypairs in the secret store", async () => {
+		test("caches keypairs as individual vault keys", async () => {
 			const vault = await vaultWithMnemonic();
 			await Iota.getAddresses(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0, 1);
 
-			const secrets = await secretEntityStorage.getStore();
-			const keypairChunk = secrets.find(s => s.id === `${TEST_IDENTITY}/account/0/0/0`);
-			expect(keypairChunk?.data).toEqual(TEST_CHUNK_KEYPAIRS);
+			const keys = await keyEntityStorage.getStore();
+			for (let i = 0; i < ADDRESS_CHUNK_SIZE; i++) {
+				const key = keys.find(k => k.id === `${TEST_IDENTITY}/account/0/0/${i}`);
+				expect(key).toBeDefined();
+			}
 		});
 
 		test("throws for null vaultConnector", async () => {
@@ -369,73 +341,88 @@ describe("Iota", () => {
 		});
 	});
 
-	describe("getKeyPair", () => {
-		test("can generate a key pair for specified index", async () => {
+	describe("getTransactionSigner", () => {
+		test("returns an object with the expected interface", async () => {
 			const vault = await vaultWithMnemonic();
-
-			const keyPair = await Iota.getKeyPair(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0);
-			expect(keyPair.privateKey).toBeInstanceOf(Uint8Array);
-			expect(keyPair.publicKey).toBeInstanceOf(Uint8Array);
-			expect(keyPair.privateKey.length).toBeGreaterThan(0);
-			expect(keyPair.publicKey.length).toBeGreaterThan(0);
+			const signer = await Iota.getTransactionSigner(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0);
+			expect(signer).toBeDefined();
+			expect(typeof signer.sign).toBe("function");
+			expect(typeof signer.publicKey).toBe("function");
+			expect(typeof signer.iotaPublicKeyBytes).toBe("function");
+			expect(typeof signer.keyId).toBe("function");
 		});
 
-		test("public key produces the matching address", async () => {
+		test("keyId returns the correct vault key name for index 0", async () => {
 			const vault = await vaultWithMnemonic();
-
-			const addresses = await Iota.getAddresses(vault, TEST_CONFIG, TEST_IDENTITY, 0, 5, 1);
-			const keyPair = await Iota.getKeyPair(vault, TEST_CONFIG, TEST_IDENTITY, 0, 5);
-
-			const derivedAddress = Iota.publicKeyToAddress(keyPair.publicKey);
-			expect(derivedAddress).toBe(addresses[0]);
+			const signer = await Iota.getTransactionSigner(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0);
+			expect(signer.keyId()).toBe(`${TEST_IDENTITY}/account/0/0/0`);
 		});
 
-		test("generates different key pairs for different account indices", async () => {
+		test("keyId reflects account and address indices", async () => {
 			const vault = await vaultWithMnemonic();
-
-			const keyPair1 = await Iota.getKeyPair(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0);
-			const keyPair2 = await Iota.getKeyPair(vault, TEST_CONFIG, TEST_IDENTITY, 1, 0);
-			expect(keyPair1.privateKey).not.toEqual(keyPair2.privateKey);
-			expect(keyPair1.publicKey).not.toEqual(keyPair2.publicKey);
+			const signer = await Iota.getTransactionSigner(vault, TEST_CONFIG, TEST_IDENTITY, 1, 3);
+			expect(signer.keyId()).toBe(`${TEST_IDENTITY}/account/1/0/3`);
 		});
 
-		test("generates different key pairs for different address indices", async () => {
+		test("publicKey returns a 32-byte Ed25519 raw key", async () => {
 			const vault = await vaultWithMnemonic();
-
-			const keyPair1 = await Iota.getKeyPair(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0);
-			const keyPair2 = await Iota.getKeyPair(vault, TEST_CONFIG, TEST_IDENTITY, 0, 1);
-			expect(keyPair1.privateKey).not.toEqual(keyPair2.privateKey);
-			expect(keyPair1.publicKey).not.toEqual(keyPair2.publicKey);
+			const signer = await Iota.getTransactionSigner(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0);
+			const pk = await signer.publicKey();
+			expect(pk.toRawBytes()).toHaveLength(32);
 		});
 
-		test("generates different key pairs for internal vs external", async () => {
+		test("iotaPublicKeyBytes returns 33 bytes with Ed25519 flag prefix", async () => {
 			const vault = await vaultWithMnemonic();
-
-			const external = await Iota.getKeyPair(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0, false);
-			const internal = await Iota.getKeyPair(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0, true);
-			expect(external.privateKey).not.toEqual(internal.privateKey);
+			const signer = await Iota.getTransactionSigner(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0);
+			const bytes = await signer.iotaPublicKeyBytes();
+			expect(bytes).toHaveLength(33); // 1 scheme-flag byte + 32 key bytes
+			expect(bytes[0]).toBe(0); // Ed25519 flag
 		});
 
-		test("generates consistent key pairs for same parameters", async () => {
+		test("address derived from signer public key matches getAddresses output", async () => {
 			const vault = await vaultWithMnemonic();
-
-			const keyPair1 = await Iota.getKeyPair(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0);
-			const keyPair2 = await Iota.getKeyPair(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0);
-			expect(keyPair1).toEqual(keyPair2);
+			const [expectedAddress] = await Iota.getAddresses(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0, 1);
+			const signer = await Iota.getTransactionSigner(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0);
+			const pk = await signer.publicKey();
+			expect(Iota.publicKeyToAddress(pk.toRawBytes())).toBe(expectedAddress);
 		});
 
-		test("caches results in the secret store", async () => {
+		test("different address indices produce different public keys", async () => {
 			const vault = await vaultWithMnemonic();
-			await Iota.getKeyPair(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0);
+			const signer0 = await Iota.getTransactionSigner(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0);
+			const signer1 = await Iota.getTransactionSigner(vault, TEST_CONFIG, TEST_IDENTITY, 0, 1);
+			const pk0 = await signer0.publicKey();
+			const pk1 = await signer1.publicKey();
+			expect(pk0.toRawBytes()).not.toEqual(pk1.toRawBytes());
+		});
 
-			const secrets = await secretEntityStorage.getStore();
-			const keypairChunk = secrets.find(s => s.id === `${TEST_IDENTITY}/account/0/0/0`);
-			expect(keypairChunk?.data).toEqual(TEST_CHUNK_KEYPAIRS);
+		test("sign returns a base64 string of 97 serialized bytes (flag + sig + pubkey)", async () => {
+			const vault = await vaultWithMnemonic();
+			const signer = await Iota.getTransactionSigner(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0);
+			const txBytes = new Uint8Array(64).fill(1);
+			const signature = await signer.sign(txBytes);
+			expect(typeof signature).toBe("string");
+			const decoded = Buffer.from(signature, "base64");
+			expect(decoded.length).toBe(97); // 1 flag + 64 sig + 32 pubkey
+			expect(decoded[0]).toBe(0); // Ed25519 scheme flag
+		});
+
+		test("signing the same bytes twice returns the same signature", async () => {
+			const vault = await vaultWithMnemonic();
+			const signer = await Iota.getTransactionSigner(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0);
+			const txBytes = new Uint8Array(64).fill(1);
+			expect(await signer.sign(txBytes)).toBe(await signer.sign(txBytes));
 		});
 
 		test("throws for null vaultConnector", async () => {
 			await expect(
-				Iota.getKeyPair(null as unknown as IVaultConnector, TEST_CONFIG, TEST_IDENTITY, 0, 0)
+				Iota.getTransactionSigner(
+					null as unknown as IVaultConnector,
+					TEST_CONFIG,
+					TEST_IDENTITY,
+					0,
+					0
+				)
 			).rejects.toThrow(
 				expect.objectContaining({
 					name: "GuardError",
@@ -446,11 +433,22 @@ describe("Iota", () => {
 			);
 		});
 
-		test("throws for invalid account index", async () => {
+		test("throws for empty identity", async () => {
 			const vault = await vaultWithMnemonic();
+			await expect(Iota.getTransactionSigner(vault, TEST_CONFIG, "", 0, 0)).rejects.toThrow(
+				expect.objectContaining({
+					name: "GuardError",
+					message: "guard.stringEmpty",
+					source: "Iota",
+					properties: { property: "identity", value: "" }
+				})
+			);
+		});
 
+		test("throws for non-integer accountIndex", async () => {
+			const vault = await vaultWithMnemonic();
 			await expect(
-				Iota.getKeyPair(vault, TEST_CONFIG, TEST_IDENTITY, Number.NaN, 0)
+				Iota.getTransactionSigner(vault, TEST_CONFIG, TEST_IDENTITY, Number.NaN, 0)
 			).rejects.toThrow(
 				expect.objectContaining({
 					name: "GuardError",
@@ -461,125 +459,16 @@ describe("Iota", () => {
 			);
 		});
 
-		test("throws for invalid address index", async () => {
+		test("throws for non-integer addressIndex", async () => {
 			const vault = await vaultWithMnemonic();
-
 			await expect(
-				Iota.getKeyPair(vault, TEST_CONFIG, TEST_IDENTITY, 0, Number.NaN)
+				Iota.getTransactionSigner(vault, TEST_CONFIG, TEST_IDENTITY, 0, Number.NaN)
 			).rejects.toThrow(
 				expect.objectContaining({
 					name: "GuardError",
 					message: "guard.integer",
 					source: "Iota",
 					properties: { property: "addressIndex", value: Number.NaN, options: undefined }
-				})
-			);
-		});
-	});
-
-	describe("findAddress", () => {
-		test("can find an address at index 0", async () => {
-			const vault = await vaultWithMnemonic();
-
-			const [address] = await Iota.getAddresses(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0, 1, false);
-			const found = await Iota.findAddress(vault, TEST_CONFIG, TEST_IDENTITY, address, 0);
-			expect(found.address).toBe(address);
-		});
-
-		test("returns valid privateKey and publicKey", async () => {
-			const vault = await vaultWithMnemonic();
-
-			const [address] = await Iota.getAddresses(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0, 1, false);
-			const found = await Iota.findAddress(vault, TEST_CONFIG, TEST_IDENTITY, address, 0);
-			expect(found.privateKey).toBeInstanceOf(Uint8Array);
-			expect(found.publicKey).toBeInstanceOf(Uint8Array);
-			expect(found.privateKey.length).toBeGreaterThan(0);
-			expect(found.publicKey.length).toBeGreaterThan(0);
-		});
-
-		test("returned keypair matches the address", async () => {
-			const vault = await vaultWithMnemonic();
-
-			const [address] = await Iota.getAddresses(vault, TEST_CONFIG, TEST_IDENTITY, 0, 3, 1, false);
-			const found = await Iota.findAddress(vault, TEST_CONFIG, TEST_IDENTITY, address, 0);
-
-			const derivedAddress = Iota.publicKeyToAddress(found.publicKey);
-			expect(derivedAddress).toBe(address);
-		});
-
-		test("can find an address at a non-zero start index", async () => {
-			const vault = await vaultWithMnemonic();
-
-			const [address] = await Iota.getAddresses(vault, TEST_CONFIG, TEST_IDENTITY, 0, 10, 1, false);
-			const found = await Iota.findAddress(
-				vault,
-				TEST_CONFIG,
-				TEST_IDENTITY,
-				address,
-				0,
-				false,
-				10
-			);
-			expect(found.address).toBe(address);
-		});
-
-		test("searches the correct account index", async () => {
-			const vault = await vaultWithMnemonic();
-
-			const [addressAccount1] = await Iota.getAddresses(
-				vault,
-				TEST_CONFIG,
-				TEST_IDENTITY,
-				1,
-				0,
-				1,
-				false
-			);
-			const found = await Iota.findAddress(vault, TEST_CONFIG, TEST_IDENTITY, addressAccount1, 1);
-			expect(found.address).toBe(addressAccount1);
-		});
-
-		test("finds internal addresses", async () => {
-			const vault = await vaultWithMnemonic();
-
-			const [internalAddress] = await Iota.getAddresses(
-				vault,
-				TEST_CONFIG,
-				TEST_IDENTITY,
-				0,
-				0,
-				1,
-				true
-			);
-			const found = await Iota.findAddress(
-				vault,
-				TEST_CONFIG,
-				TEST_IDENTITY,
-				internalAddress,
-				0,
-				true
-			);
-			expect(found.address).toBe(internalAddress);
-		});
-
-		test("throws when address not found within maxScanRange", async () => {
-			const vault = await vaultWithMnemonic();
-
-			await expect(
-				Iota.findAddress(
-					vault,
-					TEST_CONFIG,
-					TEST_IDENTITY,
-					"0x000000000000000000000000000000000000000000000000000000000000dead",
-					0,
-					false,
-					0,
-					25
-				)
-			).rejects.toThrow(
-				expect.objectContaining({
-					name: "GeneralError",
-					message: "iota.addressNotFound"
 				})
 			);
 		});
