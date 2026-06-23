@@ -1,6 +1,6 @@
 {
 	"name": "@twin.org/move-to-json",
-	"version": "0.9.0-next.0",
+	"version": "0.9.0-next.1",
 	"description": "CLI for compiling Move contracts and preparing deployment JSON for IOTA networks.",
 	"repository": {
 		"type": "git",
@@ -33,7 +33,7 @@
 		"@twin.org/cli-core": "0.9.0-next.1",
 		"@twin.org/core": "0.9.0-next.1",
 		"@twin.org/crypto": "0.9.0-next.1",
-		"@twin.org/dlt-iota": "0.9.0-next.0",
+		"@twin.org/dlt-iota": "0.9.0-next.1",
 		"@twin.org/entity-storage-connector-memory": "0.9.0-next.1",
 		"@twin.org/entity-storage-models": "0.9.0-next.1",
 		"@twin.org/nameof": "0.9.0-next.1",
