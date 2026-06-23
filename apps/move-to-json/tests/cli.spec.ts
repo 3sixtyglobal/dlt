@@ -1,7 +1,7 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
 import { existsSync } from "node:fs";
-import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { CLIDisplay, CLIUtils } from "@twin.org/cli-core";
 import { GeneralError } from "@twin.org/core";
@@ -18,7 +18,6 @@ import {
 } from "@twin.org/vault-connector-entity-storage";
 import { TEST_IOTA_CONFIG, TEST_MNEMONIC_NAME } from "./setupTestEnv.js";
 import { CLI } from "../src/cli.js";
-import { copyFixtures } from "./utils/copyFixtures.js";
 import { ensureCorrectDeployerKey, generateUniqueBackupAlias } from "../src/commands/deploy.js";
 import * as environmentUtils from "../src/utils/environmentUtils.js";
 import { getDeploymentMnemonic, validateDeploymentEnvironment } from "../src/utils/envSetup.js";
@@ -63,7 +62,7 @@ describe("move-to-json CLI", () => {
 
 		const fixtureSource = path.join(__dirname, "fixtures");
 		const fixtureDest = path.join(TEST_INPUT_GLOB, "iota");
-		await copyFixtures(fixtureSource, fixtureDest);
+		await cp(fixtureSource, fixtureDest, { recursive: true });
 
 		initSchema();
 	});
