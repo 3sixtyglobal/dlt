@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.9.0](https://github.com/iotaledger/twin-dlt/compare/move-to-json-v0.9.0...move-to-json-v0.9.0) (2026-06-25)
+
+
+### Features
+
+* add header for CLI check ([#8](https://github.com/iotaledger/twin-dlt/issues/8)) ([0b9f271](https://github.com/iotaledger/twin-dlt/commit/0b9f2711fb3a9eb859e481725bfa1e2139e14053))
+* release to production ([fe6a7f7](https://github.com/iotaledger/twin-dlt/commit/fe6a7f751138ea92ac22c70438261b0cea6fb238))
+* release to production ([#82](https://github.com/iotaledger/twin-dlt/issues/82)) ([b628936](https://github.com/iotaledger/twin-dlt/commit/b62893622f0fe2d4a817297ebed39066f40c0bce))
+* release to production ([#86](https://github.com/iotaledger/twin-dlt/issues/86)) ([687e24b](https://github.com/iotaledger/twin-dlt/commit/687e24b0061231900f5e5ac8bb8b7ef2a2bdc830))
+* update dependencies ([f7b71c2](https://github.com/iotaledger/twin-dlt/commit/f7b71c24274b71e2d37c26c4a7e5e6d9df1dc9b7))
+* use shared store mechanism ([#10](https://github.com/iotaledger/twin-dlt/issues/10)) ([ce36214](https://github.com/iotaledger/twin-dlt/commit/ce36214577f02cbb9642f831cb2c21335c31cc9a))
+
 ## [0.9.0-next.1](https://github.com/iotaledger/twin-dlt/compare/move-to-json-v0.9.0-next.0...move-to-json-v0.9.0-next.1) (2026-06-23)
 
 
