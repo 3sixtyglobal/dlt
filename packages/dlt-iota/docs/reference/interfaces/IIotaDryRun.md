@@ -4,7 +4,7 @@ Interface for the dry run transaction response.
 
 ## Properties
 
-### status
+### status {#status}
 
 > **status**: `string`
 
@@ -12,7 +12,7 @@ The status of the dry run.
 
 ***
 
-### costs
+### costs {#costs}
 
 > **costs**: `object`
 
@@ -50,7 +50,7 @@ The non-refundable storage fee.
 
 ***
 
-### events
+### events {#events}
 
 > **events**: `IotaEvent`[]
 
@@ -58,7 +58,7 @@ The events emitted during the dry run.
 
 ***
 
-### balanceChanges
+### balanceChanges {#balancechanges}
 
 > **balanceChanges**: `BalanceChange`[]
 
@@ -66,7 +66,7 @@ The balance changes that occurred during the dry run.
 
 ***
 
-### objectChanges
+### objectChanges {#objectchanges}
 
 > **objectChanges**: `IotaObjectChange`[]
 

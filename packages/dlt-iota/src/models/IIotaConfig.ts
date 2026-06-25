@@ -1,7 +1,7 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
 import type { IotaClientOptions } from "@iota/iota-sdk/client";
-import type { IGasStationConfig } from "./IGasStationConfig";
+import type { IGasStationConfig } from "./IGasStationConfig.js";
 
 /**
  * Configuration for IOTA.
@@ -58,4 +58,16 @@ export interface IIotaConfig {
 	 * @default 50000000
 	 */
 	gasBudget?: number;
+
+	/**
+	 * The default gas reservation duration in seconds for all transactions (including sponsored and direct).
+	 * @default 60
+	 */
+	gasReservationDuration?: number;
+
+	/**
+	 * Enable cost logging for transactions.
+	 * @default false
+	 */
+	enableCostLogging?: boolean;
 }

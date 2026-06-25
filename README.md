@@ -1,14 +1,16 @@
 # TWIN Distributed Ledger
 
-This mono-repository contains the packages to for use with DLTs in TWIN applications.
+This monorepo brings together reusable ledger utilities and supporting tools for building, testing, and deploying distributed ledger workloads. The packages and applications are designed to work together so teams can move from integration code to deployment workflows with fewer bespoke steps.
+
+The repository focuses on consistent operational patterns across environments, including client interaction, contract lifecycle support, and command line tooling that helps automate repetitive delivery tasks.
 
 ## Packages
 
-- [dlt-iota](packages/dlt-iota/README.md) - DLT helpers for use with IOTA.
+- [dlt-iota](packages/dlt-iota/README.md) - IOTA distributed ledger utilities for clients, transactions, and contract operations.
 
 ## Apps
 
-- [move-to-json](apps/move-to-json/README.md) - A command line interface for converting Move code to JSON.
+- [move-to-json](apps/move-to-json/README.md) - CLI for compiling Move contracts and preparing deployment JSON for IOTA networks.
 
 ## Contributing
 

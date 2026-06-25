@@ -14,7 +14,7 @@ Class for performing operations on IOTA.
 
 ## Properties
 
-### DEFAULT\_MNEMONIC\_SECRET\_NAME
+### DEFAULT\_MNEMONIC\_SECRET\_NAME {#default_mnemonic_secret_name}
 
 > `readonly` `static` **DEFAULT\_MNEMONIC\_SECRET\_NAME**: `string` = `"mnemonic"`
 
@@ -22,7 +22,7 @@ Default name for the mnemonic secret.
 
 ***
 
-### DEFAULT\_SEED\_SECRET\_NAME
+### DEFAULT\_SEED\_SECRET\_NAME {#default_seed_secret_name}
 
 > `readonly` `static` **DEFAULT\_SEED\_SECRET\_NAME**: `string` = `"seed"`
 
@@ -30,7 +30,7 @@ Default name for the seed secret.
 
 ***
 
-### DEFAULT\_COIN\_TYPE
+### DEFAULT\_COIN\_TYPE {#default_coin_type}
 
 > `readonly` `static` **DEFAULT\_COIN\_TYPE**: `number` = `4218`
 
@@ -38,23 +38,15 @@ Default coin type.
 
 ***
 
-### DEFAULT\_SCAN\_RANGE
+### CLASS\_NAME {#class_name}
 
-> `readonly` `static` **DEFAULT\_SCAN\_RANGE**: `number` = `1000`
+> `readonly` `static` **CLASS\_NAME**: `string`
 
-Default scan range.
-
-***
-
-### DEFAULT\_INCLUSION\_TIMEOUT
-
-> `readonly` `static` **DEFAULT\_INCLUSION\_TIMEOUT**: `number` = `60`
-
-Default inclusion timeout.
+Runtime name for the class.
 
 ## Methods
 
-### createClient()
+### createClient() {#createclient}
 
 > `static` **createClient**(`config`): `IotaClient`
 
@@ -76,7 +68,7 @@ The client instance.
 
 ***
 
-### populateConfig()
+### populateConfig() {#populateconfig}
 
 > `static` **populateConfig**(`config`): `void`
 
@@ -96,25 +88,151 @@ The configuration to populate.
 
 ***
 
-### getAddresses()
+### storeMnemonic() {#storemnemonic}
 
-> `static` **getAddresses**(`seed`, `coinType`, `accountIndex`, `startAddressIndex`, `count`, `isInternal?`): `string`[]
+> `static` **storeMnemonic**(`vaultConnector`, `config`, `identity`, `mnemonic`, `accountIndex`): `Promise`\<`string`\>
+
+Store a mnemonic in the vault, derive and store the seed, and pre-cache the first keypair chunk.
+
+#### Parameters
+
+##### vaultConnector
+
+`IVaultConnector`
+
+The vault connector.
+
+##### config
+
+[`IIotaConfig`](../interfaces/IIotaConfig.md)
+
+The configuration.
+
+##### identity
+
+`string`
+
+The identity of the user to access the vault keys.
+
+##### mnemonic
+
+`string` \| `undefined`
+
+The mnemonic to store, if undefined a new one will be generated and returned.
+
+##### accountIndex
+
+`number`
+
+The account index to pre-cache.
+
+#### Returns
+
+`Promise`\<`string`\>
+
+The mnemonic that was stored.
+
+***
+
+### publicKeyToAddress() {#publickeytoaddress}
+
+> `static` **publicKeyToAddress**(`publicKey`): `string`
+
+Derive an address from a public key.
+
+#### Parameters
+
+##### publicKey
+
+`Uint8Array`
+
+The public key to derive the address from.
+
+#### Returns
+
+`string`
+
+The derived address.
+
+***
+
+### getAddress() {#getaddress}
+
+> `static` **getAddress**(`vaultConnector`, `config`, `identity`, `accountIndex`, `startAddressIndex`, `isInternal?`): `Promise`\<`string`\>
+
+Get address for the identity.
+
+#### Parameters
+
+##### vaultConnector
+
+`IVaultConnector`
+
+The vault connector.
+
+##### config
+
+`Pick`\<[`IIotaConfig`](../interfaces/IIotaConfig.md), `"coinType"` \| `"vaultMnemonicId"` \| `"vaultSeedId"`\>
+
+The configuration.
+
+##### identity
+
+`string`
+
+The identity of the user to access the vault keys.
+
+##### accountIndex
+
+`number`
+
+The account index to get the addresses for.
+
+##### startAddressIndex
+
+`number`
+
+The start index for the addresses.
+
+##### isInternal?
+
+`boolean`
+
+Whether the addresses are internal.
+
+#### Returns
+
+`Promise`\<`string`\>
+
+The address.
+
+***
+
+### getAddresses() {#getaddresses}
+
+> `static` **getAddresses**(`vaultConnector`, `config`, `identity`, `accountIndex`, `startAddressIndex`, `count`, `isInternal?`): `Promise`\<`string`[]\>
 
 Get addresses for the identity.
 
 #### Parameters
 
-##### seed
+##### vaultConnector
 
-`Uint8Array`
+`IVaultConnector`
 
-The seed to use for generating addresses.
+The vault connector.
 
-##### coinType
+##### config
 
-`number`
+`Pick`\<[`IIotaConfig`](../interfaces/IIotaConfig.md), `"coinType"` \| `"vaultMnemonicId"` \| `"vaultSeedId"`\>
 
-The coin type to use.
+The configuration.
+
+##### identity
+
+`string`
+
+The identity of the user to access the vault keys.
 
 ##### accountIndex
 
@@ -142,69 +260,75 @@ Whether the addresses are internal.
 
 #### Returns
 
-`string`[]
+`Promise`\<`string`[]\>
 
 The list of addresses.
 
 ***
 
-### getKeyPair()
+### getTransactionSigner() {#gettransactionsigner}
 
-> `static` **getKeyPair**(`seed`, `coinType`, `accountIndex`, `addressIndex`, `isInternal?`): `object`
+> `static` **getTransactionSigner**(`vaultConnector`, `config`, `identity`, `accountIndex`, `addressIndex`): `Promise`\<[`VaultTransactionSigner`](VaultTransactionSigner.md)\>
 
-Get a key pair for the specified index.
+Get a vault-backed transaction signer for the given identity and key indices.
 
 #### Parameters
 
-##### seed
+##### vaultConnector
 
-`Uint8Array`
+`IVaultConnector`
 
-The seed to use for generating the key pair.
+The vault connector.
 
-##### coinType
+##### config
 
-`number`
+[`IIotaConfig`](../interfaces/IIotaConfig.md)
 
-The coin type to use.
+The configuration.
+
+##### identity
+
+`string`
+
+The identity of the user to access the vault keys.
 
 ##### accountIndex
 
 `number`
 
-The account index to get the key pair for.
+The account index.
 
 ##### addressIndex
 
 `number`
 
-The address index to get the key pair for.
-
-##### isInternal?
-
-`boolean`
-
-Whether the address is internal.
+The address index within the account.
 
 #### Returns
 
-`object`
+`Promise`\<[`VaultTransactionSigner`](VaultTransactionSigner.md)\>
 
-The key pair containing private key and public key.
-
-##### privateKey
-
-> **privateKey**: `Uint8Array`
-
-##### publicKey
-
-> **publicKey**: `Uint8Array`
+A VaultTransactionSigner for the specified key.
 
 ***
 
-### prepareAndPostValueTransaction()
+### createTransaction() {#createtransaction}
 
-> `static` **prepareAndPostValueTransaction**(`config`, `vaultConnector`, `loggingConnector`, `identity`, `client`, `source`, `amount`, `recipient`, `options?`): `Promise`\<`IotaTransactionBlockResponse`\>
+> `static` **createTransaction**(): `Transaction`
+
+Create a new transaction instance.
+
+#### Returns
+
+`Transaction`
+
+A new transaction instance.
+
+***
+
+### prepareAndPostValueTransaction() {#prepareandpostvaluetransaction}
+
+> `static` **prepareAndPostValueTransaction**(`config`, `vaultConnector`, `logging`, `identity`, `client`, `source`, `amount`, `recipient`, `options?`): `Promise`\<`IotaTransactionBlockResponse`\>
 
 Prepare and post a transaction.
 
@@ -222,11 +346,11 @@ The configuration.
 
 The vault connector.
 
-##### loggingConnector
+##### logging
 
-The logging connector.
+`ILoggingComponent` \| `undefined`
 
-`undefined` | `ILoggingConnector`
+The logging component.
 
 ##### identity
 
@@ -272,9 +396,9 @@ The transaction result.
 
 ***
 
-### prepareAndPostTransaction()
+### prepareAndPostTransaction() {#prepareandposttransaction}
 
-> `static` **prepareAndPostTransaction**(`config`, `vaultConnector`, `loggingConnector`, `identity`, `client`, `owner`, `transaction`, `options?`): `Promise`\<`IotaTransactionBlockResponse`\>
+> `static` **prepareAndPostTransaction**(`config`, `vaultConnector`, `logging`, `identity`, `client`, `owner`, `transaction`, `options?`): `Promise`\<`IotaTransactionBlockResponse`\>
 
 Prepare and post a transaction.
 
@@ -292,11 +416,11 @@ The configuration.
 
 The vault connector.
 
-##### loggingConnector
+##### logging
 
-The logging connector.
+`ILoggingComponent` \| `undefined`
 
-`undefined` | `ILoggingConnector`
+The logging component.
 
 ##### identity
 
@@ -336,97 +460,7 @@ The transaction response.
 
 ***
 
-### getSeed()
-
-> `static` **getSeed**(`config`, `vaultConnector`, `identity`): `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
-
-Get the seed from the vault.
-
-#### Parameters
-
-##### config
-
-[`IIotaConfig`](../interfaces/IIotaConfig.md)
-
-The configuration to use.
-
-##### vaultConnector
-
-`IVaultConnector`
-
-The vault connector to use.
-
-##### identity
-
-`string`
-
-The identity of the user to access the vault keys.
-
-#### Returns
-
-`Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
-
-The seed.
-
-***
-
-### findAddress()
-
-> `static` **findAddress**(`maxScanRange`, `coinType`, `seed`, `address`): `object`
-
-Find the address in the seed.
-
-#### Parameters
-
-##### maxScanRange
-
-`number`
-
-The maximum range to scan.
-
-##### coinType
-
-`number`
-
-The coin type to use.
-
-##### seed
-
-`Uint8Array`
-
-The seed to use.
-
-##### address
-
-`string`
-
-The address to find.
-
-#### Returns
-
-`object`
-
-The address key pair.
-
-##### address
-
-> **address**: `string`
-
-##### privateKey
-
-> **privateKey**: `Uint8Array`
-
-##### publicKey
-
-> **publicKey**: `Uint8Array`
-
-#### Throws
-
-Error if the address is not found.
-
-***
-
-### extractPayloadError()
+### extractPayloadError() {#extractpayloaderror}
 
 > `static` **extractPayloadError**(`error`): `IError`
 
@@ -449,63 +483,7 @@ The extracted error.
 
 ***
 
-### buildMnemonicKey()
-
-> `static` **buildMnemonicKey**(`identity`, `vaultMnemonicId?`): `string`
-
-Get the key for storing the mnemonic.
-
-#### Parameters
-
-##### identity
-
-`string`
-
-The identity to use.
-
-##### vaultMnemonicId?
-
-`string`
-
-The mnemonic ID to use.
-
-#### Returns
-
-`string`
-
-The mnemonic key.
-
-***
-
-### buildSeedKey()
-
-> `static` **buildSeedKey**(`identity`, `vaultSeedId?`): `string`
-
-Get the key for storing the seed.
-
-#### Parameters
-
-##### identity
-
-`string`
-
-The identity to use.
-
-##### vaultSeedId?
-
-`string`
-
-The seed ID to use.
-
-#### Returns
-
-`string`
-
-The seed key.
-
-***
-
-### packageExistsOnNetwork()
+### packageExistsOnNetwork() {#packageexistsonnetwork}
 
 > `static` **packageExistsOnNetwork**(`client`, `packageId`): `Promise`\<`boolean`\>
 
@@ -533,7 +511,7 @@ True if the package exists, false otherwise.
 
 ***
 
-### dryRunTransaction()
+### dryRunTransaction() {#dryruntransaction}
 
 > `static` **dryRunTransaction**(`client`, `logging`, `txb`, `sender`, `operation`): `Promise`\<[`IIotaDryRun`](../interfaces/IIotaDryRun.md)\>
 
@@ -549,9 +527,9 @@ The IOTA client.
 
 ##### logging
 
-The logging connector.
+`ILoggingComponent` \| `undefined`
 
-`undefined` | `ILoggingConnector`
+The logging component.
 
 ##### txb
 
@@ -575,11 +553,11 @@ The operation to log.
 
 `Promise`\<[`IIotaDryRun`](../interfaces/IIotaDryRun.md)\>
 
-void.
+The dry run result including status, costs, events, and object changes.
 
 ***
 
-### waitForTransactionConfirmation()
+### waitForTransactionConfirmation() {#waitfortransactionconfirmation}
 
 > `static` **waitForTransactionConfirmation**(`client`, `digest`, `config`, `options?`): `Promise`\<`IotaTransactionBlockResponse`\>
 
@@ -635,11 +613,11 @@ The confirmed transaction response.
 
 ***
 
-### isAbortError()
+### isAbortError() {#isaborterror}
 
-> `static` **isAbortError**(`error`, `code?`): `boolean`
+> `static` **isAbortError**(`error`, `code`): `boolean`
 
-Check if the error is an abort error.
+Check if the error is an abort error with a specific code.
 
 #### Parameters
 
@@ -649,7 +627,7 @@ Check if the error is an abort error.
 
 The error to check.
 
-##### code?
+##### code
 
 `number`
 
@@ -663,7 +641,29 @@ True if the error is an abort error, false otherwise.
 
 ***
 
-### prepareAndPostGasStationTransaction()
+### extractAbortCode() {#extractabortcode}
+
+> `static` **extractAbortCode**(`response`): `number` \| `undefined`
+
+Extracts the abort code from a transaction result if the transaction was aborted.
+
+#### Parameters
+
+##### response
+
+`IotaTransactionBlockResponse`
+
+The transaction result to extract the abort code from.
+
+#### Returns
+
+`number` \| `undefined`
+
+The abort code if the transaction was aborted, or undefined if it was not an abort error or the code could not be extracted.
+
+***
+
+### prepareAndPostGasStationTransaction() {#prepareandpostgasstationtransaction}
 
 > `static` **prepareAndPostGasStationTransaction**(`config`, `vaultConnector`, `identity`, `client`, `owner`, `transaction`, `options?`): `Promise`\<`IotaTransactionBlockResponse`\>
 
@@ -721,9 +721,9 @@ The transaction response.
 
 ***
 
-### reserveGas()
+### reserveGas() {#reservegas}
 
-> `static` **reserveGas**(`config`, `gasBudget`): `Promise`\<[`IGasReservationResult`](../interfaces/IGasReservationResult.md)\>
+> `static` **reserveGas**(`config`): `Promise`\<[`IGasReservationResult`](../interfaces/IGasReservationResult.md)\>
 
 Reserve gas from the gas station.
 
@@ -735,12 +735,6 @@ Reserve gas from the gas station.
 
 The configuration containing gas station settings.
 
-##### gasBudget
-
-`number`
-
-The gas budget to reserve.
-
 #### Returns
 
 `Promise`\<[`IGasReservationResult`](../interfaces/IGasReservationResult.md)\>
@@ -749,7 +743,7 @@ The gas reservation result.
 
 ***
 
-### executeGasStationTransaction()
+### executeGasStationTransaction() {#executegasstationtransaction}
 
 > `static` **executeGasStationTransaction**(`config`, `reservationId`, `transactionBytes`, `userSignature`): `Promise`\<`IotaTransactionBlockResponse`\>
 
@@ -789,7 +783,7 @@ The transaction response.
 
 ***
 
-### executeAndConfirmGasStationTransaction()
+### executeAndConfirmGasStationTransaction() {#executeandconfirmgasstationtransaction}
 
 > `static` **executeAndConfirmGasStationTransaction**(`config`, `client`, `reservationId`, `transactionBytes`, `userSignature`, `options?`): `Promise`\<`IotaTransactionBlockResponse`\>
 
@@ -838,3 +832,151 @@ Response options including confirmation behavior.
 `Promise`\<`IotaTransactionBlockResponse`\>
 
 The transaction response (confirmed if waitForConfirmation is true).
+
+***
+
+### fundAddress() {#fundaddress}
+
+> `static` **fundAddress**(`config`, `faucetUrl`, `identity`, `address`, `timeoutInSeconds?`): `Promise`\<`bigint`\>
+
+Fund an address with IOTA from the faucet.
+
+#### Parameters
+
+##### config
+
+[`IIotaConfig`](../interfaces/IIotaConfig.md)
+
+The configuration containing endpoint information.
+
+##### faucetUrl
+
+`string`
+
+The URL of the faucet to request funds from.
+
+##### identity
+
+`string`
+
+The identity of the user to access the vault keys.
+
+##### address
+
+`string`
+
+The address to fund.
+
+##### timeoutInSeconds?
+
+`number` = `60`
+
+The timeout in seconds to wait for the funding to complete.
+
+#### Returns
+
+`Promise`\<`bigint`\>
+
+The amount funded.
+
+***
+
+### ensureBalance() {#ensurebalance}
+
+> `static` **ensureBalance**(`config`, `faucetUrl`, `identity`, `address`, `ensureBalance`, `timeoutInSeconds?`): `Promise`\<`boolean`\>
+
+Ensure the balance for the given address is at least the given amount.
+
+#### Parameters
+
+##### config
+
+[`IIotaConfig`](../interfaces/IIotaConfig.md)
+
+The configuration containing endpoint information.
+
+##### faucetUrl
+
+`string` \| `undefined`
+
+The URL of the faucet to request funds from.
+
+##### identity
+
+`string`
+
+The identity of the user to access the vault keys.
+
+##### address
+
+`string`
+
+The address to ensure the balance for.
+
+##### ensureBalance
+
+`bigint`
+
+The minimum balance to ensure.
+
+##### timeoutInSeconds?
+
+`number`
+
+Optional timeout in seconds, defaults to 10 seconds.
+
+#### Returns
+
+`Promise`\<`boolean`\>
+
+True if the balance is at least the given amount, false otherwise.
+
+***
+
+### getBalance() {#getbalance}
+
+> `static` **getBalance**(`config`, `address`): `Promise`\<`bigint`\>
+
+Get the balance for the given address.
+
+#### Parameters
+
+##### config
+
+[`IIotaConfig`](../interfaces/IIotaConfig.md)
+
+The configuration containing endpoint information.
+
+##### address
+
+`string`
+
+The address to get the balance for.
+
+#### Returns
+
+`Promise`\<`bigint`\>
+
+The balance of the given address.
+
+***
+
+### transactionFromBytes() {#transactionfrombytes}
+
+> `static` **transactionFromBytes**(`bytes`): `Transaction`
+
+Create a transaction instance from the given bytes.
+
+#### Parameters
+
+##### bytes
+
+`Uint8Array`
+
+The transaction bytes to create the transaction from.
+
+#### Returns
+
+`Transaction`
+
+The transaction instance created from the given bytes.

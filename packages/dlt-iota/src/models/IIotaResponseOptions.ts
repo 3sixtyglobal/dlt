@@ -3,7 +3,7 @@
 import type { IotaTransactionBlockResponseOptions } from "@iota/iota-sdk/client";
 
 /**
- * Configuration for IOTA.
+ * Options for controlling transaction execution and response behaviour.
  */
 export interface IIotaResponseOptions extends IotaTransactionBlockResponseOptions {
 	/**

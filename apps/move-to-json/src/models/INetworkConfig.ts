@@ -1,0 +1,45 @@
+// Copyright 2024 IOTA Stiftung.
+// SPDX-License-Identifier: Apache-2.0.
+import type { NetworkTypes } from "@twin.org/dlt-iota";
+import type { IContractConfig } from "./IContractConfig.js";
+
+/**
+ * Network configuration interface
+ */
+export interface INetworkConfig {
+	/**
+	 * The network type
+	 */
+	network: NetworkTypes;
+	/**
+	 * The platform type
+	 */
+	platform: "iota";
+	/**
+	 * The RPC configuration
+	 */
+	rpc: {
+		url: string;
+		timeout?: number;
+	};
+	/**
+	 * The deployment configuration
+	 */
+	deployment: {
+		gasBudget: number;
+		confirmationTimeout?: number;
+		wallet: {
+			addressIndex: number;
+		};
+		gasStation?: {
+			url: string;
+			authToken: string;
+		};
+	};
+	/**
+	 * The contracts configuration
+	 */
+	contracts?: {
+		[key: string]: IContractConfig;
+	};
+}

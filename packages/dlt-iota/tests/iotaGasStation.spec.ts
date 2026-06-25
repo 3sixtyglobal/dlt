@@ -1,27 +1,31 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import { Ed25519Keypair } from "@iota/iota-sdk/keypairs/ed25519";
 import { Transaction } from "@iota/iota-sdk/transactions";
+import { Bip39, Bip44, KeyType } from "@twin.org/crypto";
 import { MemoryEntityStorageConnector } from "@twin.org/entity-storage-connector-memory";
 import { EntityStorageConnectorFactory } from "@twin.org/entity-storage-models";
 import { nameof } from "@twin.org/nameof";
 import {
 	EntityStorageVaultConnector,
+	initSchema,
 	type VaultKey,
-	type VaultSecret,
-	initSchema
+	type VaultSecret
 } from "@twin.org/vault-connector-entity-storage";
-import { VaultConnectorFactory } from "@twin.org/vault-models";
+import { VaultKeyType } from "@twin.org/vault-models";
 import {
-	TEST_CLIENT_OPTIONS,
-	TEST_NETWORK,
-	TEST_MNEMONIC,
-	TEST_IDENTITY,
-	GAS_STATION_URL,
+	GAS_BUDGET,
 	GAS_STATION_AUTH_TOKEN,
-	GAS_BUDGET
-} from "./setupTestEnv";
-import { Iota, type IIotaConfig, type IGasStationConfig } from "../src/index";
+	GAS_STATION_URL,
+	TEST_CLIENT_OPTIONS,
+	TEST_IDENTITY,
+	TEST_MNEMONIC,
+	TEST_NETWORK
+} from "./setupTestEnv.js";
+import { Iota, VaultSigner, type IGasStationConfig, type IIotaConfig } from "../src/index.js";
+
+let vaultConnector: EntityStorageVaultConnector;
+let testSignerKeyName: string;
+let testSignerPublicKey: Uint8Array;
 
 describe("Iota Gas Station Integration", () => {
 	const gasStationConfig: IIotaConfig = {
@@ -35,32 +39,43 @@ describe("Iota Gas Station Integration", () => {
 	};
 
 	beforeAll(async () => {
-		// Initialize entity storage schema
 		initSchema();
 
-		// Setup entity storage connectors
-		EntityStorageConnectorFactory.register(
-			"vault-key",
-			() =>
-				new MemoryEntityStorageConnector<VaultKey>({
-					entitySchema: nameof<VaultKey>()
-				})
+		const keyEntityStorage = new MemoryEntityStorageConnector<VaultKey>({
+			entitySchema: nameof<VaultKey>(),
+			config: { storageKey: "vault-key" }
+		});
+		const secretEntityStorage = new MemoryEntityStorageConnector<VaultSecret>({
+			entitySchema: nameof<VaultSecret>(),
+			config: { storageKey: "vault-secret" }
+		});
+
+		EntityStorageConnectorFactory.register("vault-key", () => keyEntityStorage);
+		EntityStorageConnectorFactory.register("vault-secret", () => secretEntityStorage);
+
+		vaultConnector = new EntityStorageVaultConnector();
+		await vaultConnector.setSecret(
+			`${TEST_IDENTITY}/${Iota.DEFAULT_MNEMONIC_SECRET_NAME}`,
+			TEST_MNEMONIC
 		);
 
-		EntityStorageConnectorFactory.register(
-			"vault-secret",
-			() =>
-				new MemoryEntityStorageConnector<VaultSecret>({
-					entitySchema: nameof<VaultSecret>()
-				})
+		const userAddress = await Iota.getAddress(
+			vaultConnector,
+			gasStationConfig,
+			TEST_IDENTITY,
+			0,
+			0
 		);
-
-		// Register vault connector
-		VaultConnectorFactory.register("vault", () => new EntityStorageVaultConnector());
-
-		// Setup vault with test mnemonic
-		const vaultConnector = VaultConnectorFactory.get("vault");
-		await vaultConnector.setSecret(Iota.buildMnemonicKey(TEST_IDENTITY), TEST_MNEMONIC);
+		const seed = Bip39.mnemonicToSeed(TEST_MNEMONIC);
+		const kp = Bip44.keyPair(seed, KeyType.Ed25519, Iota.DEFAULT_COIN_TYPE, 0, false, 0);
+		testSignerKeyName = `${TEST_IDENTITY}/key/${userAddress}`;
+		testSignerPublicKey = kp.publicKey;
+		await vaultConnector.addKey(
+			testSignerKeyName,
+			VaultKeyType.Ed25519,
+			kp.privateKey,
+			kp.publicKey
+		);
 	});
 
 	// Configuration Tests
@@ -102,6 +117,7 @@ describe("Iota Gas Station Integration", () => {
 
 	describe("Live Integration (requires running gas station)", () => {
 		test("Should connect to running gas station", async () => {
+			console.log(GAS_STATION_URL);
 			const response = await fetch(GAS_STATION_URL, {
 				method: "GET"
 			});
@@ -110,9 +126,8 @@ describe("Iota Gas Station Integration", () => {
 		});
 
 		test("Should reserve gas and examine response format", async () => {
-			const gasReservation = await Iota.reserveGas(gasStationConfig, GAS_BUDGET);
+			const gasReservation = await Iota.reserveGas(gasStationConfig);
 
-			// Examine the structure
 			expect(gasReservation).toHaveProperty("sponsorAddress");
 			expect(gasReservation).toHaveProperty("reservationId");
 			expect(gasReservation).toHaveProperty("gasCoins");
@@ -123,35 +138,34 @@ describe("Iota Gas Station Integration", () => {
 
 		test("Should execute transaction via gas station and examine response format", async () => {
 			const client = Iota.createClient(gasStationConfig);
-			const vaultConnector = VaultConnectorFactory.get("vault");
 
-			const seed = await Iota.getSeed(gasStationConfig, vaultConnector, TEST_IDENTITY);
-			const addresses = Iota.getAddresses(seed, Iota.DEFAULT_COIN_TYPE, 0, 0, 1, false);
-			const userAddress = addresses[0];
+			const userAddress = await Iota.getAddress(
+				vaultConnector,
+				gasStationConfig,
+				TEST_IDENTITY,
+				0,
+				0,
+				false
+			);
 
-			// Reserve gas
-			const gasReservation = await Iota.reserveGas(gasStationConfig, GAS_BUDGET);
+			const gasReservation = await Iota.reserveGas(gasStationConfig);
 
-			// Create a simple transaction
 			const tx = new Transaction();
 			tx.moveCall({
 				target: "0x2::clock::timestamp_ms",
 				arguments: [tx.object("0x6")]
 			});
 
-			// Set gas station parameters
 			tx.setSender(userAddress);
 			tx.setGasOwner(gasReservation.sponsorAddress);
 			tx.setGasPayment(gasReservation.gasCoins);
 			tx.setGasBudget(GAS_BUDGET);
 
-			// Build and sign
 			const unsignedTxBytes = await tx.build({ client });
-			const keyPair = Iota.getKeyPair(seed, Iota.DEFAULT_COIN_TYPE, 0, 0);
-			const keypair = Ed25519Keypair.fromSecretKey(keyPair.privateKey);
-			const signature = await keypair.signTransaction(unsignedTxBytes);
 
-			// Execute via gas station
+			const signer = new VaultSigner(vaultConnector, testSignerKeyName, testSignerPublicKey);
+			const signature = await signer.signTransaction(unsignedTxBytes);
+
 			const gasStationResponse = await Iota.executeGasStationTransaction(
 				gasStationConfig,
 				gasReservation.reservationId,
@@ -159,19 +173,21 @@ describe("Iota Gas Station Integration", () => {
 				signature.signature
 			);
 
-			// Test if it's compatible with IotaTransactionBlockResponse
 			expect(gasStationResponse).toBeDefined();
 		});
 
 		test("Should execute pre-built transaction via gas station with confirmation", async () => {
 			const client = Iota.createClient(gasStationConfig);
-			const vaultConnector = VaultConnectorFactory.get("vault");
 
-			const seed = await Iota.getSeed(gasStationConfig, vaultConnector, TEST_IDENTITY);
-			const addresses = Iota.getAddresses(seed, Iota.DEFAULT_COIN_TYPE, 0, 0, 1, false);
-			const userAddress = addresses[0];
+			const userAddress = await Iota.getAddress(
+				vaultConnector,
+				gasStationConfig,
+				TEST_IDENTITY,
+				0,
+				0
+			);
 
-			const gasReservation = await Iota.reserveGas(gasStationConfig, GAS_BUDGET);
+			const gasReservation = await Iota.reserveGas(gasStationConfig);
 
 			const tx = new Transaction();
 			tx.moveCall({
@@ -185,9 +201,9 @@ describe("Iota Gas Station Integration", () => {
 			tx.setGasBudget(GAS_BUDGET);
 
 			const unsignedTxBytes = await tx.build({ client });
-			const keyPair = Iota.getKeyPair(seed, Iota.DEFAULT_COIN_TYPE, 0, 0);
-			const keypair = Ed25519Keypair.fromSecretKey(keyPair.privateKey);
-			const signature = await keypair.signTransaction(unsignedTxBytes);
+
+			const signer = new VaultSigner(vaultConnector, testSignerKeyName, testSignerPublicKey);
+			const signature = await signer.signTransaction(unsignedTxBytes);
 
 			const confirmedResponse = await Iota.executeAndConfirmGasStationTransaction(
 				gasStationConfig,

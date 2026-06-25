@@ -4,7 +4,7 @@ Configuration for IOTA.
 
 ## Properties
 
-### clientOptions
+### clientOptions {#clientoptions}
 
 > **clientOptions**: `NetworkOrTransport`
 
@@ -12,7 +12,7 @@ The configuration for the client.
 
 ***
 
-### network
+### network {#network}
 
 > **network**: `string`
 
@@ -20,9 +20,9 @@ The network the operations are being performed on.
 
 ***
 
-### vaultMnemonicId?
+### vaultMnemonicId? {#vaultmnemonicid}
 
-> `optional` **vaultMnemonicId**: `string`
+> `optional` **vaultMnemonicId?**: `string`
 
 The id of the entry in the vault containing the mnemonic.
 
@@ -34,9 +34,9 @@ mnemonic
 
 ***
 
-### vaultSeedId?
+### vaultSeedId? {#vaultseedid}
 
-> `optional` **vaultSeedId**: `string`
+> `optional` **vaultSeedId?**: `string`
 
 The id of the entry in the vault containing the seed.
 
@@ -48,9 +48,9 @@ seed
 
 ***
 
-### coinType?
+### coinType? {#cointype}
 
-> `optional` **coinType**: `number`
+> `optional` **coinType?**: `number`
 
 The coin type.
 
@@ -62,9 +62,9 @@ IOTA 4218
 
 ***
 
-### maxAddressScanRange?
+### maxAddressScanRange? {#maxaddressscanrange}
 
-> `optional` **maxAddressScanRange**: `number`
+> `optional` **maxAddressScanRange?**: `number`
 
 The maximum range to scan for addresses.
 
@@ -76,9 +76,9 @@ The maximum range to scan for addresses.
 
 ***
 
-### inclusionTimeoutSeconds?
+### inclusionTimeoutSeconds? {#inclusiontimeoutseconds}
 
-> `optional` **inclusionTimeoutSeconds**: `number`
+> `optional` **inclusionTimeoutSeconds?**: `number`
 
 The length of time to wait for the inclusion of a transaction in seconds.
 
@@ -90,18 +90,18 @@ The length of time to wait for the inclusion of a transaction in seconds.
 
 ***
 
-### gasStation?
+### gasStation? {#gasstation}
 
-> `optional` **gasStation**: [`IGasStationConfig`](IGasStationConfig.md)
+> `optional` **gasStation?**: [`IGasStationConfig`](IGasStationConfig.md)
 
 Gas station configuration for sponsored transactions.
 If provided, transactions will be processed through the gas station.
 
 ***
 
-### gasBudget?
+### gasBudget? {#gasbudget}
 
-> `optional` **gasBudget**: `number`
+> `optional` **gasBudget?**: `number`
 
 The default gas budget for all transactions (including sponsored and direct).
 
@@ -109,4 +109,32 @@ The default gas budget for all transactions (including sponsored and direct).
 
 ```ts
 50000000
+```
+
+***
+
+### gasReservationDuration? {#gasreservationduration}
+
+> `optional` **gasReservationDuration?**: `number`
+
+The default gas reservation duration in seconds for all transactions (including sponsored and direct).
+
+#### Default
+
+```ts
+60
+```
+
+***
+
+### enableCostLogging? {#enablecostlogging}
+
+> `optional` **enableCostLogging?**: `boolean`
+
+Enable cost logging for transactions.
+
+#### Default
+
+```ts
+false
 ```

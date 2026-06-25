@@ -1,0 +1,10 @@
+{
+	"testnet": {
+		"packageId": "",
+		"packageBytecode": "",
+		"lastDeployedPackageId": "",
+		"deployedPackageId": "",
+		"upgradeCapabilityId": "",
+		"migrationStateId": ""
+	}
+}

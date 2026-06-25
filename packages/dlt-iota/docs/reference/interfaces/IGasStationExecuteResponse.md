@@ -4,19 +4,17 @@ Interface for the gas station execute transaction response.
 
 ## Properties
 
-### effects
+### effects {#effects}
 
 > **effects**: `object`
 
 The transaction effects from the IOTA network.
-This contains the full IOTA transaction effects object.
 
 #### Index Signature
 
 \[`key`: `string`\]: `unknown`
 
-Additional effects data from the IOTA network.
-This includes messageVersion, status, executedEpoch, gasUsed, etc.
+Additional fields from the IOTA network effects object.
 
 #### transactionDigest
 
@@ -26,8 +24,8 @@ The transaction digest.
 
 ***
 
-### error?
+### error? {#error}
 
-> `optional` **error**: `null` \| `string`
+> `optional` **error?**: `string` \| `null`
 
 Error message if the request failed.

@@ -1,6 +1,6 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import type { IGasStationReserveGasResult } from "./IGasStationReserveGasResult";
+import type { IGasStationReserveGasResult } from "./IGasStationReserveGasResult.js";
 
 /**
  * Interface for the gas station reserve gas response.

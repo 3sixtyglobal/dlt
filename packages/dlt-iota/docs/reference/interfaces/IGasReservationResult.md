@@ -4,7 +4,7 @@ Interface for gas reservation result from the gas station (with TypeScript camel
 
 ## Properties
 
-### sponsorAddress
+### sponsorAddress {#sponsoraddress}
 
 > **sponsorAddress**: `string`
 
@@ -12,7 +12,7 @@ The sponsor's on-chain address.
 
 ***
 
-### reservationId
+### reservationId {#reservationid}
 
 > **reservationId**: `number`
 
@@ -20,7 +20,7 @@ An ID used to reference this particular gas reservation.
 
 ***
 
-### gasCoins
+### gasCoins {#gascoins}
 
 > **gasCoins**: `object`[]
 

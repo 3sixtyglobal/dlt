@@ -1,16 +1,16 @@
 # TWIN Move to JSON
 
-This tool is used to convert Move contracts to JSON.
+This app provides a command line workflow for compiling Move contracts and producing deployment-ready JSON for IOTA networks. It is intended for development teams that want predictable build and deployment inputs across test and production environments.
 
 ## Installation
 
 ```shell
-npm install @twin.org/move-to-json
+npm install -D @twin.org/move-to-json
 ```
 
-## Examples
+## Usage
 
-Usage of the tool is shown in the examples [docs/examples.md](docs/examples.md)
+Usage of the CLI is shown in the examples [docs/usage.md](docs/usage.md)
 
 ## Reference
 
