@@ -63,7 +63,6 @@ describe("IotaIdentityUtils", () => {
 				MOCK_CONTROLLER_ADDRESS,
 				{} as IIotaClient
 			);
-
 			expect(result.identityObjectId).toBe(MOCK_IDENTITY_OBJECT_ID);
 			expect(result.controllerCapObjectId).toBe(MOCK_CONTROLLER_CAP_OBJECT_ID);
 			expect(mockOnChainIdentity.getControllerTokenForAddress).toHaveBeenCalledWith(
