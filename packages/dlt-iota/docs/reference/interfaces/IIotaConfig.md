@@ -138,3 +138,33 @@ Enable cost logging for transactions.
 ```ts
 false
 ```
+
+***
+
+### objectLockRetries? {#objectlockretries}
+
+> `optional` **objectLockRetries?**: `number`
+
+The number of times to retry a transaction that is rejected because one or more of its owned
+objects is reserved by another in-flight transaction.
+
+#### Default
+
+```ts
+3
+```
+
+***
+
+### objectLockRetryDelayMs? {#objectlockretrydelayms}
+
+> `optional` **objectLockRetryDelayMs?**: `number`
+
+The base delay in milliseconds between object-lock retries; the delay grows exponentially
+with each attempt.
+
+#### Default
+
+```ts
+1000
+```

@@ -663,6 +663,123 @@ The abort code if the transaction was aborted, or undefined if it was not an abo
 
 ***
 
+### isReservedObjectError() {#isreservedobjecterror}
+
+> `static` **isReservedObjectError**(`error`): `boolean`
+
+Check if an error is a retryable "owned object reserved by another transaction" conflict.
+IOTA locks owned objects for the first in-flight transaction that claims them, so a
+concurrent transaction referencing the same objects is rejected until the lock clears. This
+only matches the transient "reserved for another transaction" case, not the non-retryable
+"equivocated until the next epoch" case.
+
+#### Parameters
+
+##### error
+
+`unknown`
+
+The error to check.
+
+#### Returns
+
+`boolean`
+
+True if the error is a retryable object reservation conflict.
+
+***
+
+### isRetryableObjectConflictError() {#isretryableobjectconflicterror}
+
+> `static` **isRetryableObjectConflictError**(`error`): `boolean`
+
+Check if an error is a retryable owned-object conflict caused by a concurrent transaction.
+This covers both the "reserved for another transaction" case (the object is locked by an
+in-flight transaction) and the "is not available for consumption" case (a concurrent
+transaction already consumed the referenced version); a retry rebuild re-resolves to the
+current version so both can recover. The non-retryable "equivocated until the next epoch"
+case is not matched.
+
+#### Parameters
+
+##### error
+
+`unknown`
+
+The error to check.
+
+#### Returns
+
+`boolean`
+
+True if the error is a retryable owned-object conflict.
+
+***
+
+### extractReservationConflictDigests() {#extractreservationconflictdigests}
+
+> `static` **extractReservationConflictDigests**(`error`): `string`[]
+
+Extract the conflicting transaction digests from an object reservation conflict error.
+The node error lists the digests of the transactions currently locking the objects (the
+underlying object ids are only present in the RPC error data, which the IOTA SDK discards).
+Only the "reserved for another transaction" error carries digests, so this returns an empty
+array for the stale-version conflict case.
+
+#### Parameters
+
+##### error
+
+`unknown`
+
+The error to extract from.
+
+#### Returns
+
+`string`[]
+
+The conflicting transaction digests, or an empty array if none can be parsed.
+
+***
+
+### executeWithReservationRetry() {#executewithreservationretry}
+
+> `static` **executeWithReservationRetry**\<`T`\>(`config`, `operation`): `Promise`\<`T`\>
+
+Run a transaction submission operation, retrying with exponential back-off if it is rejected
+because of a retryable owned-object conflict with a concurrent transaction (the objects are
+reserved by an in-flight transaction, or the referenced version was already consumed).
+Other errors are rethrown immediately. If the conflict persists after all retries a clear,
+retryable error is thrown instead of the opaque underlying failure.
+
+#### Type Parameters
+
+##### T
+
+`T`
+
+#### Parameters
+
+##### config
+
+[`IIotaConfig`](../interfaces/IIotaConfig.md)
+
+The configuration controlling retry counts and delays.
+
+##### operation
+
+() => `Promise`\<`T`\>
+
+The transaction submission operation to run.
+
+#### Returns
+
+`Promise`\<`T`\>
+
+The result of the operation.
+
+***
+
 ### prepareAndPostGasStationTransaction() {#prepareandpostgasstationtransaction}
 
 > `static` **prepareAndPostGasStationTransaction**(`config`, `vaultConnector`, `identity`, `client`, `owner`, `transaction`, `options?`): `Promise`\<`IotaTransactionBlockResponse`\>

@@ -87,6 +87,32 @@ export class Iota {
 	private static readonly _DEFAULT_GAS_RESERVATION_DURATION: number = 60;
 
 	/**
+	 * Default number of retries when owned objects are reserved by another transaction.
+	 * @internal
+	 */
+	private static readonly _DEFAULT_OBJECT_LOCK_RETRIES: number = 3;
+
+	/**
+	 * Default base delay in milliseconds between object-lock retries.
+	 * @internal
+	 */
+	private static readonly _DEFAULT_OBJECT_LOCK_RETRY_DELAY_MS: number = 1000;
+
+	/**
+	 * Pattern that identifies the retryable "objects reserved by another transaction" node error.
+	 * @internal
+	 */
+	private static readonly _RESERVED_OBJECT_ERROR_PATTERN: RegExp =
+		/reserved for another transaction/;
+
+	/**
+	 * Pattern that identifies the node error for an owned-object version that was consumed by a
+	 * concurrent transaction. Retryable since the retry rebuild re-resolves to the current version.
+	 * @internal
+	 */
+	private static readonly _STALE_OBJECT_ERROR_PATTERN: RegExp = /is not available for consumption/;
+
+	/**
 	 * Create a new IOTA client.
 	 * @param config The configuration.
 	 * @returns The client instance.
@@ -363,6 +389,10 @@ export class Iota {
 			);
 			return result;
 		} catch (error) {
+			// Pass through the clear object-conflict error; wrap everything else as before.
+			if (Iota.isRetryableObjectConflictError(error)) {
+				throw error;
+			}
 			throw new GeneralError(
 				Iota.CLASS_NAME,
 				"valueTransactionFailed",
@@ -408,6 +438,13 @@ export class Iota {
 		}
 
 		// Traditional transaction flow
+		// Capture the transaction while its inputs are still unresolved. The SDK pins owned-object
+		// versions and gas payment on the first build, so a single built transaction would resubmit
+		// byte-identical bytes on every retry. Cloning this template per attempt lets object
+		// versions and gas re-resolve, which is what allows a retry to actually recover once the
+		// conflicting transaction clears.
+		const template = Transaction.from(transaction);
+
 		// Dry run the transaction if cost logging is enabled to get the gas and storage costs
 		if (Is.stringValue(options?.dryRunLabel)) {
 			await Iota.dryRunTransaction(client, logging, transaction, owner, options.dryRunLabel);
@@ -422,35 +459,39 @@ export class Iota {
 		const signer = new VaultSigner(vaultConnector, keyName, publicKey);
 
 		try {
-			const response = await client.signAndExecuteTransaction({
-				transaction,
-				signer,
-				requestType: "WaitForLocalExecution",
-				options: {
-					showEffects: options?.showEffects ?? true,
-					showEvents: options?.showEvents ?? true,
-					showObjectChanges: options?.showObjectChanges ?? true
-				}
-			});
-
-			if (options?.waitForConfirmation ?? true) {
-				// Wait for transaction to be indexed and available over API
-				const confirmedTransaction = await Iota.waitForTransactionConfirmation(
-					client,
-					response.digest,
-					config,
-					{
+			// Concurrent transactions that reference the same owned objects can be rejected while
+			// those objects are reserved for another in-flight transaction, so retry the submission
+			// with back-off until the reservation clears. Each attempt rebuilds from the unresolved
+			// template so versions and gas re-resolve rather than resubmitting identical bytes.
+			return await Iota.executeWithReservationRetry(config, async () => {
+				const response = await client.signAndExecuteTransaction({
+					transaction: Transaction.from(template),
+					signer,
+					requestType: "WaitForLocalExecution",
+					options: {
 						showEffects: options?.showEffects ?? true,
 						showEvents: options?.showEvents ?? true,
 						showObjectChanges: options?.showObjectChanges ?? true
 					}
-				);
+				});
 
-				return confirmedTransaction;
-			}
+				if (options?.waitForConfirmation ?? true) {
+					// Wait for transaction to be indexed and available over API
+					return Iota.waitForTransactionConfirmation(client, response.digest, config, {
+						showEffects: options?.showEffects ?? true,
+						showEvents: options?.showEvents ?? true,
+						showObjectChanges: options?.showObjectChanges ?? true
+					});
+				}
 
-			return response;
+				return response;
+			});
 		} catch (error) {
+			// Pass through the clear object-conflict error; wrap everything else (including any
+			// non-conflict GeneralError raised inside, e.g. a vault signing failure) as before.
+			if (Iota.isRetryableObjectConflictError(error)) {
+				throw error;
+			}
 			throw new GeneralError(
 				Iota.CLASS_NAME,
 				"transactionFailed",
@@ -674,6 +715,121 @@ export class Iota {
 	}
 
 	/**
+	 * Check if an error is a retryable "owned object reserved by another transaction" conflict.
+	 * IOTA locks owned objects for the first in-flight transaction that claims them, so a
+	 * concurrent transaction referencing the same objects is rejected until the lock clears. This
+	 * only matches the transient "reserved for another transaction" case, not the non-retryable
+	 * "equivocated until the next epoch" case.
+	 * @param error The error to check.
+	 * @returns True if the error is a retryable object reservation conflict.
+	 */
+	public static isReservedObjectError(error: unknown): boolean {
+		return Is.stringValue(Iota.objectConflictMessage(error, Iota._RESERVED_OBJECT_ERROR_PATTERN));
+	}
+
+	/**
+	 * Check if an error is a retryable owned-object conflict caused by a concurrent transaction.
+	 * This covers both the "reserved for another transaction" case (the object is locked by an
+	 * in-flight transaction) and the "is not available for consumption" case (a concurrent
+	 * transaction already consumed the referenced version); a retry rebuild re-resolves to the
+	 * current version so both can recover. The non-retryable "equivocated until the next epoch"
+	 * case is not matched.
+	 * @param error The error to check.
+	 * @returns True if the error is a retryable owned-object conflict.
+	 */
+	public static isRetryableObjectConflictError(error: unknown): boolean {
+		return (
+			Is.stringValue(Iota.objectConflictMessage(error, Iota._RESERVED_OBJECT_ERROR_PATTERN)) ||
+			Is.stringValue(Iota.objectConflictMessage(error, Iota._STALE_OBJECT_ERROR_PATTERN))
+		);
+	}
+
+	/**
+	 * Extract the conflicting transaction digests from an object reservation conflict error.
+	 * The node error lists the digests of the transactions currently locking the objects (the
+	 * underlying object ids are only present in the RPC error data, which the IOTA SDK discards).
+	 * Only the "reserved for another transaction" error carries digests, so this returns an empty
+	 * array for the stale-version conflict case.
+	 * @param error The error to extract from.
+	 * @returns The conflicting transaction digests, or an empty array if none can be parsed.
+	 */
+	public static extractReservationConflictDigests(error: unknown): string[] {
+		const message = Iota.objectConflictMessage(error, Iota._RESERVED_OBJECT_ERROR_PATTERN);
+		if (!Is.stringValue(message)) {
+			return [];
+		}
+
+		const digests: string[] = [];
+		// The direct path preserves real newlines; through the gas station the node message is
+		// Debug-formatted so the newlines arrive as the literal two-character sequence "\n", hence
+		// both a real newline and an escaped one are treated as a line start here.
+		const linePattern = /(?:^|\n|\\n)- (\S+) \(stake /g;
+		let match = linePattern.exec(message);
+		while (match !== null) {
+			digests.push(match[1]);
+			match = linePattern.exec(message);
+		}
+		return digests;
+	}
+
+	/**
+	 * Run a transaction submission operation, retrying with exponential back-off if it is rejected
+	 * because of a retryable owned-object conflict with a concurrent transaction (the objects are
+	 * reserved by an in-flight transaction, or the referenced version was already consumed).
+	 * Other errors are rethrown immediately. If the conflict persists after all retries a clear,
+	 * retryable error is thrown instead of the opaque underlying failure.
+	 * @param config The configuration controlling retry counts and delays.
+	 * @param operation The transaction submission operation to run.
+	 * @returns The result of the operation.
+	 */
+	public static async executeWithReservationRetry<T>(
+		config: IIotaConfig,
+		operation: () => Promise<T>
+	): Promise<T> {
+		if (!Is.undefined(config.objectLockRetries)) {
+			Guards.integer(Iota.CLASS_NAME, nameof(config.objectLockRetries), config.objectLockRetries);
+		}
+		if (!Is.undefined(config.objectLockRetryDelayMs)) {
+			Guards.integer(
+				Iota.CLASS_NAME,
+				nameof(config.objectLockRetryDelayMs),
+				config.objectLockRetryDelayMs
+			);
+		}
+		const maxRetries = Math.max(0, config.objectLockRetries ?? Iota._DEFAULT_OBJECT_LOCK_RETRIES);
+		const baseDelayMs = Math.max(
+			0,
+			config.objectLockRetryDelayMs ?? Iota._DEFAULT_OBJECT_LOCK_RETRY_DELAY_MS
+		);
+
+		let lastError: unknown;
+		for (let attempt = 0; attempt <= maxRetries; attempt++) {
+			try {
+				return await operation();
+			} catch (error) {
+				if (!Iota.isRetryableObjectConflictError(error)) {
+					throw error;
+				}
+				lastError = error;
+				if (attempt < maxRetries) {
+					// Exponential back-off with jitter: concurrent losers fail at nearly the same moment,
+					// so without jitter they would resubmit in lockstep and re-race each other each round.
+					const jitter = (1 + Math.random()) / 2;
+					const delayMs = baseDelayMs * Math.pow(2, attempt) * jitter;
+					await new Promise(resolve => setTimeout(resolve, delayMs));
+				}
+			}
+		}
+
+		throw new GeneralError(
+			Iota.CLASS_NAME,
+			"objectReservationConflict",
+			{ conflictingTransactions: Iota.extractReservationConflictDigests(lastError) },
+			Iota.extractPayloadError(lastError)
+		);
+	}
+
+	/**
 	 * Prepare and post a transaction using gas station sponsoring.
 	 * @param config The configuration.
 	 * @param vaultConnector The vault connector.
@@ -695,37 +851,49 @@ export class Iota {
 	): Promise<IIotaTransactionBlockResponse> {
 		Guards.object(Iota.CLASS_NAME, nameof(config.gasStation), config.gasStation);
 
+		// Capture the transaction while its inputs are still unresolved so each retry attempt can
+		// rebuild with fresh object versions (see prepareAndPostTransaction).
+		const template = Transaction.from(transaction);
+
+		const { keyName, publicKey } = await Iota.ensureOwnerKey(
+			vaultConnector,
+			config,
+			identity,
+			owner
+		);
+		const signer = new VaultSigner(vaultConnector, keyName, publicKey);
+
 		try {
-			// Reserve gas from the gas station
-			const gasReservation = await Iota.reserveGas(config);
+			// Sponsored transactions still reference the sender's owned objects, so the same
+			// reservation conflict can occur. Retry with a fresh gas reservation and a rebuilt
+			// transaction on each attempt (the reserved sponsor coins and object versions change).
+			return await Iota.executeWithReservationRetry(config, async () => {
+				const gasReservation = await Iota.reserveGas(config);
 
-			// Set transaction parameters for sponsoring
-			transaction.setSender(owner);
-			transaction.setGasOwner(gasReservation.sponsorAddress);
-			transaction.setGasPayment(gasReservation.gasCoins);
-			transaction.setGasBudget(config.gasBudget ?? Iota._DEFAULT_GAS_BUDGET);
+				// Rebuild and set the sponsoring parameters for this attempt.
+				const attemptTransaction = Transaction.from(template);
+				attemptTransaction.setSender(owner);
+				attemptTransaction.setGasOwner(gasReservation.sponsorAddress);
+				attemptTransaction.setGasPayment(gasReservation.gasCoins);
+				attemptTransaction.setGasBudget(config.gasBudget ?? Iota._DEFAULT_GAS_BUDGET);
 
-			// Build and sign transaction
-			const unsignedTxBytes = await transaction.build({ client });
+				const unsignedTxBytes = await attemptTransaction.build({ client });
+				const signature = await signer.signTransaction(unsignedTxBytes);
 
-			const { keyName, publicKey } = await Iota.ensureOwnerKey(
-				vaultConnector,
-				config,
-				identity,
-				owner
-			);
-			const signer = new VaultSigner(vaultConnector, keyName, publicKey);
-			const signature = await signer.signTransaction(unsignedTxBytes);
-
-			return await Iota.executeAndConfirmGasStationTransaction(
-				config,
-				client,
-				gasReservation.reservationId,
-				unsignedTxBytes,
-				signature.signature,
-				options
-			);
+				return Iota.executeAndConfirmGasStationTransaction(
+					config,
+					client,
+					gasReservation.reservationId,
+					unsignedTxBytes,
+					signature.signature,
+					options
+				);
+			});
 		} catch (error) {
+			// Pass through the clear object-conflict error; wrap everything else as before.
+			if (Iota.isRetryableObjectConflictError(error)) {
+				throw error;
+			}
 			throw new GeneralError(
 				Iota.CLASS_NAME,
 				"gasStationTransactionFailed",
@@ -1015,6 +1183,23 @@ export class Iota {
 	 */
 	public static transactionFromBytes(bytes: Uint8Array): IIotaTransaction {
 		return Transaction.from(bytes);
+	}
+
+	/**
+	 * Find the raw node message matching an object conflict pattern, wherever it surfaces. On the
+	 * direct submission path it is the thrown error's message; through the gas station it arrives as
+	 * an HTTP error whose body the fetch layer nests as the message of a cause error. Flattening the
+	 * error tree and matching each message covers both.
+	 * @param error The error to inspect.
+	 * @param pattern The conflict pattern to match.
+	 * @returns The raw node message if the pattern matches, otherwise undefined.
+	 * @internal
+	 */
+	private static objectConflictMessage(error: unknown, pattern: RegExp): string | undefined {
+		const match = BaseError.flatten(error).find(
+			flattened => Is.stringValue(flattened.message) && pattern.test(flattened.message)
+		);
+		return match?.message;
 	}
 
 	/**
