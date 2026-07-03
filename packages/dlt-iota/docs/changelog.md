@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.9.1-next.2](https://github.com/iotaledger/twin-dlt/compare/dlt-iota-v0.9.1-next.1...dlt-iota-v0.9.1-next.2) (2026-07-03)
+
+
+### Features
+
+* update components ([18f16b4](https://github.com/iotaledger/twin-dlt/commit/18f16b434b0909d56530e6c3bdc709921a2599b9))
+
+
+### Bug Fixes
+
+* retry transactions when owned objects are reserved by another transaction ([#91](https://github.com/iotaledger/twin-dlt/issues/91)) ([5a3a2d0](https://github.com/iotaledger/twin-dlt/commit/5a3a2d0123ba268cd7f747a3ff0b591e8fa49ef0))
+
 ## [0.9.1-next.1](https://github.com/iotaledger/twin-dlt/compare/dlt-iota-v0.9.1-next.0...dlt-iota-v0.9.1-next.1) (2026-06-26)
 
 

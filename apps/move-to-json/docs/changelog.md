@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.9.1-next.2](https://github.com/iotaledger/twin-dlt/compare/move-to-json-v0.9.1-next.1...move-to-json-v0.9.1-next.2) (2026-07-03)
+
+
+### Features
+
+* update components ([18f16b4](https://github.com/iotaledger/twin-dlt/commit/18f16b434b0909d56530e6c3bdc709921a2599b9))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @twin.org/dlt-iota bumped from 0.9.1-next.1 to 0.9.1-next.2
+
 ## [0.9.1-next.1](https://github.com/iotaledger/twin-dlt/compare/move-to-json-v0.9.1-next.0...move-to-json-v0.9.1-next.1) (2026-06-26)
 
 
