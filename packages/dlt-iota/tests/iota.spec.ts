@@ -14,7 +14,13 @@ import {
 	type VaultSecret
 } from "@twin.org/vault-connector-entity-storage";
 import type { IVaultConnector } from "@twin.org/vault-models";
-import { TEST_CLIENT_OPTIONS, TEST_MNEMONIC, TEST_NETWORK } from "./setupTestEnv.js";
+import {
+	TEST_CLIENT_OPTIONS,
+	TEST_EXPLORER_URL,
+	TEST_FAUCET_ENDPOINT,
+	TEST_MNEMONIC,
+	TEST_NETWORK
+} from "./setupTestEnv.js";
 import { Iota } from "../src/iota.js";
 import type { IIotaConfig } from "../src/models/IIotaConfig.js";
 
@@ -745,6 +751,217 @@ describe("Iota", () => {
 			expect(gasPayment(template)).toBeNull();
 			// Cloning does not mutate the template, so it can be reused on every retry.
 			expect(template.getData().commands).toEqual(templateData.commands);
+		});
+	});
+
+	describe("ensureBalance", () => {
+		const TEST_ADDRESS = `0x${"a".repeat(64)}`;
+
+		afterEach(() => {
+			vi.restoreAllMocks();
+			vi.useRealTimers();
+		});
+
+		test("throws for null config", async () => {
+			await expect(
+				Iota.ensureBalance(
+					null as unknown as IIotaConfig,
+					undefined,
+					TEST_IDENTITY,
+					TEST_ADDRESS,
+					100n
+				)
+			).rejects.toThrow(
+				expect.objectContaining({
+					name: "GuardError",
+					message: "guard.object",
+					source: "Iota",
+					properties: { property: "config", value: null }
+				})
+			);
+		});
+
+		test("throws for empty identity", async () => {
+			await expect(
+				Iota.ensureBalance(TEST_CONFIG, undefined, "", TEST_ADDRESS, 100n)
+			).rejects.toThrow(
+				expect.objectContaining({
+					name: "GuardError",
+					message: "guard.stringEmpty",
+					source: "Iota",
+					properties: { property: "identity", value: "" }
+				})
+			);
+		});
+
+		test("throws for empty address", async () => {
+			await expect(
+				Iota.ensureBalance(TEST_CONFIG, undefined, TEST_IDENTITY, "", 100n)
+			).rejects.toThrow(
+				expect.objectContaining({
+					name: "GuardError",
+					message: "guard.stringEmpty",
+					source: "Iota",
+					properties: { property: "address", value: "" }
+				})
+			);
+		});
+
+		test("throws for non-bigint ensureBalance", async () => {
+			await expect(
+				Iota.ensureBalance(
+					TEST_CONFIG,
+					undefined,
+					TEST_IDENTITY,
+					TEST_ADDRESS,
+					100 as unknown as bigint
+				)
+			).rejects.toThrow(
+				expect.objectContaining({
+					name: "GuardError",
+					message: "guard.bigint",
+					source: "Iota",
+					properties: { property: "ensureBalance", value: 100 }
+				})
+			);
+		});
+
+		test("returns true when balance already meets target without faucetUrl", async () => {
+			vi.spyOn(Iota, "getBalance").mockResolvedValue(100n);
+
+			const result = await Iota.ensureBalance(
+				TEST_CONFIG,
+				undefined,
+				TEST_IDENTITY,
+				TEST_ADDRESS,
+				100n
+			);
+
+			expect(result).toBe(true);
+		});
+
+		test("returns false when balance is below target without faucetUrl", async () => {
+			vi.spyOn(Iota, "getBalance").mockResolvedValue(50n);
+
+			const result = await Iota.ensureBalance(
+				TEST_CONFIG,
+				undefined,
+				TEST_IDENTITY,
+				TEST_ADDRESS,
+				100n
+			);
+
+			expect(result).toBe(false);
+		});
+
+		test("returns true immediately when balance already meets target with faucetUrl", async () => {
+			vi.spyOn(Iota, "getBalance").mockResolvedValue(100n);
+			const fundSpy = vi.spyOn(Iota, "fundAddress");
+
+			const result = await Iota.ensureBalance(
+				TEST_CONFIG,
+				TEST_FAUCET_ENDPOINT,
+				TEST_IDENTITY,
+				TEST_ADDRESS,
+				100n
+			);
+
+			expect(result).toBe(true);
+			expect(fundSpy).not.toHaveBeenCalled();
+		});
+
+		test("returns true when a single fundAddress call brings balance to target", async () => {
+			vi.spyOn(Iota, "getBalance").mockResolvedValue(0n);
+			vi.spyOn(Iota, "fundAddress").mockResolvedValue(100n);
+
+			const result = await Iota.ensureBalance(
+				TEST_CONFIG,
+				TEST_FAUCET_ENDPOINT,
+				TEST_IDENTITY,
+				TEST_ADDRESS,
+				100n
+			);
+
+			expect(result).toBe(true);
+		});
+
+		test("returns false immediately when fundAddress returns 0n", async () => {
+			vi.spyOn(Iota, "getBalance").mockResolvedValue(0n);
+			vi.spyOn(Iota, "fundAddress").mockResolvedValue(0n);
+
+			const result = await Iota.ensureBalance(
+				TEST_CONFIG,
+				TEST_FAUCET_ENDPOINT,
+				TEST_IDENTITY,
+				TEST_ADDRESS,
+				100n
+			);
+
+			expect(result).toBe(false);
+		});
+
+		test("retries when each top-up is insufficient, returns true once target is met", async () => {
+			vi.useFakeTimers();
+			vi.spyOn(Iota, "getBalance").mockResolvedValue(0n);
+			vi.spyOn(Iota, "fundAddress").mockResolvedValue(50n);
+
+			const promise = Iota.ensureBalance(
+				TEST_CONFIG,
+				TEST_FAUCET_ENDPOINT,
+				TEST_IDENTITY,
+				TEST_ADDRESS,
+				100n
+			);
+			await vi.runAllTimersAsync();
+
+			expect(await promise).toBe(true);
+			expect(Iota.fundAddress).toHaveBeenCalledTimes(2);
+		});
+
+		test("returns false when retryCount is exhausted with balance still below target", async () => {
+			vi.useFakeTimers();
+			vi.spyOn(Iota, "getBalance").mockResolvedValue(0n);
+			// Each call adds 1n; 10 retries yield 10n total, still below 100n
+			vi.spyOn(Iota, "fundAddress").mockResolvedValue(1n);
+
+			const promise = Iota.ensureBalance(
+				TEST_CONFIG,
+				TEST_FAUCET_ENDPOINT,
+				TEST_IDENTITY,
+				TEST_ADDRESS,
+				100n
+			);
+			await vi.runAllTimersAsync();
+
+			expect(await promise).toBe(false);
+			expect(Iota.fundAddress).toHaveBeenCalledTimes(10);
+		});
+
+		test.skip("funds the test address to at least 1 IOTA via the real faucet", async () => {
+			const vault = await vaultWithMnemonic();
+			const addressIndex = Math.floor(Math.random() * 1000);
+			const [address] = await Iota.getAddresses(
+				vault,
+				TEST_CONFIG,
+				TEST_IDENTITY,
+				0,
+				addressIndex,
+				1
+			);
+			console.debug(
+				"Test Address",
+				`${TEST_EXPLORER_URL}address/${address}?network=${TEST_NETWORK}`
+			);
+
+			const result = await Iota.ensureBalance(
+				TEST_CONFIG,
+				TEST_FAUCET_ENDPOINT,
+				TEST_IDENTITY,
+				address,
+				1_000_000_000n
+			);
+
+			expect(result).toBe(true);
 		});
 	});
 

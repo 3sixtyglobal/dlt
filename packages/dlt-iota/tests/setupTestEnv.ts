@@ -13,7 +13,9 @@ dotenv.config({
 });
 
 Guards.stringValue("TestEnv", "TEST_NODE_ENDPOINT", process.env.TEST_NODE_ENDPOINT);
+Guards.stringValue("TestEnv", "TEST_FAUCET_ENDPOINT", process.env.TEST_FAUCET_ENDPOINT);
 Guards.stringValue("TestEnv", "TEST_NETWORK", process.env.TEST_NETWORK);
+Guards.stringValue("TestEnv", "TEST_EXPLORER_URL", process.env.TEST_EXPLORER_URL);
 
 export const TEST_CLIENT_OPTIONS = {
 	url: process.env.TEST_NODE_ENDPOINT ?? ""
@@ -32,3 +34,5 @@ export const GAS_STATION_URL = process.env.GAS_STATION_URL ?? "http://localhost:
 export const GAS_STATION_AUTH_TOKEN =
 	process.env.GAS_STATION_AUTH_TOKEN ?? "qEyCL6d9BKKFl/tfDGAKeGFkhUlf7FkqiGV7Xw4JUsI=";
 export const GAS_BUDGET = Number.parseInt(process.env.GAS_BUDGET ?? "50000000", 10);
+export const TEST_FAUCET_ENDPOINT = process.env.TEST_FAUCET_ENDPOINT;
+export const TEST_EXPLORER_URL = process.env.TEST_EXPLORER_URL;
