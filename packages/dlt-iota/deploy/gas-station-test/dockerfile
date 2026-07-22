@@ -2,7 +2,7 @@
 # Combines Redis and IOTA Gas Station in a single container
 
 # Use official gas station image as base - pinned to specific version for stability
-FROM iotaledger/gas-station:0.2
+FROM iotaledger/gas-station:0.5.2
 
 # Switch to root for installation
 USER root
