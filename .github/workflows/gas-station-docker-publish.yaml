@@ -11,17 +11,10 @@ on:
         options:
           - '🚧 prerelease (next branch)'
           - '🚀 production (main branch)'
-      dockerNamespace:
-        description: 'Docker Hub namespace/org to publish to'
-        required: true
-        default: 'twinfoundation'
-        type: string
 
 env:
   TWIN_DOCKER_USERNAME: ${{ secrets.TWIN_DOCKER_USERNAME }}
-  TWIN_DOCKER_NAMESPACE: ${{ github.event.inputs.dockerNamespace }}
-  TWIN_DOCKER_IMAGE: twin-gas-station-test
-  TWIN_DOCKER_REPO: ${{ github.event.inputs.dockerNamespace }}/twin-gas-station-test
+  TWIN_DOCKER_REPO: twinfoundation/twin-gas-station-test
   DOCKERFILE_DIR: packages/dlt-iota/deploy/gas-station-test
 
 jobs:
@@ -92,19 +85,6 @@ jobs:
           username: ${{ env.TWIN_DOCKER_USERNAME }}
           password: ${{ secrets.TWIN_DOCKER_PASSWORD }}
 
-      # Verify token can request pull,push scope for the target repository before starting a long build
-      - name: Verify Docker Hub push scope
-        run: |
-          AUTH_URL="https://auth.docker.io/token?service=registry.docker.io&scope=repository:${{ env.TWIN_DOCKER_REPO }}:pull,push"
-          HTTP_CODE=$(curl -sS -o /tmp/docker-auth-response.json -w "%{http_code}" -u "${{ env.TWIN_DOCKER_USERNAME }}:${{ secrets.TWIN_DOCKER_PASSWORD }}" "$AUTH_URL")
-
-          if [[ "$HTTP_CODE" != "200" ]]; then
-            echo "Error: Docker Hub credentials do not have push scope for '${{ env.TWIN_DOCKER_REPO }}'."
-            echo "Set TWIN_DOCKER_NAMESPACE to a namespace this token can push to, or use a token with write access to '${{ env.TWIN_DOCKER_REPO }}'."
-            echo "Docker auth endpoint returned HTTP $HTTP_CODE."
-            exit 1
-          fi
-
       # Build and push the Docker image
       - name: Build and Push Docker image
         id: build-push
@@ -123,7 +103,8 @@ jobs:
           BASE_VERSION="${{ steps.base-version.outputs.version }}"
           DATESTAMP="${{ steps.docker-tags.outputs.datestamp }}"
           DIGEST="${{ steps.build-push.outputs.digest }}"
-          REPO_BASE_URL="https://hub.docker.com/r/${{ env.TWIN_DOCKER_REPO }}"
+          # 'f' is percent-encoded (%66) so GitHub Actions does not redact the org name from the summary
+          REPO_BASE_URL="https://hub.docker.com/r/twin%66oundation/twin-gas-station-test"
 
           echo "## Gas Station Docker Publish Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
