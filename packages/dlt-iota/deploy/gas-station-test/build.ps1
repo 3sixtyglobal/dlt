@@ -5,7 +5,7 @@ $ErrorActionPreference = "Stop"
 
 # Configuration
 $IMAGE_NAME = "twin-gas-station-test"
-$DOCKER_HUB_REPO = "martynjanesiota/twin-gas-station-test"
+$DOCKER_HUB_REPO = "twinfoundation/twin-gas-station-test"
 $VERSION = "latest"
 $PLATFORMS = "linux/amd64,linux/arm64"
 $BUILDER_NAME = "twin-multiplatform-builder"

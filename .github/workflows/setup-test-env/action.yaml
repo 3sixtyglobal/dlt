@@ -47,7 +47,7 @@ runs:
           -e IOTA_NODE_URL="https://api.testnet.iota.cafe" \
           -e GAS_STATION_AUTH="qEyCL6d9BKKFl/tfDGAKeGFkhUlf7FkqiGV7Xw4JUsI=" \
           -e GAS_STATION_KEYPAIR="${TEST_GAS_STATION_KEYPAIR}" \
-          martynjanesiota/twin-gas-station-test:latest
+          twinfoundation/twin-gas-station-test:latest
 
     - name: Wait for Services to be Ready
       shell: bash
