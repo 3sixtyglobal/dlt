@@ -19,7 +19,8 @@ import {
 	TEST_EXPLORER_URL,
 	TEST_FAUCET_ENDPOINT,
 	TEST_MNEMONIC,
-	TEST_NETWORK
+	TEST_NETWORK,
+	setupTestEnv
 } from "./setupTestEnv.js";
 import { Iota } from "../src/iota.js";
 import type { IIotaConfig } from "../src/models/IIotaConfig.js";
@@ -39,7 +40,8 @@ describe("Iota", () => {
 		network: TEST_NETWORK
 	};
 
-	beforeAll(() => {
+	beforeAll(async () => {
+		await setupTestEnv();
 		initSchema();
 	});
 
