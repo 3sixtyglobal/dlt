@@ -47,6 +47,7 @@ if (process.env.TEST_COIN_TYPE) {
 export const TEST_DEPLOYER_IDENTITY = "deployer-identity";
 export const TEST_MNEMONIC_NAME = "test-mnemonic";
 export const TEST_NETWORK = process.env.TEST_NETWORK ?? "testnet";
+export const TEST_EXPLORER_URL = process.env.TEST_EXPLORER_URL ?? "";
 export const TEST_NODE_ENDPOINT = process.env.TEST_NODE_ENDPOINT ?? "https://api.testnet.iota.cafe";
 export const TEST_FAUCET_ENDPOINT = process.env.TEST_FAUCET_ENDPOINT ?? "";
 export const TEST_DEPLOYER_MNEMONIC = process.env.TEST_DEPLOYER_MNEMONIC ?? Bip39.randomMnemonic();
@@ -190,7 +191,9 @@ async function ensureFundsForAddress(identity: string, address: string): Promise
 		);
 
 		const currentBalance = await Iota.getBalance(TEST_IOTA_CONFIG, address);
-		console.debug(`[ensureFundsForAddress] Address ${address} has balance: ${currentBalance}`);
+		console.debug(
+			`[ensureFundsForAddress] Address ${TEST_EXPLORER_URL}address/${address}?network=${TEST_NETWORK} has balance: ${currentBalance}`
+		);
 
 		if (!success) {
 			throw new Error(
