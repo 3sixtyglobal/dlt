@@ -14,6 +14,12 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    # Inject secrets as env vars so subsequent steps can reference them without re-expanding the secret.
+    - name: Load Test Environment Variables
+      shell: bash
+      run: |
+        printf '%s\n' "${{ inputs.test_env_vars }}" >> "$GITHUB_ENV"
+
     - name: Set IOTA CLI versions
       shell: bash
       run: |
@@ -40,7 +46,8 @@ runs:
           -p 6379:6379 -p 9527:9527 -p 9184:9184 \
           -e IOTA_NODE_URL="https://api.testnet.iota.cafe" \
           -e GAS_STATION_AUTH="qEyCL6d9BKKFl/tfDGAKeGFkhUlf7FkqiGV7Xw4JUsI=" \
-          twinfoundation/twin-gas-station-test:latest
+          -e GAS_STATION_KEYPAIR="${TEST_GAS_STATION_KEYPAIR}" \
+          martynjanesiota/twin-gas-station-test:latest
 
     - name: Wait for Services to be Ready
       shell: bash

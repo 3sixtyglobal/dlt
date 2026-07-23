@@ -61,7 +61,11 @@
 		"Stiftung",
 		"supervisorctl",
 		"supervisord",
-		"twinfoundation"
+		"twinfoundation",
+		"martynjanesiota",
+		"LASTEXITCODE",
+		"netsh",
+		"excludedportrange"
 	],
 	"ignoreRegExpList": [
 		"/from\\s+(['\"]).*\\1/",

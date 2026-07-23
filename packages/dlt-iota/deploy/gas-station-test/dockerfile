@@ -1,5 +1,6 @@
 # TWIN Gas Station Complete - Multi-platform unified image
 # Combines Redis and IOTA Gas Station in a single container
+# check=skip=SecretsUsedInArgOrEnv
 
 # Use official gas station image as base - pinned to specific version for stability
 FROM iotaledger/gas-station:0.5.2
@@ -35,9 +36,7 @@ ENV REDIS_PORT=6379 \
     DAILY_GAS_CAP=1500000000000 \
     REFRESH_INTERVAL=86400
 
-# Security-sensitive variables with test defaults
-# WARNING: These are TEST VALUES ONLY - override for production use!
-# Usage: docker run -e GAS_STATION_AUTH=your_auth -e GAS_STATION_KEYPAIR=your_keypair image
+# Test-only defaults. Override at runtime with -e GAS_STATION_AUTH=... -e GAS_STATION_KEYPAIR=...
 ENV GAS_STATION_AUTH=qEyCL6d9BKKFl/tfDGAKeGFkhUlf7FkqiGV7Xw4JUsI= \
     GAS_STATION_KEYPAIR=AKT1Ghtd+yNbI9fFCQin3FpiGx8xoUdJMe7iAhoFUm4f
 

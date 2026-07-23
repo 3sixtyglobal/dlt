@@ -6,69 +6,71 @@ set -e
 
 # Configuration
 IMAGE_NAME="twin-gas-station-test"
-DOCKER_HUB_REPO="twinfoundation/twin-gas-station-test"
+DOCKER_HUB_REPO="martynjanesiota/twin-gas-station-test"
 VERSION="latest"
 PLATFORMS="linux/amd64,linux/arm64"
+BUILDER_NAME="twin-multiplatform-builder"
 
 echo "Building TWIN Gas Station unified Docker image..."
 
-# Check if Docker buildx is available
 if ! docker buildx version > /dev/null 2>&1; then
-    echo "Docker buildx is required for multi-platform builds"
-    echo "Please install Docker buildx or use Docker Desktop"
+    echo "❌ Docker buildx is required. Install it from https://docs.docker.com/go/buildx/"
     exit 1
 fi
-
-# Create a new builder instance if it doesn't exist
-BUILDER_NAME="twin-multiplatform-builder"
-if ! docker buildx inspect "$BUILDER_NAME" > /dev/null 2>&1; then
-    echo "Creating new buildx builder: $BUILDER_NAME"
-    docker buildx create --name "$BUILDER_NAME" --driver docker-container
-    echo "Builder created successfully"
-else
-    echo "Builder $BUILDER_NAME already exists"
-fi
-
-# Use the builder
-echo "Switching to builder: $BUILDER_NAME"
-docker buildx use "$BUILDER_NAME"
-
-# Verify builder supports multi-platform
-echo "Checking builder capabilities..."
-docker buildx ls | grep "$BUILDER_NAME"
 
 # Function to wait for a service to be ready
 wait_for_service() {
     local service_name="$1"
     local check_command="$2"
-    local max_attempts=60  # 60 seconds max
+    local max_attempts=60
     local attempt=1
-    
+
     echo "Waiting for $service_name to be ready..."
-    
+
     while [ $attempt -le $max_attempts ]; do
         if eval "$check_command" >/dev/null 2>&1; then
             echo "✅ $service_name is ready (took ${attempt}s)"
             return 0
         fi
-        
-        # Show progress every 5 seconds
+
         if [ $((attempt % 5)) -eq 0 ]; then
             echo "⏳ Still waiting for $service_name... (${attempt}s elapsed)"
         fi
-        
+
         sleep 1
         ((attempt++))
     done
-    
+
     echo "❌ $service_name failed to start after ${max_attempts} seconds"
     return 1
+}
+
+# Function to ensure buildx builder is ready (publish/setup only)
+setup_builder() {
+    if ! docker buildx version > /dev/null 2>&1; then
+        echo "❌ Docker buildx is required for multi-platform builds"
+        echo "Please install Docker buildx or use Docker Desktop"
+        exit 1
+    fi
+
+    if ! docker buildx inspect "$BUILDER_NAME" > /dev/null 2>&1; then
+        echo "Creating new buildx builder: $BUILDER_NAME"
+        docker buildx create --name "$BUILDER_NAME" --driver docker-container --driver-opt network=host
+    else
+        echo "Builder $BUILDER_NAME already exists"
+    fi
+
+    echo "Switching to builder: $BUILDER_NAME"
+    docker buildx use "$BUILDER_NAME"
+
+    echo "Checking builder capabilities..."
+    docker buildx ls | grep "$BUILDER_NAME"
 }
 
 # Function to build locally for testing
 build_local() {
     echo "Building local image for testing..."
-    docker build -t "$IMAGE_NAME:$VERSION" .
+    docker buildx build --load -t "$IMAGE_NAME:$VERSION" .
     echo "Local build completed: $IMAGE_NAME:$VERSION"
 }
 
@@ -77,20 +79,17 @@ build_multiplatform() {
     echo "Building multi-platform image..."
     echo "Platforms: $PLATFORMS"
     echo "Repository: $DOCKER_HUB_REPO"
-    
-    # Verify we're using the right builder
+
     CURRENT_BUILDER=$(docker buildx inspect --bootstrap | grep "Name:" | awk '{print $2}')
     echo "Using builder: $CURRENT_BUILDER"
-    
-    # Build and push (using the same command format that worked for you)
-    echo "Running build command..."
+
     docker buildx build \
         --platform $PLATFORMS \
         --tag "$DOCKER_HUB_REPO:$VERSION" \
         --tag "$DOCKER_HUB_REPO:$(date +%Y%m%d)" \
         --push \
         .
-    
+
     if [ $? -eq 0 ]; then
         echo "✅ Multi-platform build and push completed successfully!"
         echo "Available at: $DOCKER_HUB_REPO:$VERSION"
@@ -98,12 +97,12 @@ build_multiplatform() {
     else
         echo "❌ Build failed. Check the error messages above."
         echo ""
-        echo "🔧 Troubleshooting tips:"
+        echo "Troubleshooting tips:"
         echo "1. Make sure you're logged in: docker login"
         echo "2. Check builder status: docker buildx ls"
         echo "3. If using 'docker' driver, create new builder:"
-        echo "   docker buildx create --name twin-multiplatform-builder --driver docker-container"
-        echo "   docker buildx use twin-multiplatform-builder"
+        echo "   docker buildx create --name $BUILDER_NAME --driver docker-container"
+        echo "   docker buildx use $BUILDER_NAME"
         exit 1
     fi
 }
@@ -111,12 +110,15 @@ build_multiplatform() {
 # Function to test the local image
 test_local() {
     echo "Testing local image..."
-    
-    # Stop any existing container
+
     docker stop twin-gas-station-test 2>/dev/null || true
     docker rm twin-gas-station-test 2>/dev/null || true
-    
-    # Run the container
+
+    if ! docker image inspect "$IMAGE_NAME:$VERSION" > /dev/null 2>&1; then
+        echo "❌ Image '$IMAGE_NAME:$VERSION' not found. Run './build.sh local' first."
+        return 1
+    fi
+
     echo "Starting test container..."
     docker run -d \
         --name twin-gas-station-test \
@@ -124,27 +126,28 @@ test_local() {
         -p 9527:9527 \
         -p 9184:9184 \
         "$IMAGE_NAME:$VERSION"
-    
-    # Wait for services to start using polling
+
+    if [ $? -ne 0 ]; then
+        echo "❌ Container failed to start. Check the error above (e.g. a required port may already be in use)."
+        return 1
+    fi
+
     if ! wait_for_service "Redis" "docker exec twin-gas-station-test redis-cli ping"; then
         echo "❌ Redis test failed"
         docker logs twin-gas-station-test
         return 1
     fi
-    
+
     if ! wait_for_service "Gas Station" "docker exec twin-gas-station-test curl -f http://localhost:9527/"; then
         echo "❌ Gas Station test failed"
         docker logs twin-gas-station-test
         return 1
     fi
-    
+
     echo "✅ All services are ready!"
     echo ""
-    
-    # Additional verification tests
     echo "Running final verification tests..."
-    
-    # Test Redis
+
     echo "Testing Redis connection..."
     if docker exec twin-gas-station-test redis-cli ping; then
         echo "✅ Redis is working"
@@ -153,8 +156,7 @@ test_local() {
         docker logs twin-gas-station-test
         return 1
     fi
-    
-    # Test Gas Station
+
     echo "Testing Gas Station connection..."
     if docker exec twin-gas-station-test curl -f http://localhost:9527/ 2>/dev/null; then
         echo "✅ Gas Station is working"
@@ -163,10 +165,9 @@ test_local() {
         docker logs twin-gas-station-test
         return 1
     fi
-    
+
     echo "✅ All tests passed!"
-    
-    # Cleanup
+
     docker stop twin-gas-station-test
     docker rm twin-gas-station-test
 }
@@ -180,61 +181,43 @@ case "$1" in
         test_local
         ;;
     "publish")
-        # Check if logged in to Docker Hub
-        if ! docker info | grep -q "Username:"; then
-            echo "❌ Please login to Docker Hub first: docker login"
-            exit 1
-        fi
-        
-        # Check current builder
-        echo "Checking buildx setup..."
-        CURRENT_BUILDER=$(docker buildx ls | grep '\*' | awk '{print $1}' | sed 's/\*//')
-        echo "Current builder: $CURRENT_BUILDER"
-        
-        if [[ "$CURRENT_BUILDER" == "default" ]]; then
-            echo "⚠️  Warning: Using 'default' builder which may not support multi-platform builds"
-            echo "Creating dedicated builder..."
-            docker buildx create --name twin-multiplatform-builder --driver docker-container
-            docker buildx use twin-multiplatform-builder
-        fi
-        
+        setup_builder
         build_multiplatform
         ;;
     "setup")
         echo "Setting up buildx builder for multi-platform builds..."
-        
-        # Step 1: Register QEMU emulators for cross-architecture builds
+
         echo "Registering QEMU emulators for cross-architecture support..."
         docker run --rm --privileged multiarch/qemu-user-static --reset -p yes --credential yes
-        
+
         if [ $? -ne 0 ]; then
             echo "⚠️  Warning: QEMU registration failed. This may affect cross-architecture builds."
-            echo "You might need to run Docker with --privileged or run as administrator."
         else
             echo "✅ QEMU emulators registered successfully"
         fi
-        
-        # Step 2: Create builder if it doesn't exist
-        BUILDER_NAME="twin-multiplatform-builder"
+
+        if ! docker buildx version > /dev/null 2>&1; then
+            echo "❌ Docker buildx is required. Please install Docker buildx or use Docker Desktop"
+            exit 1
+        fi
+
         if ! docker buildx inspect "$BUILDER_NAME" > /dev/null 2>&1; then
             echo "Creating new buildx builder: $BUILDER_NAME"
-            docker buildx create --name "$BUILDER_NAME" --driver docker-container --use
+            docker buildx create --name "$BUILDER_NAME" --driver docker-container --driver-opt network=host --use
         else
             echo "Builder $BUILDER_NAME already exists, switching to it..."
             docker buildx use "$BUILDER_NAME"
         fi
-        
-        # Step 3: Bootstrap the builder
+
         echo "Bootstrapping builder (this may take a few minutes)..."
         docker buildx inspect --bootstrap
-        
-        # Step 4: Show status
+
         echo ""
         echo "✅ Builder setup complete!"
         echo "Current builders:"
         docker buildx ls
         echo ""
-        echo "🔍 Supported platforms:"
+        echo "Supported platforms:"
         docker buildx inspect "$BUILDER_NAME" | grep "Platforms:"
         echo ""
         echo "You can now run: ./build.sh publish"
@@ -255,17 +238,8 @@ case "$1" in
         echo "  all      - Build local + test (recommended first step)"
         echo "  setup    - Setup buildx builder for multi-platform builds"
         echo ""
-        echo "Troubleshooting:"
-        echo "  If you get 'Multi-platform build is not supported' error:"
-        echo "  1. Run: ./build.sh setup (includes QEMU registration)"
-        echo "  2. Then: ./build.sh publish"
-        echo ""
-        echo "Manual setup (complete process):"
-        echo "  docker run --rm --privileged multiarch/qemu-user-static --reset -p yes --credential yes"
-        echo "  docker buildx create --name twin-multiplatform-builder --driver docker-container --use"
-        echo "  docker buildx inspect --bootstrap"
-        echo ""
-        echo "Note: QEMU registration requires Docker to run with --privileged permissions"
+        echo "Note: local and test do not require buildx."
+        echo "      publish requires buildx — run setup first if needed."
         exit 1
         ;;
 esac
