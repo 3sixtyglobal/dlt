@@ -48,7 +48,7 @@ export async function setupTestEnv(): Promise<void> {
 		try {
 			console.debug(
 				"Requesting IOTA from faucet to fund gas station address:",
-				TEST_GAS_STATION_ADDRESS
+				`${TEST_EXPLORER_URL}address/${TEST_GAS_STATION_ADDRESS}?network=${TEST_NETWORK}`
 			);
 			const response = await requestIotaFromFaucetV0({
 				host: TEST_FAUCET_ENDPOINT,
