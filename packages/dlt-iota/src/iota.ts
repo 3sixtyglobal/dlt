@@ -22,6 +22,7 @@ import { FetchHelper, HttpMethod } from "@twin.org/web";
 import type { IGasReservationResult } from "./models/IGasReservationResult.js";
 import type { IGasStationConfig } from "./models/IGasStationConfig.js";
 import type { IGasStationExecuteResponse } from "./models/IGasStationExecuteResponse.js";
+import type { IGasStationParams } from "./models/IGasStationParams.js";
 import type { IGasStationReserveGasResponse } from "./models/IGasStationReserveGasResponse.js";
 import type { IIotaClient } from "./models/IIotaClient.js";
 import type { IIotaConfig } from "./models/IIotaConfig.js";
@@ -849,7 +850,7 @@ export class Iota {
 		transaction: IIotaTransaction,
 		options?: IIotaResponseOptions
 	): Promise<IIotaTransactionBlockResponse> {
-		Guards.object(Iota.CLASS_NAME, nameof(config.gasStation), config.gasStation);
+		const gasStationParams = Iota.buildGasStationParams(config);
 
 		// Capture the transaction while its inputs are still unresolved so each retry attempt can
 		// rebuild with fresh object versions (see prepareAndPostTransaction).
@@ -875,7 +876,7 @@ export class Iota {
 				attemptTransaction.setSender(owner);
 				attemptTransaction.setGasOwner(gasReservation.sponsorAddress);
 				attemptTransaction.setGasPayment(gasReservation.gasCoins);
-				attemptTransaction.setGasBudget(config.gasBudget ?? Iota._DEFAULT_GAS_BUDGET);
+				attemptTransaction.setGasBudget(gasStationParams.gasBudget);
 
 				const unsignedTxBytes = await attemptTransaction.build({ client });
 				const signature = await signer.signTransaction(unsignedTxBytes);
@@ -894,13 +895,51 @@ export class Iota {
 			if (Iota.isRetryableObjectConflictError(error)) {
 				throw error;
 			}
-			throw new GeneralError(
-				Iota.CLASS_NAME,
-				"gasStationTransactionFailed",
-				undefined,
-				Iota.extractPayloadError(error)
-			);
+			throw Iota.wrapGasStationError(error);
 		}
+	}
+
+	/**
+	 * Check whether gas station mode is fully configured.
+	 * @param config The configuration to check.
+	 * @returns True if both the gas station url and auth token are set.
+	 */
+	public static isGasStationEnabled(config: IIotaConfig): boolean {
+		return (
+			Is.stringValue(config.gasStation?.gasStationUrl) &&
+			Is.stringValue(config.gasStation?.gasStationAuthToken)
+		);
+	}
+
+	/**
+	 * Build the resolved gas station parameters, applying the same defaults as gas reservation.
+	 * @param config The configuration containing gas station settings.
+	 * @returns The resolved gas station parameters.
+	 */
+	public static buildGasStationParams(config: IIotaConfig): IGasStationParams {
+		Guards.object<IGasStationConfig>(Iota.CLASS_NAME, nameof(config.gasStation), config.gasStation);
+
+		return {
+			gasStationUrl: StringHelper.trimTrailingSlashes(config.gasStation.gasStationUrl),
+			gasStationAuthToken: config.gasStation.gasStationAuthToken,
+			gasBudget: config.gasBudget ?? Iota._DEFAULT_GAS_BUDGET,
+			gasReservationDuration:
+				config.gasReservationDuration ?? Iota._DEFAULT_GAS_RESERVATION_DURATION
+		};
+	}
+
+	/**
+	 * Wrap a failure from a gas station sponsored path in the standard error.
+	 * @param error The error from the sponsored execution.
+	 * @returns The wrapped error.
+	 */
+	public static wrapGasStationError(error: unknown): GeneralError {
+		return new GeneralError(
+			Iota.CLASS_NAME,
+			"gasStationTransactionFailed",
+			undefined,
+			Iota.extractPayloadError(error)
+		);
 	}
 
 	/**
@@ -909,24 +948,23 @@ export class Iota {
 	 * @returns The gas reservation result.
 	 */
 	public static async reserveGas(config: IIotaConfig): Promise<IGasReservationResult> {
-		Guards.object(Iota.CLASS_NAME, nameof(config.gasStation), config.gasStation);
+		const gasStationParams = Iota.buildGasStationParams(config);
 
 		const requestData = {
 			// eslint-disable-next-line camelcase
-			gas_budget: config.gasBudget ?? Iota._DEFAULT_GAS_BUDGET,
+			gas_budget: gasStationParams.gasBudget,
 			// eslint-disable-next-line camelcase
-			reserve_duration_secs: config.gasReservationDuration ?? Iota._DEFAULT_GAS_RESERVATION_DURATION
+			reserve_duration_secs: gasStationParams.gasReservationDuration
 		};
 
-		const baseUrl = StringHelper.trimTrailingSlashes(config.gasStation.gasStationUrl);
 		const result = await FetchHelper.fetchJson<typeof requestData, IGasStationReserveGasResponse>(
 			Iota.CLASS_NAME,
-			`${baseUrl}/v1/reserve_gas`,
+			`${gasStationParams.gasStationUrl}/v1/reserve_gas`,
 			HttpMethod.POST,
 			requestData,
 			{
 				headers: {
-					Authorization: `Bearer ${config.gasStation.gasStationAuthToken}`
+					Authorization: `Bearer ${gasStationParams.gasStationAuthToken}`
 				}
 			}
 		);

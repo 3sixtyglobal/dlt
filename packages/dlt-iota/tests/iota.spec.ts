@@ -1055,4 +1055,65 @@ describe("Iota", () => {
 			}
 		});
 	});
+
+	describe("gas station helpers", () => {
+		const GAS_STATION: IIotaConfig["gasStation"] = {
+			gasStationUrl: "http://localhost:9527",
+			gasStationAuthToken: "token"
+		};
+
+		test("isGasStationEnabled is true only when url and token are both set", () => {
+			expect(Iota.isGasStationEnabled(TEST_CONFIG)).toBe(false);
+			expect(Iota.isGasStationEnabled({ ...TEST_CONFIG, gasStation: GAS_STATION })).toBe(true);
+			expect(
+				Iota.isGasStationEnabled({
+					...TEST_CONFIG,
+					gasStation: { gasStationUrl: "", gasStationAuthToken: "token" }
+				})
+			).toBe(false);
+			expect(
+				Iota.isGasStationEnabled({
+					...TEST_CONFIG,
+					gasStation: { gasStationUrl: "http://localhost:9527", gasStationAuthToken: "" }
+				})
+			).toBe(false);
+		});
+
+		test("buildGasStationParams applies the reservation defaults and trims the url", () => {
+			const params = Iota.buildGasStationParams({
+				...TEST_CONFIG,
+				gasStation: { ...GAS_STATION, gasStationUrl: "http://localhost:9527/" }
+			});
+			expect(params.gasStationUrl).toBe("http://localhost:9527");
+			expect(params.gasStationAuthToken).toBe("token");
+			expect(params.gasBudget).toBe(50000000);
+			expect(params.gasReservationDuration).toBe(60);
+		});
+
+		test("buildGasStationParams honours configured budget and duration", () => {
+			const params = Iota.buildGasStationParams({
+				...TEST_CONFIG,
+				gasBudget: 123456789,
+				gasReservationDuration: 30,
+				gasStation: GAS_STATION
+			});
+			expect(params.gasBudget).toBe(123456789);
+			expect(params.gasReservationDuration).toBe(30);
+		});
+
+		test("buildGasStationParams throws without gas station config", () => {
+			expect(() => Iota.buildGasStationParams(TEST_CONFIG)).toThrow(
+				expect.objectContaining({
+					name: "GuardError",
+					message: "guard.objectUndefined"
+				})
+			);
+		});
+
+		test("wrapGasStationError wraps with the standard error key", () => {
+			const wrapped = Iota.wrapGasStationError(new Error("boom"));
+			expect(wrapped.name).toBe("GeneralError");
+			expect(wrapped.message).toBe("iota.gasStationTransactionFailed");
+		});
+	});
 });

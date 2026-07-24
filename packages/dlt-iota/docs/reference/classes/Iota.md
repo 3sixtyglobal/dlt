@@ -838,6 +838,72 @@ The transaction response.
 
 ***
 
+### isGasStationEnabled() {#isgasstationenabled}
+
+> `static` **isGasStationEnabled**(`config`): `boolean`
+
+Check whether gas station mode is fully configured.
+
+#### Parameters
+
+##### config
+
+[`IIotaConfig`](../interfaces/IIotaConfig.md)
+
+The configuration to check.
+
+#### Returns
+
+`boolean`
+
+True if both the gas station url and auth token are set.
+
+***
+
+### buildGasStationParams() {#buildgasstationparams}
+
+> `static` **buildGasStationParams**(`config`): [`IGasStationParams`](../interfaces/IGasStationParams.md)
+
+Build the resolved gas station parameters, applying the same defaults as gas reservation.
+
+#### Parameters
+
+##### config
+
+[`IIotaConfig`](../interfaces/IIotaConfig.md)
+
+The configuration containing gas station settings.
+
+#### Returns
+
+[`IGasStationParams`](../interfaces/IGasStationParams.md)
+
+The resolved gas station parameters.
+
+***
+
+### wrapGasStationError() {#wrapgasstationerror}
+
+> `static` **wrapGasStationError**(`error`): `GeneralError`
+
+Wrap a failure from a gas station sponsored path in the standard error.
+
+#### Parameters
+
+##### error
+
+`unknown`
+
+The error from the sponsored execution.
+
+#### Returns
+
+`GeneralError`
+
+The wrapped error.
+
+***
+
 ### reserveGas() {#reservegas}
 
 > `static` **reserveGas**(`config`): `Promise`\<[`IGasReservationResult`](../interfaces/IGasReservationResult.md)\>
