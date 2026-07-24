@@ -22,7 +22,10 @@ import {
 	TEST_MNEMONIC,
 	TEST_NETWORK
 } from "./setupTestEnv.js";
-import { Iota, VaultSigner, type IGasStationConfig, type IIotaConfig } from "../src/index.js";
+import { Iota } from "../src/iota.js";
+import type { IGasStationConfig } from "../src/models/IGasStationConfig.js";
+import type { IIotaConfig } from "../src/models/IIotaConfig.js";
+import { VaultSigner } from "../src/vaultSigner.js";
 
 let vaultConnector: EntityStorageVaultConnector;
 let testSignerKeyName: string;
