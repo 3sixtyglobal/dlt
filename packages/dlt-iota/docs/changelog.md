@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.1-next.3](https://github.com/iotaledger/twin-dlt/compare/dlt-iota-v0.9.1-next.2...dlt-iota-v0.9.1-next.3) (2026-07-24)
+
+
+### Features
+
+* add shared gas station helpers to dlt-iota ([#98](https://github.com/iotaledger/twin-dlt/issues/98)) ([44e89f4](https://github.com/iotaledger/twin-dlt/commit/44e89f434a9575f12ca45a2c5c28d020969aa1b1))
+
 ## [0.9.1-next.2](https://github.com/iotaledger/twin-dlt/compare/dlt-iota-v0.9.1-next.1...dlt-iota-v0.9.1-next.2) (2026-07-03)
 
 
