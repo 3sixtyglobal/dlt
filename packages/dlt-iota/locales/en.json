@@ -6,6 +6,7 @@
 			"packageObjectError": "Failed to fetch the package object \"{packageId}\"",
 			"valueTransactionFailed": "The value transaction failed",
 			"transactionFailed": "The transaction failed",
+			"objectReservationConflict": "One or more of the transaction's owned objects are contended by another in-flight transaction; submit transactions that share objects sequentially and retry",
 			"addressNotFound": "The address is missing could not be found from the seed \"{address}\"",
 			"gasStationTransactionFailed": "The gas station transaction failed",
 			"dryRunFailed": "The dry run execution failed",

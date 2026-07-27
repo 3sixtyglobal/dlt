@@ -1,5 +1,82 @@
 # Changelog
 
+## [0.9.1-next.3](https://github.com/iotaledger/twin-dlt/compare/move-to-json-v0.9.1-next.2...move-to-json-v0.9.1-next.3) (2026-07-24)
+
+
+### Miscellaneous Chores
+
+* **move-to-json:** Synchronize repo versions
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @twin.org/dlt-iota bumped from 0.9.1-next.2 to 0.9.1-next.3
+
+## [0.9.1-next.2](https://github.com/iotaledger/twin-dlt/compare/move-to-json-v0.9.1-next.1...move-to-json-v0.9.1-next.2) (2026-07-03)
+
+
+### Features
+
+* update components ([18f16b4](https://github.com/iotaledger/twin-dlt/commit/18f16b434b0909d56530e6c3bdc709921a2599b9))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @twin.org/dlt-iota bumped from 0.9.1-next.1 to 0.9.1-next.2
+
+## [0.9.1-next.1](https://github.com/iotaledger/twin-dlt/compare/move-to-json-v0.9.1-next.0...move-to-json-v0.9.1-next.1) (2026-06-26)
+
+
+### Features
+
+* add context id features ([#51](https://github.com/iotaledger/twin-dlt/issues/51)) ([fb68498](https://github.com/iotaledger/twin-dlt/commit/fb6849897957904ec90cf6368153aeff3bef261a))
+* add header for CLI check ([#8](https://github.com/iotaledger/twin-dlt/issues/8)) ([0b9f271](https://github.com/iotaledger/twin-dlt/commit/0b9f2711fb3a9eb859e481725bfa1e2139e14053))
+* add IotaIdentityUtils to resolve IOTA identity controller cap info ([#57](https://github.com/iotaledger/twin-dlt/issues/57)) ([f15281a](https://github.com/iotaledger/twin-dlt/commit/f15281af3b2812bde5130a1813f9c0143f1462bf))
+* add validate-locales ([8465099](https://github.com/iotaledger/twin-dlt/commit/8465099626ab1891d419a35870fae447efc3008d))
+* add vault signers ([#76](https://github.com/iotaledger/twin-dlt/issues/76)) ([bfdd701](https://github.com/iotaledger/twin-dlt/commit/bfdd701a010ad45d4f0cffb06d829360cf380a40))
+* bytecode change detection ([#43](https://github.com/iotaledger/twin-dlt/issues/43)) ([528469c](https://github.com/iotaledger/twin-dlt/commit/528469c1e4f032c6a936a9724a692abe403d92f6))
+* consolidate environment management ([#41](https://github.com/iotaledger/twin-dlt/issues/41)) ([add1618](https://github.com/iotaledger/twin-dlt/commit/add161828e5dc42880fb0a5f9d3e61e611cf92bb))
+* eslint migration to flat config ([83b56f0](https://github.com/iotaledger/twin-dlt/commit/83b56f02b1483f77c5f4cb9d7a1c345c56631333))
+* eslint migration to flat config ([da1d12d](https://github.com/iotaledger/twin-dlt/commit/da1d12dcf5b24e7ba6204f540c27de191bca098e))
+* methods for alias handling and tests ([#38](https://github.com/iotaledger/twin-dlt/issues/38)) ([43e0062](https://github.com/iotaledger/twin-dlt/commit/43e006220b4cf3df1aceb52b62178be0395ede00))
+* move to json build deploy commands ([#30](https://github.com/iotaledger/twin-dlt/issues/30)) ([91aa00a](https://github.com/iotaledger/twin-dlt/commit/91aa00a29a8d7e3a99a46cea89e879a12dffc188))
+* remove fs-extra dependency ([4f1b849](https://github.com/iotaledger/twin-dlt/commit/4f1b8499fa2f5dc177d854303f4ce06b52c9ffa1))
+* remove local error handling as CLI base already handles this ([fc5a083](https://github.com/iotaledger/twin-dlt/commit/fc5a083303f8c92cc264f782a2d292436da18031))
+* typescript 6 update ([94a1ed6](https://github.com/iotaledger/twin-dlt/commit/94a1ed60e1da9847a29dc9cc85669067725edcf8))
+* update dependencies ([cd1bdef](https://github.com/iotaledger/twin-dlt/commit/cd1bdef487bb3cfe3ea57f584395ad2ae1105245))
+* update dependencies ([bfbe8fc](https://github.com/iotaledger/twin-dlt/commit/bfbe8fcfda80aa59d04f4ade3e4012e5291c8877))
+* update dependencies ([f7b71c2](https://github.com/iotaledger/twin-dlt/commit/f7b71c24274b71e2d37c26c4a7e5e6d9df1dc9b7))
+* update framework core ([79fc4b9](https://github.com/iotaledger/twin-dlt/commit/79fc4b961bd755437cad98d733ca9e25476bc03f))
+* update test config ([28aa782](https://github.com/iotaledger/twin-dlt/commit/28aa782988c875043bae3f2313999f5e8ffb9ba0))
+* upgrade capabilities ([#32](https://github.com/iotaledger/twin-dlt/issues/32)) ([437219f](https://github.com/iotaledger/twin-dlt/commit/437219f0f784ec38353c01e1c8ce6bfba3b1b530))
+* use new CLIParam.arrayOnOf ([1f6458a](https://github.com/iotaledger/twin-dlt/commit/1f6458a44486dfa5ddbf61bd63b85a98ec561728))
+* use shared store mechanism ([#10](https://github.com/iotaledger/twin-dlt/issues/10)) ([ce36214](https://github.com/iotaledger/twin-dlt/commit/ce36214577f02cbb9642f831cb2c21335c31cc9a))
+* validate published-at against on-chain UpgradeCap before upgrade ([#62](https://github.com/iotaledger/twin-dlt/issues/62)) ([23b49e2](https://github.com/iotaledger/twin-dlt/commit/23b49e247b89d2e363f9420b01fa35941f73be12))
+
+
+### Bug Fixes
+
+* adding dependencies ([#45](https://github.com/iotaledger/twin-dlt/issues/45)) ([969f598](https://github.com/iotaledger/twin-dlt/commit/969f59807a0a0585dfe7d078b2cb38f197afb5d6))
+* additional debugging ([0d335a5](https://github.com/iotaledger/twin-dlt/commit/0d335a594a34dea047fa0ee4143b2d519183b704))
+* buffer usage required for identity ([#60](https://github.com/iotaledger/twin-dlt/issues/60)) ([0ba7d16](https://github.com/iotaledger/twin-dlt/commit/0ba7d165662b0083aa2b4c1325dd8c2e65defa2e))
+* docs ([cade544](https://github.com/iotaledger/twin-dlt/commit/cade5443a4b955d592c1622f07499ad8a3d554b6))
+* i18n messages ([4b61495](https://github.com/iotaledger/twin-dlt/commit/4b614957ea84d8af43345892cae3256dfa457483))
+* missing dependency ([16f363c](https://github.com/iotaledger/twin-dlt/commit/16f363cde935d3b30cf86e01cb12f0390bfc8648))
+* modifying logging type param ([#36](https://github.com/iotaledger/twin-dlt/issues/36)) ([b884fcc](https://github.com/iotaledger/twin-dlt/commit/b884fccef5bea5c6818cf8bfa8af197d3622cac6))
+* update console output ([8cb193e](https://github.com/iotaledger/twin-dlt/commit/8cb193e2704e1e391d4c3c5899b765ca12471ef3))
+* use async getStore in tests ([0a7d4ac](https://github.com/iotaledger/twin-dlt/commit/0a7d4ac3e524481c2ca49d7fbb3507556b42473e))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @twin.org/dlt-iota bumped from 0.9.1-next.0 to 0.9.1-next.1
+
 ## [0.9.0](https://github.com/iotaledger/twin-dlt/compare/move-to-json-v0.9.0...move-to-json-v0.9.0) (2026-06-25)
 
 

@@ -8,6 +8,7 @@ export * from "./models/IContractData.js";
 export * from "./models/IGasReservationResult.js";
 export * from "./models/IGasStationConfig.js";
 export * from "./models/IGasStationExecuteResponse.js";
+export * from "./models/IGasStationParams.js";
 export * from "./models/IGasStationReserveGasResponse.js";
 export * from "./models/IGasStationReserveGasResult.js";
 export * from "./models/IIotaClient.js";

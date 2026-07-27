@@ -70,4 +70,18 @@ export interface IIotaConfig {
 	 * @default false
 	 */
 	enableCostLogging?: boolean;
+
+	/**
+	 * The number of times to retry a transaction that is rejected because one or more of its owned
+	 * objects is reserved by another in-flight transaction.
+	 * @default 3
+	 */
+	objectLockRetries?: number;
+
+	/**
+	 * The base delay in milliseconds between object-lock retries; the delay grows exponentially
+	 * with each attempt.
+	 * @default 1000
+	 */
+	objectLockRetryDelayMs?: number;
 }
