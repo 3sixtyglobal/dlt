@@ -335,5 +335,14 @@ describe("Iota Gas Station Integration", () => {
 				}
 			}
 		});
+
+		test("Should report connectivity to a running gas station", async () => {
+			const isHealthy = await Iota.checkGasStationConnectivity(gasStationConfig);
+			expect(isHealthy).toBe(true);
+		});
+
+		test("Should complete a gas station health check via sponsored transaction", async () => {
+			await expect(Iota.checkGasStationIsWorking(gasStationConfig)).resolves.toBeUndefined();
+		});
 	});
 });

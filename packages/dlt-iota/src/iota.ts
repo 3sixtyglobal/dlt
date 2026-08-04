@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0.
 import { IotaClient } from "@iota/iota-sdk/client";
 import { requestIotaFromFaucetV0 } from "@iota/iota-sdk/faucet";
+import { Ed25519Keypair } from "@iota/iota-sdk/keypairs/ed25519";
 import { Transaction } from "@iota/iota-sdk/transactions";
 import {
 	BaseError,
@@ -16,8 +17,8 @@ import {
 import { Bip39, Bip44, Blake2b, KeyType } from "@twin.org/crypto";
 import type { ILoggingComponent } from "@twin.org/logging-models";
 import { nameof } from "@twin.org/nameof";
-import { VaultConnectorHelper, VaultKeyType } from "@twin.org/vault-models";
 import type { IVaultConnector } from "@twin.org/vault-models";
+import { VaultConnectorHelper, VaultKeyType } from "@twin.org/vault-models";
 import { FetchHelper, HttpMethod } from "@twin.org/web";
 import type { IGasReservationResult } from "./models/IGasReservationResult.js";
 import type { IGasStationConfig } from "./models/IGasStationConfig.js";
@@ -909,6 +910,76 @@ export class Iota {
 			Is.stringValue(config.gasStation?.gasStationUrl) &&
 			Is.stringValue(config.gasStation?.gasStationAuthToken)
 		);
+	}
+
+	/**
+	 * Check whether the gas station HTTP endpoint is reachable and responding.
+	 * @param config The configuration containing gas station settings.
+	 * @returns True if the gas station responds with "OK", false otherwise.
+	 */
+	public static async checkGasStationConnectivity(config: IIotaConfig): Promise<boolean> {
+		Guards.object<IGasStationConfig>(Iota.CLASS_NAME, nameof(config.gasStation), config.gasStation);
+		Guards.stringValue(
+			Iota.CLASS_NAME,
+			nameof(config.gasStation.gasStationUrl),
+			config.gasStation.gasStationUrl
+		);
+
+		const url = StringHelper.trimTrailingSlashes(config.gasStation.gasStationUrl);
+
+		try {
+			const response = await FetchHelper.fetch(Iota.CLASS_NAME, url, HttpMethod.GET);
+			const body = await response.text();
+			return response.ok && body.trim() === "OK";
+		} catch {
+			return false;
+		}
+	}
+
+	/**
+	 * Verify the gas station is fully operational by executing a sponsored transaction
+	 * end-to-end (reserve gas → sign → execute → confirm).
+	 *
+	 * A read-only Move clock call is used as the test payload so that no objects are created
+	 * and no on-chain state is left behind.
+	 * @param config The configuration containing gas station settings and client options.
+	 */
+	public static async checkGasStationIsWorking(config: IIotaConfig): Promise<void> {
+		Guards.object<IGasStationConfig>(Iota.CLASS_NAME, nameof(config.gasStation), config.gasStation);
+
+		const client = Iota.createClient(config);
+		const gasStationParams = Iota.buildGasStationParams(config);
+		const keypair = Ed25519Keypair.generate();
+		const sender = keypair.toIotaAddress();
+
+		try {
+			const reservation = await Iota.reserveGas(config);
+
+			const tx = new Transaction();
+			tx.setSender(sender);
+			tx.setGasOwner(reservation.sponsorAddress);
+			tx.setGasPayment(reservation.gasCoins);
+			tx.setGasBudget(gasStationParams.gasBudget);
+			tx.moveCall({
+				target: "0x2::clock::timestamp_ms",
+				arguments: [tx.object("0x6")]
+			});
+
+			const txBytes = await tx.build({ client });
+			const sig = await keypair.signTransaction(txBytes);
+			await Iota.executeAndConfirmGasStationTransaction(
+				config,
+				client,
+				reservation.reservationId,
+				txBytes,
+				sig.signature
+			);
+		} catch (error) {
+			if (BaseError.isErrorName(error, GeneralError.CLASS_NAME)) {
+				throw error;
+			}
+			throw Iota.wrapGasStationError(error);
+		}
 	}
 
 	/**

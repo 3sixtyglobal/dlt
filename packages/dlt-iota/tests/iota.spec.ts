@@ -14,6 +14,7 @@ import {
 	type VaultSecret
 } from "@twin.org/vault-connector-entity-storage";
 import type { IVaultConnector } from "@twin.org/vault-models";
+import { FetchHelper } from "@twin.org/web";
 import {
 	TEST_CLIENT_OPTIONS,
 	TEST_EXPLORER_URL,
@@ -1114,6 +1115,100 @@ describe("Iota", () => {
 			const wrapped = Iota.wrapGasStationError(new Error("boom"));
 			expect(wrapped.name).toBe("GeneralError");
 			expect(wrapped.message).toBe("iota.gasStationTransactionFailed");
+		});
+
+		describe("checkGasStationConnectivity", () => {
+			afterEach(() => {
+				vi.restoreAllMocks();
+			});
+
+			test("throws when gas station is not configured", async () => {
+				await expect(Iota.checkGasStationConnectivity(TEST_CONFIG)).rejects.toEqual(
+					expect.objectContaining({
+						name: "GuardError",
+						message: "guard.objectUndefined"
+					})
+				);
+			});
+
+			test("throws when gas station url is empty", async () => {
+				await expect(
+					Iota.checkGasStationConnectivity({
+						...TEST_CONFIG,
+						gasStation: { gasStationUrl: "", gasStationAuthToken: "token" }
+					})
+				).rejects.toEqual(
+					expect.objectContaining({
+						name: "GuardError",
+						message: "guard.stringEmpty"
+					})
+				);
+			});
+
+			test("returns true when the gas station responds with OK", async () => {
+				vi.spyOn(FetchHelper, "fetch").mockResolvedValue(new Response("OK", { status: 200 }));
+
+				const result = await Iota.checkGasStationConnectivity({
+					...TEST_CONFIG,
+					gasStation: GAS_STATION
+				});
+				expect(result).toBe(true);
+			});
+
+			test("returns false when the response body is not OK", async () => {
+				vi.spyOn(FetchHelper, "fetch").mockResolvedValue(
+					new Response("Service Unavailable", { status: 200 })
+				);
+
+				const result = await Iota.checkGasStationConnectivity({
+					...TEST_CONFIG,
+					gasStation: GAS_STATION
+				});
+				expect(result).toBe(false);
+			});
+
+			test("returns false when the response status is not ok", async () => {
+				vi.spyOn(FetchHelper, "fetch").mockResolvedValue(new Response("OK", { status: 500 }));
+
+				const result = await Iota.checkGasStationConnectivity({
+					...TEST_CONFIG,
+					gasStation: GAS_STATION
+				});
+				expect(result).toBe(false);
+			});
+
+			test("returns false when fetch throws", async () => {
+				vi.spyOn(FetchHelper, "fetch").mockRejectedValue(new Error("ECONNREFUSED"));
+
+				const result = await Iota.checkGasStationConnectivity({
+					...TEST_CONFIG,
+					gasStation: GAS_STATION
+				});
+				expect(result).toBe(false);
+			});
+
+			test("strips trailing slashes from the url before fetching", async () => {
+				const fetchSpy = vi
+					.spyOn(FetchHelper, "fetch")
+					.mockResolvedValue(new Response("OK", { status: 200 }));
+
+				await Iota.checkGasStationConnectivity({
+					...TEST_CONFIG,
+					gasStation: { gasStationUrl: "http://localhost:9527/", gasStationAuthToken: "token" }
+				});
+				expect(fetchSpy).toHaveBeenCalledWith("Iota", "http://localhost:9527", "GET");
+			});
+		});
+
+		describe("checkGasStationIsWorking", () => {
+			test("throws when gas station is not configured", async () => {
+				await expect(Iota.checkGasStationIsWorking(TEST_CONFIG)).rejects.toEqual(
+					expect.objectContaining({
+						name: "GuardError",
+						message: "guard.objectUndefined"
+					})
+				);
+			});
 		});
 	});
 });
