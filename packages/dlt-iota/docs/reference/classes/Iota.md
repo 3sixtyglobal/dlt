@@ -860,6 +860,52 @@ True if both the gas station url and auth token are set.
 
 ***
 
+### checkGasStationConnectivity() {#checkgasstationconnectivity}
+
+> `static` **checkGasStationConnectivity**(`config`): `Promise`\<`boolean`\>
+
+Check whether the gas station HTTP endpoint is reachable and responding.
+
+#### Parameters
+
+##### config
+
+[`IIotaConfig`](../interfaces/IIotaConfig.md)
+
+The configuration containing gas station settings.
+
+#### Returns
+
+`Promise`\<`boolean`\>
+
+True if the gas station responds with "OK", false otherwise.
+
+***
+
+### checkGasStationIsWorking() {#checkgasstationisworking}
+
+> `static` **checkGasStationIsWorking**(`config`): `Promise`\<`void`\>
+
+Verify the gas station is fully operational by executing a sponsored transaction
+end-to-end (reserve gas → sign → execute → confirm).
+
+A read-only Move clock call is used as the test payload so that no objects are created
+and no on-chain state is left behind.
+
+#### Parameters
+
+##### config
+
+[`IIotaConfig`](../interfaces/IIotaConfig.md)
+
+The configuration containing gas station settings and client options.
+
+#### Returns
+
+`Promise`\<`void`\>
+
+***
+
 ### buildGasStationParams() {#buildgasstationparams}
 
 > `static` **buildGasStationParams**(`config`): [`IGasStationParams`](../interfaces/IGasStationParams.md)
