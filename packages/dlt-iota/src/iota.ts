@@ -14,11 +14,10 @@ import {
 	StringHelper,
 	type IError
 } from "@twin.org/core";
-import { Bip39, Bip44, Blake2b, KeyType } from "@twin.org/crypto";
+import { AccountHelper } from "@twin.org/dlt-account";
 import type { ILoggingComponent } from "@twin.org/logging-models";
 import { nameof } from "@twin.org/nameof";
 import type { IVaultConnector } from "@twin.org/vault-models";
-import { VaultConnectorHelper, VaultKeyType } from "@twin.org/vault-models";
 import { FetchHelper, HttpMethod } from "@twin.org/web";
 import type { IGasReservationResult } from "./models/IGasReservationResult.js";
 import type { IGasStationConfig } from "./models/IGasStationConfig.js";
@@ -39,36 +38,9 @@ import { VaultTransactionSigner } from "./vaultTransactionSigner.js";
  */
 export class Iota {
 	/**
-	 * Default name for the mnemonic secret.
-	 */
-	public static readonly DEFAULT_MNEMONIC_SECRET_NAME: string = "mnemonic";
-
-	/**
-	 * Default name for the seed secret.
-	 */
-	public static readonly DEFAULT_SEED_SECRET_NAME: string = "seed";
-
-	/**
-	 * Default coin type.
-	 */
-	public static readonly DEFAULT_COIN_TYPE: number = 4218;
-
-	/**
 	 * Runtime name for the class.
 	 */
 	public static readonly CLASS_NAME: string = nameof<Iota>();
-
-	/**
-	 * Default scan range.
-	 * @internal
-	 */
-	private static readonly _DEFAULT_SCAN_RANGE: number = 1000;
-
-	/**
-	 * Default pre-calculation chunk size.
-	 * @internal
-	 */
-	private static readonly _PRE_CALC_CHUNK_SIZE: number = 25;
 
 	/**
 	 * Default inclusion timeout.
@@ -115,6 +87,14 @@ export class Iota {
 	private static readonly _STALE_OBJECT_ERROR_PATTERN: RegExp = /is not available for consumption/;
 
 	/**
+	 * Pattern that identifies the gas station error returned when it cannot allocate gas because its
+	 * coin pool is exhausted by concurrent sponsorships. Retryable: coins are reclaimed once the
+	 * competing transactions confirm, so a subsequent attempt can usually succeed.
+	 * @internal
+	 */
+	private static readonly _GAS_RESERVATION_ERROR_PATTERN: RegExp = /Unable to reserve gas coins/;
+
+	/**
 	 * Create a new IOTA client.
 	 * @param config The configuration.
 	 * @returns The client instance.
@@ -138,156 +118,10 @@ export class Iota {
 			config.clientOptions
 		);
 
-		config.vaultMnemonicId ??= Iota.DEFAULT_MNEMONIC_SECRET_NAME;
-		config.vaultSeedId ??= Iota.DEFAULT_SEED_SECRET_NAME;
-		config.coinType ??= Iota.DEFAULT_COIN_TYPE;
+		config.vaultMnemonicId ??= AccountHelper.DEFAULT_MNEMONIC_SECRET_NAME;
+		config.vaultSeedId ??= AccountHelper.DEFAULT_SEED_SECRET_NAME;
+		config.coinType ??= AccountHelper.DEFAULT_COIN_TYPE;
 		config.inclusionTimeoutSeconds ??= Iota._DEFAULT_INCLUSION_TIMEOUT;
-	}
-
-	/**
-	 * Store a mnemonic in the vault, derive and store the seed, and pre-cache the first keypair chunk.
-	 * @param vaultConnector The vault connector.
-	 * @param config The configuration.
-	 * @param identity The identity of the user to access the vault keys.
-	 * @param mnemonic The mnemonic to store, if undefined a new one will be generated and returned.
-	 * @param accountIndex The account index to pre-cache.
-	 * @returns The mnemonic that was stored.
-	 */
-	public static async storeMnemonic(
-		vaultConnector: IVaultConnector,
-		config: IIotaConfig,
-		identity: string,
-		mnemonic: string | undefined,
-		accountIndex: number
-	): Promise<string> {
-		Guards.object(Iota.CLASS_NAME, nameof(vaultConnector), vaultConnector);
-		Guards.object<IIotaConfig>(Iota.CLASS_NAME, nameof(config), config);
-		Guards.stringValue(Iota.CLASS_NAME, nameof(identity), identity);
-		Guards.integer(Iota.CLASS_NAME, nameof(accountIndex), accountIndex);
-
-		const mnemonicToStore = mnemonic ?? Bip39.randomMnemonic();
-
-		await vaultConnector.setSecret(
-			Iota.buildMnemonicKey(identity, config.vaultMnemonicId),
-			mnemonicToStore
-		);
-
-		const seed = Bip39.mnemonicToSeed(mnemonicToStore);
-		await vaultConnector.setSecret(
-			Iota.buildSeedKey(identity, config.vaultSeedId),
-			Converter.bytesToBase64(seed)
-		);
-
-		await Iota.getPublicKeys(
-			vaultConnector,
-			config,
-			identity,
-			accountIndex,
-			false,
-			0,
-			async () => seed
-		);
-
-		return mnemonicToStore;
-	}
-
-	/**
-	 * Derive an address from a public key.
-	 * @param publicKey The public key to derive the address from.
-	 * @returns The derived address.
-	 */
-	public static publicKeyToAddress(publicKey: Uint8Array): string {
-		return Converter.bytesToHex(Blake2b.sum256(publicKey), true);
-	}
-
-	/**
-	 * Get address for the identity.
-	 * @param vaultConnector The vault connector.
-	 * @param config The configuration.
-	 * @param identity The identity of the user to access the vault keys.
-	 * @param accountIndex The account index to get the addresses for.
-	 * @param startAddressIndex The start index for the addresses.
-	 * @param isInternal Whether the addresses are internal.
-	 * @returns The address.
-	 */
-	public static async getAddress(
-		vaultConnector: IVaultConnector,
-		config: Pick<IIotaConfig, "coinType" | "vaultMnemonicId" | "vaultSeedId">,
-		identity: string,
-		accountIndex: number,
-		startAddressIndex: number,
-		isInternal?: boolean
-	): Promise<string> {
-		const addresses = await Iota.getAddresses(
-			vaultConnector,
-			config,
-			identity,
-			accountIndex,
-			startAddressIndex,
-			1,
-			isInternal
-		);
-		return addresses[0];
-	}
-
-	/**
-	 * Get addresses for the identity.
-	 * @param vaultConnector The vault connector.
-	 * @param config The configuration.
-	 * @param identity The identity of the user to access the vault keys.
-	 * @param accountIndex The account index to get the addresses for.
-	 * @param startAddressIndex The start index for the addresses.
-	 * @param count The number of addresses to generate.
-	 * @param isInternal Whether the addresses are internal.
-	 * @returns The list of addresses.
-	 */
-	public static async getAddresses(
-		vaultConnector: IVaultConnector,
-		config: Pick<IIotaConfig, "coinType" | "vaultMnemonicId" | "vaultSeedId">,
-		identity: string,
-		accountIndex: number,
-		startAddressIndex: number,
-		count: number,
-		isInternal?: boolean
-	): Promise<string[]> {
-		Guards.object(Iota.CLASS_NAME, nameof(vaultConnector), vaultConnector);
-		Guards.object<IIotaConfig>(Iota.CLASS_NAME, nameof(config), config);
-		Guards.stringValue(Iota.CLASS_NAME, nameof(identity), identity);
-		Guards.integer(Iota.CLASS_NAME, nameof(accountIndex), accountIndex);
-		Guards.integer(Iota.CLASS_NAME, nameof(startAddressIndex), startAddressIndex);
-		Guards.integer(Iota.CLASS_NAME, nameof(count), count);
-
-		const addresses: string[] = [];
-		const internal = isInternal ?? false;
-		let currentIndex = startAddressIndex;
-		let cachedSeed: Uint8Array | undefined;
-		const seedProvider = async (): Promise<Uint8Array> => {
-			cachedSeed ??= await Iota.getSeed(vaultConnector, config, identity);
-			return cachedSeed;
-		};
-
-		while (addresses.length < count) {
-			const chunkStart =
-				Math.floor(currentIndex / Iota._PRE_CALC_CHUNK_SIZE) * Iota._PRE_CALC_CHUNK_SIZE;
-			const publicKeys = await Iota.getPublicKeys(
-				vaultConnector,
-				config,
-				identity,
-				accountIndex,
-				internal,
-				chunkStart,
-				seedProvider
-			);
-			const chunk = publicKeys.map((pk: string) =>
-				Iota.publicKeyToAddress(Converter.base64ToBytes(pk))
-			);
-			const offsetInChunk = currentIndex - chunkStart;
-			const remaining = count - addresses.length;
-			addresses.push(...chunk.slice(offsetInChunk, offsetInChunk + remaining));
-			currentIndex = chunkStart + Iota._PRE_CALC_CHUNK_SIZE;
-		}
-
-		return addresses;
 	}
 
 	/**
@@ -312,20 +146,20 @@ export class Iota {
 		Guards.integer(Iota.CLASS_NAME, nameof(accountIndex), accountIndex);
 		Guards.integer(Iota.CLASS_NAME, nameof(addressIndex), addressIndex);
 
-		const publicKeys = await Iota.getPublicKeys(
-			vaultConnector,
+		const publicKeys = await AccountHelper.getPublicKeys(
 			config,
+			vaultConnector,
 			identity,
 			accountIndex,
 			false,
 			addressIndex,
-			async () => Iota.getSeed(vaultConnector, config, identity)
+			async () => AccountHelper.getSeed(config, vaultConnector, identity)
 		);
 
-		const chunkStart = addressIndex - (addressIndex % Iota._PRE_CALC_CHUNK_SIZE);
+		const chunkStart = addressIndex - (addressIndex % AccountHelper.DEFAULT_CALC_CHUNK_SIZE);
 		const offsetInChunk = addressIndex - chunkStart;
 		const publicKey = Converter.base64ToBytes(publicKeys[offsetInChunk]);
-		const keyName = Iota.buildAddressKeyName(identity, accountIndex, false, addressIndex);
+		const keyName = AccountHelper.buildAddressKeyName(identity, accountIndex, false, addressIndex);
 
 		return new VaultTransactionSigner(vaultConnector, keyName, publicKey);
 	}
@@ -452,9 +286,9 @@ export class Iota {
 			await Iota.dryRunTransaction(client, logging, transaction, owner, options.dryRunLabel);
 		}
 
-		const { keyName, publicKey } = await Iota.ensureOwnerKey(
-			vaultConnector,
+		const { keyName, publicKey } = await AccountHelper.findAddressKey(
 			config,
+			vaultConnector,
 			identity,
 			owner
 		);
@@ -742,7 +576,8 @@ export class Iota {
 	public static isRetryableObjectConflictError(error: unknown): boolean {
 		return (
 			Is.stringValue(Iota.objectConflictMessage(error, Iota._RESERVED_OBJECT_ERROR_PATTERN)) ||
-			Is.stringValue(Iota.objectConflictMessage(error, Iota._STALE_OBJECT_ERROR_PATTERN))
+			Is.stringValue(Iota.objectConflictMessage(error, Iota._STALE_OBJECT_ERROR_PATTERN)) ||
+			Is.stringValue(Iota.objectConflictMessage(error, Iota._GAS_RESERVATION_ERROR_PATTERN))
 		);
 	}
 
@@ -810,6 +645,14 @@ export class Iota {
 				return await operation();
 			} catch (error) {
 				if (!Iota.isRetryableObjectConflictError(error)) {
+					// If we already saw at least one retryable conflict on a prior attempt, a
+					// subsequent non-retryable error (e.g. "object not found" because the winner
+					// consumed the coin) still belongs to the conflict scenario — break so we fall
+					// through to the objectReservationConflict throw rather than surfacing this
+					// secondary error directly.
+					if (lastError !== undefined) {
+						break;
+					}
 					throw error;
 				}
 				lastError = error;
@@ -857,9 +700,9 @@ export class Iota {
 		// rebuild with fresh object versions (see prepareAndPostTransaction).
 		const template = Transaction.from(transaction);
 
-		const { keyName, publicKey } = await Iota.ensureOwnerKey(
-			vaultConnector,
+		const { keyName, publicKey } = await AccountHelper.findAddressKey(
 			config,
+			vaultConnector,
 			identity,
 			owner
 		);
@@ -892,8 +735,13 @@ export class Iota {
 				);
 			});
 		} catch (error) {
-			// Pass through the clear object-conflict error; wrap everything else as before.
-			if (Iota.isRetryableObjectConflictError(error)) {
+			// Pass through retryable conflict errors and any GeneralError already raised by our
+			// own code (e.g. objectReservationConflict from the retry loop); wrap raw SDK or
+			// network errors as the opaque gasStationTransactionFailed.
+			if (
+				Iota.isRetryableObjectConflictError(error) ||
+				BaseError.isErrorName(error, GeneralError.CLASS_NAME)
+			) {
 				throw error;
 			}
 			throw Iota.wrapGasStationError(error);
@@ -1086,6 +934,13 @@ export class Iota {
 				}
 			}
 		);
+
+		if (Is.stringValue(result.error)) {
+			throw new GeneralError(Iota.CLASS_NAME, "gasStationTransactionFailed", undefined, {
+				name: "Error",
+				message: result.error
+			});
+		}
 
 		const effectsData = result.effects;
 
@@ -1309,194 +1164,5 @@ export class Iota {
 			flattened => Is.stringValue(flattened.message) && pattern.test(flattened.message)
 		);
 		return match?.message;
-	}
-
-	/**
-	 * Find the vault key name and public key for the given owner address.
-	 * Keys are individually registered in the vault by buildKeyPairRange, so no addKey is needed here.
-	 * @param vaultConnector The vault connector to use.
-	 * @param config The configuration to use.
-	 * @param identity The identity of the user to access the vault keys.
-	 * @param owner The owner address whose key should be located.
-	 * @param accountIndex The account index to search.
-	 * @returns The vault key name and the public key bytes.
-	 * @internal
-	 */
-	private static async ensureOwnerKey(
-		vaultConnector: IVaultConnector,
-		config: IIotaConfig,
-		identity: string,
-		owner: string,
-		accountIndex: number = 0
-	): Promise<{ keyName: string; publicKey: Uint8Array }> {
-		const scanRange = config.maxAddressScanRange ?? Iota._DEFAULT_SCAN_RANGE;
-		let cachedSeed: Uint8Array | undefined;
-		const seedProvider = async (): Promise<Uint8Array> => {
-			cachedSeed ??= await Iota.getSeed(vaultConnector, config, identity);
-			return cachedSeed;
-		};
-
-		for (let chunkStart = 0; chunkStart < scanRange; chunkStart += Iota._PRE_CALC_CHUNK_SIZE) {
-			const publicKeys = await Iota.getPublicKeys(
-				vaultConnector,
-				config,
-				identity,
-				accountIndex,
-				false,
-				chunkStart,
-				seedProvider
-			);
-			const matchIndex = publicKeys.findIndex(
-				(pk: string) => Iota.publicKeyToAddress(Converter.base64ToBytes(pk)) === owner
-			);
-			if (matchIndex >= 0) {
-				const addressIndex = chunkStart + matchIndex;
-				return {
-					keyName: Iota.buildAddressKeyName(identity, accountIndex, false, addressIndex),
-					publicKey: Converter.base64ToBytes(publicKeys[matchIndex])
-				};
-			}
-		}
-
-		throw new GeneralError(Iota.CLASS_NAME, "addressNotFound", { address: owner });
-	}
-
-	/**
-	 * Get the seed from the vault, deriving it from the mnemonic if necessary.
-	 * @param vaultConnector The vault connector to use.
-	 * @param config The configuration to use.
-	 * @param identity The identity of the user to access the vault keys.
-	 * @returns The seed bytes.
-	 * @internal
-	 */
-	private static async getSeed(
-		vaultConnector: IVaultConnector,
-		config: Pick<IIotaConfig, "vaultMnemonicId" | "vaultSeedId">,
-		identity: string
-	): Promise<Uint8Array> {
-		const seedKey = Iota.buildSeedKey(identity, config.vaultSeedId);
-
-		try {
-			const seedBase64 = await vaultConnector.getSecret<string>(seedKey);
-			return Converter.base64ToBytes(seedBase64);
-		} catch {}
-
-		const mnemonic = await vaultConnector.getSecret<string>(
-			Iota.buildMnemonicKey(identity, config.vaultMnemonicId)
-		);
-
-		// If the seed is not found but the mnemonic exists, derive the seed and store it for future use
-		const seed = Bip39.mnemonicToSeed(mnemonic);
-		await vaultConnector.setSecret(seedKey, Converter.bytesToBase64(seed));
-
-		return seed;
-	}
-
-	/**
-	 * Get the key for storing the mnemonic.
-	 * @param identity The identity to use.
-	 * @param vaultMnemonicId The mnemonic ID to use.
-	 * @returns The mnemonic key.
-	 * @internal
-	 */
-	private static buildMnemonicKey(identity: string, vaultMnemonicId?: string): string {
-		return VaultConnectorHelper.buildKeyName(
-			identity,
-			vaultMnemonicId ?? Iota.DEFAULT_MNEMONIC_SECRET_NAME
-		);
-	}
-
-	/**
-	 * Get the key for storing the seed.
-	 * @param identity The identity to use.
-	 * @param vaultSeedId The seed ID to use.
-	 * @returns The seed key.
-	 * @internal
-	 */
-	private static buildSeedKey(identity: string, vaultSeedId?: string): string {
-		return VaultConnectorHelper.buildKeyName(
-			identity,
-			vaultSeedId ?? Iota.DEFAULT_SEED_SECRET_NAME
-		);
-	}
-
-	/**
-	 * Ensure a range of BIP44-derived keys are registered as individual vault keys and return their public keys.
-	 * If the first key of the range already exists the range is considered registered and only public keys are derived.
-	 * If not registered, all keys are derived and added to the vault before returning the public keys.
-	 * @param vaultConnector The vault connector to use.
-	 * @param config The configuration to use.
-	 * @param identity The identity of the user to access the vault keys.
-	 * @param accountIndex The account index.
-	 * @param internal Whether the addresses are internal or external.
-	 * @param addressIndex Any address index within the desired chunk; aligned internally.
-	 * @param seedProvider Callback invoked at most once per call to supply the seed when a chunk is not yet registered.
-	 * @returns The base64-encoded public keys for each address in the range.
-	 * @internal
-	 */
-	private static async getPublicKeys(
-		vaultConnector: IVaultConnector,
-		config: Pick<IIotaConfig, "coinType">,
-		identity: string,
-		accountIndex: number,
-		internal: boolean,
-		addressIndex: number,
-		seedProvider: () => Promise<Uint8Array>
-	): Promise<string[]> {
-		const chunkStart = addressIndex - (addressIndex % Iota._PRE_CALC_CHUNK_SIZE);
-		const firstKeyName = Iota.buildAddressKeyName(identity, accountIndex, internal, chunkStart);
-		const publicKeys: string[] = [];
-
-		if (await vaultConnector.keyExists(firstKeyName)) {
-			for (let i = chunkStart; i < chunkStart + Iota._PRE_CALC_CHUNK_SIZE; i++) {
-				const keyName = Iota.buildAddressKeyName(identity, accountIndex, internal, i);
-				const keyData = await vaultConnector.getKey(keyName, "public");
-				if (!keyData.publicKey) {
-					throw new GeneralError(Iota.CLASS_NAME, "missingPublicKey", { keyName });
-				}
-				publicKeys.push(Converter.bytesToBase64(keyData.publicKey));
-			}
-		} else {
-			const seed = await seedProvider();
-			const coinType = config.coinType ?? Iota.DEFAULT_COIN_TYPE;
-
-			for (let i = chunkStart; i < chunkStart + Iota._PRE_CALC_CHUNK_SIZE; i++) {
-				const keyName = Iota.buildAddressKeyName(identity, accountIndex, internal, i);
-				const keyPair = Bip44.keyPair(seed, KeyType.Ed25519, coinType, accountIndex, internal, i);
-				await vaultConnector.addKey(
-					keyName,
-					VaultKeyType.Ed25519,
-					keyPair.privateKey,
-					keyPair.publicKey
-				);
-				publicKeys.push(Converter.bytesToBase64(keyPair.publicKey));
-			}
-		}
-
-		return publicKeys;
-	}
-
-	/**
-	 * Build the vault key name for a specific derived address.
-	 * @param identity The identity to use.
-	 * @param accountIndex The account index.
-	 * @param internal Whether the address is internal or external.
-	 * @param addressIndex The address index.
-	 * @returns The vault key name.
-	 * @internal
-	 */
-	private static buildAddressKeyName(
-		identity: string,
-		accountIndex: number,
-		internal: boolean,
-		addressIndex: number
-	): string {
-		return VaultConnectorHelper.buildKeyName(
-			identity,
-			"account",
-			accountIndex.toString(),
-			internal ? "1" : "0",
-			`${addressIndex}`
-		);
 	}
 }

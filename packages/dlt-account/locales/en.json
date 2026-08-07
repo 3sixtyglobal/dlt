@@ -1,0 +1,8 @@
+{
+	"error": {
+		"accountHelper": {
+			"addressNotFound": "The address is missing could not be found from the seed \"{address}\"",
+			"missingPublicKey": "The public key is missing for vault key \"{keyName}\""
+		}
+	}
+}

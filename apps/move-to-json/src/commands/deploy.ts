@@ -7,8 +7,8 @@ import { requestIotaFromFaucetV0 } from "@iota/iota-sdk/faucet";
 import { CLIDisplay, CLIParam, CLIUtils } from "@twin.org/cli-core";
 import { Coerce, Converter, GeneralError, Guards, I18n, Is, RandomHelper } from "@twin.org/core";
 import { Bip39, Bip44 } from "@twin.org/crypto";
+import { AccountHelper } from "@twin.org/dlt-account";
 import {
-	Iota,
 	NetworkTypes,
 	type IContractData,
 	type ISmartContractDeployments
@@ -1151,9 +1151,10 @@ async function getDeploymentWalletAddress(
 
 		seed = Bip39.mnemonicToSeed(mnemonic);
 	}
-	await vault.setSecret("deployment/seed", seed);
+	await vault.setSecret("deployment/seed", Converter.bytesToBase64(seed));
 
-	return Iota.getAddress(vault, {}, "deployment", 0, addressIndex);
+	const [address] = await AccountHelper.getAddresses({}, vault, "deployment", 0, addressIndex, 1);
+	return address;
 }
 
 /**
@@ -1548,7 +1549,12 @@ async function importCorrectDeployerKey(
 	);
 
 	const mnemonic = await getDeploymentMnemonic(network, deployerMnemonic);
-	const derivationPath = Bip44.path(Iota.DEFAULT_COIN_TYPE, 0, false, addressIndex).toString();
+	const derivationPath = Bip44.path(
+		AccountHelper.DEFAULT_COIN_TYPE,
+		0,
+		false,
+		addressIndex
+	).toString();
 
 	await execAsyncWithError(
 		`iota keytool import "${mnemonic}" ed25519 "${derivationPath}" --alias "${aliasName}"`

@@ -6,7 +6,7 @@ import path from "node:path";
 import { CLIDisplay, CLIUtils } from "@twin.org/cli-core";
 import { GeneralError } from "@twin.org/core";
 import { Bip39 } from "@twin.org/crypto";
-import { Iota } from "@twin.org/dlt-iota";
+import { AccountHelper } from "@twin.org/dlt-account";
 import { MemoryEntityStorageConnector } from "@twin.org/entity-storage-connector-memory";
 import { EntityStorageConnectorFactory } from "@twin.org/entity-storage-models";
 import { nameof } from "@twin.org/nameof";
@@ -672,20 +672,22 @@ describe("generateUniqueBackupAlias", () => {
 		const vaultNewMnemonic = await vaultWithMnemonic("identityNew", newMnemonic);
 
 		// Generate addresses from mnemonics
-		const oldExpectedAddress = await Iota.getAddress(
-			vaultOldMnemonic,
+		const [oldExpectedAddress] = await AccountHelper.getAddresses(
 			TEST_IOTA_CONFIG,
+			vaultOldMnemonic,
 			"identityOld",
 			0,
 			0,
+			1,
 			false
 		);
-		const newExpectedAddress = await Iota.getAddress(
-			vaultNewMnemonic,
+		const [newExpectedAddress] = await AccountHelper.getAddresses(
 			TEST_IOTA_CONFIG,
+			vaultNewMnemonic,
 			"identityNew",
 			0,
 			0,
+			1,
 			false
 		);
 
@@ -696,20 +698,22 @@ describe("generateUniqueBackupAlias", () => {
 		const vaultBackup1 = await vaultWithMnemonic("identityBackup1", backup1Mnemonic);
 		const vaultBackup2 = await vaultWithMnemonic("identityBackup2", backup2Mnemonic);
 
-		const backup1Address = await Iota.getAddress(
-			vaultBackup1,
+		const [backup1Address] = await AccountHelper.getAddresses(
 			TEST_IOTA_CONFIG,
+			vaultBackup1,
 			"identityBackup1",
 			0,
 			0,
+			1,
 			false
 		);
-		const backup2Address = await Iota.getAddress(
-			vaultBackup2,
+		const [backup2Address] = await AccountHelper.getAddresses(
 			TEST_IOTA_CONFIG,
+			vaultBackup2,
 			"identityBackup2",
 			0,
 			0,
+			1,
 			false
 		);
 
@@ -790,12 +794,13 @@ describe("generateUniqueBackupAlias", () => {
 
 			const vaultRandom = await vaultWithMnemonic(`identityBackup${i}`, randomMnemonic);
 
-			const randomAddress = await Iota.getAddress(
-				vaultRandom,
+			const [randomAddress] = await AccountHelper.getAddresses(
 				TEST_IOTA_CONFIG,
+				vaultRandom,
 				`identityBackup${i}`,
 				0,
-				0
+				0,
+				1
 			);
 
 			manyBackups.push({

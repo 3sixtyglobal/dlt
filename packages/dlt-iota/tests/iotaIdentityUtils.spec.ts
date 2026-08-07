@@ -8,7 +8,7 @@ import {
 import { IotaIdentityUtils } from "../src/iotaIdentityUtils.js";
 import type { IIotaClient } from "../src/models/IIotaClient.js";
 
-// Mock the entire WASM module — static methods are replaced with vi.fn() so
+// Mock the entire WASM module - static methods are replaced with vi.fn() so
 // we can control return values per test without hitting the actual WASM binary.
 // StorageSigner and its dependencies are stubbed as no-ops because
 // IdentityClient.create() is also mocked and never inspects the signer.

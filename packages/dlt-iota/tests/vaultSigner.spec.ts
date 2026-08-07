@@ -1,6 +1,7 @@
 // Copyright 2026 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
 import { Bip39, Bip44, KeyType } from "@twin.org/crypto";
+import { AccountHelper } from "@twin.org/dlt-account";
 import { MemoryEntityStorageConnector } from "@twin.org/entity-storage-connector-memory";
 import { EntityStorageConnectorFactory } from "@twin.org/entity-storage-models";
 import { nameof } from "@twin.org/nameof";
@@ -12,7 +13,6 @@ import {
 } from "@twin.org/vault-connector-entity-storage";
 import { VaultKeyType } from "@twin.org/vault-models";
 import { TEST_MNEMONIC } from "./setupTestEnv.js";
-import { Iota } from "../src/iota.js";
 import { VaultSigner } from "../src/vaultSigner.js";
 
 const TEST_IDENTITY = "test-identity";
@@ -21,7 +21,7 @@ const TEST_SEED = Bip39.mnemonicToSeed(TEST_MNEMONIC);
 const TEST_KEY_PAIR = Bip44.keyPair(
 	TEST_SEED,
 	KeyType.Ed25519,
-	Iota.DEFAULT_COIN_TYPE,
+	AccountHelper.DEFAULT_COIN_TYPE,
 	0,
 	false,
 	0
