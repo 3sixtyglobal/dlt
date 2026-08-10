@@ -647,7 +647,7 @@ export class Iota {
 				if (!Iota.isRetryableObjectConflictError(error)) {
 					// If we already saw at least one retryable conflict on a prior attempt, a
 					// subsequent non-retryable error (e.g. "object not found" because the winner
-					// consumed the coin) still belongs to the conflict scenario — break so we fall
+					// consumed the coin) still belongs to the conflict scenario - break so we fall
 					// through to the objectReservationConflict throw rather than surfacing this
 					// secondary error directly.
 					if (lastError !== undefined) {
