@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0.
 import type { IotaClientOptions } from "@iota/iota-sdk/client";
 import { Transaction } from "@iota/iota-sdk/transactions";
-import { BaseError, Converter, GeneralError } from "@twin.org/core";
-import { Bip39 } from "@twin.org/crypto";
+import { BaseError, GeneralError } from "@twin.org/core";
+import { AccountHelper } from "@twin.org/dlt-account";
 import { MemoryEntityStorageConnector } from "@twin.org/entity-storage-connector-memory";
 import { EntityStorageConnectorFactory } from "@twin.org/entity-storage-models";
 import { nameof } from "@twin.org/nameof";
@@ -14,6 +14,7 @@ import {
 	type VaultSecret
 } from "@twin.org/vault-connector-entity-storage";
 import type { IVaultConnector } from "@twin.org/vault-models";
+import { FetchHelper } from "@twin.org/web";
 import {
 	TEST_CLIENT_OPTIONS,
 	TEST_EXPLORER_URL,
@@ -24,10 +25,6 @@ import {
 } from "./setupTestEnv.js";
 import { Iota } from "../src/iota.js";
 import type { IIotaConfig } from "../src/models/IIotaConfig.js";
-
-const ADDRESS_CHUNK_SIZE = 25;
-const TEST_SEED = Bip39.mnemonicToSeed(TEST_MNEMONIC);
-const TEST_SEED_BASE64 = Converter.bytesToBase64(TEST_SEED);
 
 let keyEntityStorage: MemoryEntityStorageConnector<VaultKey>;
 let secretEntityStorage: MemoryEntityStorageConnector<VaultSecret>;
@@ -128,228 +125,6 @@ describe("Iota", () => {
 		});
 	});
 
-	describe("storeMnemonic", () => {
-		test("stores the mnemonic in the secret store", async () => {
-			const vault = createVault();
-			await Iota.storeMnemonic(vault, TEST_CONFIG, TEST_IDENTITY, TEST_MNEMONIC, 0);
-
-			const secrets = await secretEntityStorage.getStore();
-			const mnemonicEntry = secrets.find(s => s.id === `${TEST_IDENTITY}/mnemonic`);
-			expect(mnemonicEntry).toBeDefined();
-			expect(mnemonicEntry?.data).toBe(TEST_MNEMONIC);
-		});
-
-		test("stores the derived seed in the secret store", async () => {
-			const vault = createVault();
-			await Iota.storeMnemonic(vault, TEST_CONFIG, TEST_IDENTITY, TEST_MNEMONIC, 0);
-
-			const secrets = await secretEntityStorage.getStore();
-			const seedEntry = secrets.find(s => s.id === `${TEST_IDENTITY}/seed`);
-			expect(seedEntry).toBeDefined();
-			expect(seedEntry?.data).toBe(TEST_SEED_BASE64);
-		});
-
-		test("pre-caches the first keypair range as individual vault keys", async () => {
-			const vault = createVault();
-			await Iota.storeMnemonic(vault, TEST_CONFIG, TEST_IDENTITY, TEST_MNEMONIC, 0);
-
-			const keys = await keyEntityStorage.getStore();
-			for (let i = 0; i < ADDRESS_CHUNK_SIZE; i++) {
-				const key = keys.find(k => k.id === `${TEST_IDENTITY}/account/0/0/${i}`);
-				expect(key).toBeDefined();
-			}
-		});
-
-		test("enables getAddresses to work after storage", async () => {
-			const vault = createVault();
-			await Iota.storeMnemonic(vault, TEST_CONFIG, TEST_IDENTITY, TEST_MNEMONIC, 0);
-
-			const addresses = await Iota.getAddresses(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0, 1);
-			expect(addresses).toHaveLength(1);
-			expect(addresses[0]).toBeDefined();
-		});
-
-		test("produces the same addresses as a pre-populated vault", async () => {
-			const storedVault = createVault();
-			await Iota.storeMnemonic(storedVault, TEST_CONFIG, TEST_IDENTITY, TEST_MNEMONIC, 0);
-			const addresses1 = await Iota.getAddresses(storedVault, TEST_CONFIG, TEST_IDENTITY, 0, 0, 5);
-
-			const prePopulatedVault = await vaultWithMnemonic();
-			const addresses2 = await Iota.getAddresses(
-				prePopulatedVault,
-				TEST_CONFIG,
-				TEST_IDENTITY,
-				0,
-				0,
-				5
-			);
-			expect(addresses1).toEqual(addresses2);
-		});
-
-		test("returns the mnemonic that was stored", async () => {
-			const vault = createVault();
-			const returned = await Iota.storeMnemonic(
-				vault,
-				TEST_CONFIG,
-				TEST_IDENTITY,
-				TEST_MNEMONIC,
-				0
-			);
-			expect(returned).toBe(TEST_MNEMONIC);
-		});
-
-		test("generates a new mnemonic when undefined is passed", async () => {
-			const vault = createVault();
-			const generated = await Iota.storeMnemonic(vault, TEST_CONFIG, TEST_IDENTITY, undefined, 0);
-			expect(typeof generated).toBe("string");
-			expect(generated.split(" ").length).toBeGreaterThanOrEqual(12);
-
-			const secrets = await secretEntityStorage.getStore();
-			const mnemonicEntry = secrets.find(s => s.id === `${TEST_IDENTITY}/mnemonic`);
-			expect(mnemonicEntry?.data).toBe(generated);
-		});
-
-		test("throws for null vaultConnector", async () => {
-			await expect(
-				Iota.storeMnemonic(
-					null as unknown as IVaultConnector,
-					TEST_CONFIG,
-					TEST_IDENTITY,
-					TEST_MNEMONIC,
-					0
-				)
-			).rejects.toThrow(
-				expect.objectContaining({
-					name: "GuardError",
-					message: "guard.object",
-					source: "Iota",
-					properties: { property: "vaultConnector", value: null }
-				})
-			);
-		});
-
-		test("throws for invalid accountIndex", async () => {
-			const vault = createVault();
-			await expect(
-				Iota.storeMnemonic(vault, TEST_CONFIG, TEST_IDENTITY, TEST_MNEMONIC, Number.NaN)
-			).rejects.toThrow(
-				expect.objectContaining({
-					name: "GuardError",
-					message: "guard.integer",
-					source: "Iota",
-					properties: { property: "accountIndex", value: Number.NaN, options: undefined }
-				})
-			);
-		});
-	});
-
-	describe("getAddresses", () => {
-		test("can get addresses", async () => {
-			const vault = await vaultWithMnemonic();
-
-			const addresses = await Iota.getAddresses(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0, 1, false);
-			expect(addresses).toHaveLength(1);
-			expect(addresses[0]).toBeDefined();
-		});
-
-		test("generates multiple addresses with count parameter", async () => {
-			const vault = await vaultWithMnemonic();
-
-			const count = 3;
-			const addresses = await Iota.getAddresses(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0, count);
-			expect(addresses).toHaveLength(count);
-			expect(new Set(addresses).size).toBe(count);
-		});
-
-		test("generates different addresses for different account indices", async () => {
-			const vault = await vaultWithMnemonic();
-
-			const address1 = (await Iota.getAddresses(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0, 1))[0];
-			const address2 = (await Iota.getAddresses(vault, TEST_CONFIG, TEST_IDENTITY, 1, 0, 1))[0];
-			expect(address1).not.toBe(address2);
-		});
-
-		test("generates different addresses for different address indices", async () => {
-			const vault = await vaultWithMnemonic();
-
-			const address1 = (await Iota.getAddresses(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0, 1))[0];
-			const address2 = (await Iota.getAddresses(vault, TEST_CONFIG, TEST_IDENTITY, 0, 1, 1))[0];
-			expect(address1).not.toBe(address2);
-		});
-
-		test("generates different addresses for internal vs external", async () => {
-			const vault = await vaultWithMnemonic();
-
-			const external = (
-				await Iota.getAddresses(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0, 1, false)
-			)[0];
-			const internal = (
-				await Iota.getAddresses(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0, 1, true)
-			)[0];
-			expect(external).not.toBe(internal);
-		});
-
-		test("generates consistent addresses for same parameters", async () => {
-			const vault = await vaultWithMnemonic();
-
-			const addresses1 = await Iota.getAddresses(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0, 2);
-			const addresses2 = await Iota.getAddresses(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0, 2);
-			expect(addresses1).toEqual(addresses2);
-		});
-
-		test("caches keypairs as individual vault keys", async () => {
-			const vault = await vaultWithMnemonic();
-			await Iota.getAddresses(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0, 1);
-
-			const keys = await keyEntityStorage.getStore();
-			for (let i = 0; i < ADDRESS_CHUNK_SIZE; i++) {
-				const key = keys.find(k => k.id === `${TEST_IDENTITY}/account/0/0/${i}`);
-				expect(key).toBeDefined();
-			}
-		});
-
-		test("throws for null vaultConnector", async () => {
-			await expect(
-				Iota.getAddresses(null as unknown as IVaultConnector, TEST_CONFIG, TEST_IDENTITY, 0, 0, 1)
-			).rejects.toThrow(
-				expect.objectContaining({
-					name: "GuardError",
-					message: "guard.object",
-					source: "Iota",
-					properties: { property: "vaultConnector", value: null }
-				})
-			);
-		});
-
-		test("throws for invalid startAddressIndex", async () => {
-			const vault = await vaultWithMnemonic();
-			await expect(
-				Iota.getAddresses(vault, TEST_CONFIG, TEST_IDENTITY, 0, Number.NaN, 1)
-			).rejects.toThrow(
-				expect.objectContaining({
-					name: "GuardError",
-					message: "guard.integer",
-					source: "Iota",
-					properties: { property: "startAddressIndex", value: Number.NaN, options: undefined }
-				})
-			);
-		});
-
-		test("throws for invalid count", async () => {
-			const vault = await vaultWithMnemonic();
-			await expect(
-				Iota.getAddresses(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0, Number.NaN)
-			).rejects.toThrow(
-				expect.objectContaining({
-					name: "GuardError",
-					message: "guard.integer",
-					source: "Iota",
-					properties: { property: "count", value: Number.NaN, options: undefined }
-				})
-			);
-		});
-	});
-
 	describe("getTransactionSigner", () => {
 		test("returns an object with the expected interface", async () => {
 			const vault = await vaultWithMnemonic();
@@ -390,10 +165,17 @@ describe("Iota", () => {
 
 		test("address derived from signer public key matches getAddresses output", async () => {
 			const vault = await vaultWithMnemonic();
-			const [expectedAddress] = await Iota.getAddresses(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0, 1);
+			const [expectedAddress] = await AccountHelper.getAddresses(
+				TEST_CONFIG,
+				vault,
+				TEST_IDENTITY,
+				0,
+				0,
+				1
+			);
 			const signer = await Iota.getTransactionSigner(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0);
 			const pk = await signer.publicKey();
-			expect(Iota.publicKeyToAddress(pk.toRawBytes())).toBe(expectedAddress);
+			expect(AccountHelper.publicKeyToAddress(pk.toRawBytes())).toBe(expectedAddress);
 		});
 
 		test("different address indices produce different public keys", async () => {
@@ -942,9 +724,9 @@ describe("Iota", () => {
 		test.skip("funds the test address to at least 1 IOTA via the real faucet", async () => {
 			const vault = await vaultWithMnemonic();
 			const addressIndex = Math.floor(Math.random() * 1000);
-			const [address] = await Iota.getAddresses(
-				vault,
+			const [address] = await AccountHelper.getAddresses(
 				TEST_CONFIG,
+				vault,
 				TEST_IDENTITY,
 				0,
 				addressIndex,
@@ -981,9 +763,16 @@ describe("Iota", () => {
 		// asserted. Detection and retry internals are guarded by the network-free unit tests above.
 		test("each concurrent transaction succeeds or returns the clear reservation error", async () => {
 			const vault = createVault();
-			await Iota.storeMnemonic(vault, TEST_CONFIG, TEST_IDENTITY, TEST_MNEMONIC, 0);
+			await AccountHelper.createAccountKeys(TEST_CONFIG, vault, TEST_IDENTITY, TEST_MNEMONIC, 0);
 			const client = Iota.createClient(TEST_CONFIG);
-			const [address] = await Iota.getAddresses(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0, 1);
+			const [address] = await AccountHelper.getAddresses(
+				TEST_CONFIG,
+				vault,
+				TEST_IDENTITY,
+				0,
+				0,
+				1
+			);
 
 			// Pick the smallest coin that can still pay gas; best effort split one off first when
 			// only the primary coin qualifies, so the primary stays out of the blast radius.
@@ -1114,6 +903,100 @@ describe("Iota", () => {
 			const wrapped = Iota.wrapGasStationError(new Error("boom"));
 			expect(wrapped.name).toBe("GeneralError");
 			expect(wrapped.message).toBe("iota.gasStationTransactionFailed");
+		});
+
+		describe("checkGasStationConnectivity", () => {
+			afterEach(() => {
+				vi.restoreAllMocks();
+			});
+
+			test("throws when gas station is not configured", async () => {
+				await expect(Iota.checkGasStationConnectivity(TEST_CONFIG)).rejects.toEqual(
+					expect.objectContaining({
+						name: "GuardError",
+						message: "guard.objectUndefined"
+					})
+				);
+			});
+
+			test("throws when gas station url is empty", async () => {
+				await expect(
+					Iota.checkGasStationConnectivity({
+						...TEST_CONFIG,
+						gasStation: { gasStationUrl: "", gasStationAuthToken: "token" }
+					})
+				).rejects.toEqual(
+					expect.objectContaining({
+						name: "GuardError",
+						message: "guard.stringEmpty"
+					})
+				);
+			});
+
+			test("returns true when the gas station responds with OK", async () => {
+				vi.spyOn(FetchHelper, "fetch").mockResolvedValue(new Response("OK", { status: 200 }));
+
+				const result = await Iota.checkGasStationConnectivity({
+					...TEST_CONFIG,
+					gasStation: GAS_STATION
+				});
+				expect(result).toBe(true);
+			});
+
+			test("returns false when the response body is not OK", async () => {
+				vi.spyOn(FetchHelper, "fetch").mockResolvedValue(
+					new Response("Service Unavailable", { status: 200 })
+				);
+
+				const result = await Iota.checkGasStationConnectivity({
+					...TEST_CONFIG,
+					gasStation: GAS_STATION
+				});
+				expect(result).toBe(false);
+			});
+
+			test("returns false when the response status is not ok", async () => {
+				vi.spyOn(FetchHelper, "fetch").mockResolvedValue(new Response("OK", { status: 500 }));
+
+				const result = await Iota.checkGasStationConnectivity({
+					...TEST_CONFIG,
+					gasStation: GAS_STATION
+				});
+				expect(result).toBe(false);
+			});
+
+			test("returns false when fetch throws", async () => {
+				vi.spyOn(FetchHelper, "fetch").mockRejectedValue(new Error("ECONNREFUSED"));
+
+				const result = await Iota.checkGasStationConnectivity({
+					...TEST_CONFIG,
+					gasStation: GAS_STATION
+				});
+				expect(result).toBe(false);
+			});
+
+			test("strips trailing slashes from the url before fetching", async () => {
+				const fetchSpy = vi
+					.spyOn(FetchHelper, "fetch")
+					.mockResolvedValue(new Response("OK", { status: 200 }));
+
+				await Iota.checkGasStationConnectivity({
+					...TEST_CONFIG,
+					gasStation: { gasStationUrl: "http://localhost:9527/", gasStationAuthToken: "token" }
+				});
+				expect(fetchSpy).toHaveBeenCalledWith("Iota", "http://localhost:9527", "GET");
+			});
+		});
+
+		describe("checkGasStationIsWorking", () => {
+			test("throws when gas station is not configured", async () => {
+				await expect(Iota.checkGasStationIsWorking(TEST_CONFIG)).rejects.toEqual(
+					expect.objectContaining({
+						name: "GuardError",
+						message: "guard.objectUndefined"
+					})
+				);
+			});
 		});
 	});
 });

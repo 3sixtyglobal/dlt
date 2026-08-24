@@ -58,7 +58,7 @@ describe("Build Upgrade Chain Preservation", () => {
 			};
 			await writeFile(TEST_UPGRADE_CHAIN_JSON, JSON.stringify(initialState, null, "\t"));
 
-			// Build the contract — bytecode will differ from the fake packageId, triggering upgrade chain logic
+			// Build the contract - bytecode will differ from the fake packageId, triggering upgrade chain logic
 			await runBuild();
 
 			const result = await loadJson(TEST_UPGRADE_CHAIN_JSON);
@@ -96,7 +96,7 @@ describe("Build Upgrade Chain Preservation", () => {
 			};
 			await writeFile(TEST_UPGRADE_CHAIN_JSON, JSON.stringify(postUpgradeState, null, "\t"));
 
-			// Build the contract — bytecode will differ, triggering upgrade chain logic
+			// Build the contract - bytecode will differ, triggering upgrade chain logic
 			await runBuild();
 
 			const result = await loadJson(TEST_UPGRADE_CHAIN_JSON);
@@ -149,7 +149,7 @@ describe("Build Upgrade Chain Preservation", () => {
 			};
 			await writeFile(TEST_UPGRADE_CHAIN_JSON, JSON.stringify(deployedState, null, "\t"));
 
-			// Build again with same source — no bytecode change
+			// Build again with same source - no bytecode change
 			await runBuild();
 
 			const result = await loadJson(TEST_UPGRADE_CHAIN_JSON);

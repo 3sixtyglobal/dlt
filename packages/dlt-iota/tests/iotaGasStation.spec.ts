@@ -3,6 +3,7 @@
 import { Transaction } from "@iota/iota-sdk/transactions";
 import { BaseError } from "@twin.org/core";
 import { Bip39, Bip44, KeyType } from "@twin.org/crypto";
+import { AccountHelper } from "@twin.org/dlt-account";
 import { MemoryEntityStorageConnector } from "@twin.org/entity-storage-connector-memory";
 import { EntityStorageConnectorFactory } from "@twin.org/entity-storage-models";
 import { nameof } from "@twin.org/nameof";
@@ -59,19 +60,20 @@ describe("Iota Gas Station Integration", () => {
 
 		vaultConnector = new EntityStorageVaultConnector();
 		await vaultConnector.setSecret(
-			`${TEST_IDENTITY}/${Iota.DEFAULT_MNEMONIC_SECRET_NAME}`,
+			`${TEST_IDENTITY}/${AccountHelper.DEFAULT_MNEMONIC_SECRET_NAME}`,
 			TEST_MNEMONIC
 		);
 
-		const userAddress = await Iota.getAddress(
-			vaultConnector,
+		const [userAddress] = await AccountHelper.getAddresses(
 			gasStationConfig,
+			vaultConnector,
 			TEST_IDENTITY,
 			0,
-			0
+			0,
+			1
 		);
 		const seed = Bip39.mnemonicToSeed(TEST_MNEMONIC);
-		const kp = Bip44.keyPair(seed, KeyType.Ed25519, Iota.DEFAULT_COIN_TYPE, 0, false, 0);
+		const kp = Bip44.keyPair(seed, KeyType.Ed25519, AccountHelper.DEFAULT_COIN_TYPE, 0, false, 0);
 		testSignerKeyName = `${TEST_IDENTITY}/key/${userAddress}`;
 		testSignerPublicKey = kp.publicKey;
 		await vaultConnector.addKey(
@@ -143,12 +145,13 @@ describe("Iota Gas Station Integration", () => {
 		test("Should execute transaction via gas station and examine response format", async () => {
 			const client = Iota.createClient(gasStationConfig);
 
-			const userAddress = await Iota.getAddress(
-				vaultConnector,
+			const [userAddress] = await AccountHelper.getAddresses(
 				gasStationConfig,
+				vaultConnector,
 				TEST_IDENTITY,
 				0,
 				0,
+				1,
 				false
 			);
 
@@ -183,12 +186,13 @@ describe("Iota Gas Station Integration", () => {
 		test("Should execute pre-built transaction via gas station with confirmation", async () => {
 			const client = Iota.createClient(gasStationConfig);
 
-			const userAddress = await Iota.getAddress(
-				vaultConnector,
+			const [userAddress] = await AccountHelper.getAddresses(
 				gasStationConfig,
+				vaultConnector,
 				TEST_IDENTITY,
 				0,
-				0
+				0,
+				1
 			);
 
 			const gasReservation = await Iota.reserveGas(gasStationConfig);
@@ -226,14 +230,21 @@ describe("Iota Gas Station Integration", () => {
 		test("Should post a transaction through prepareAndPostGasStationTransaction", async () => {
 			// Drives the full sponsored path (reserve, rebuild, sign, execute) wrapped in the
 			// object-reservation retry.
-			await Iota.storeMnemonic(vaultConnector, gasStationConfig, TEST_IDENTITY, TEST_MNEMONIC, 0);
-			const client = Iota.createClient(gasStationConfig);
-			const userAddress = await Iota.getAddress(
-				vaultConnector,
+			await AccountHelper.createAccountKeys(
 				gasStationConfig,
+				vaultConnector,
+				TEST_IDENTITY,
+				TEST_MNEMONIC,
+				0
+			);
+			const client = Iota.createClient(gasStationConfig);
+			const [userAddress] = await AccountHelper.getAddresses(
+				gasStationConfig,
+				vaultConnector,
 				TEST_IDENTITY,
 				0,
-				0
+				0,
+				1
 			);
 
 			const tx = new Transaction();
@@ -263,14 +274,21 @@ describe("Iota Gas Station Integration", () => {
 			// non-retryable equivocation case; never the opaque gasStationTransactionFailed for a
 			// conflict. Success is NOT guaranteed under genuine contention (validator locks can
 			// split so no transaction reaches quorum), so no minimum success count is asserted.
-			await Iota.storeMnemonic(vaultConnector, gasStationConfig, TEST_IDENTITY, TEST_MNEMONIC, 0);
-			const client = Iota.createClient(gasStationConfig);
-			const userAddress = await Iota.getAddress(
-				vaultConnector,
+			await AccountHelper.createAccountKeys(
 				gasStationConfig,
+				vaultConnector,
+				TEST_IDENTITY,
+				TEST_MNEMONIC,
+				0
+			);
+			const client = Iota.createClient(gasStationConfig);
+			const [userAddress] = await AccountHelper.getAddresses(
+				gasStationConfig,
+				vaultConnector,
 				TEST_IDENTITY,
 				0,
-				0
+				0,
+				1
 			);
 
 			// Contend on the SMALLEST coin: heavy contention can leave validator locks on the coin
@@ -334,6 +352,15 @@ describe("Iota Gas Station Integration", () => {
 					expect(isClearConflict || isEquivocated).toBe(true);
 				}
 			}
+		});
+
+		test("Should report connectivity to a running gas station", async () => {
+			const isHealthy = await Iota.checkGasStationConnectivity(gasStationConfig);
+			expect(isHealthy).toBe(true);
+		});
+
+		test("Should complete a gas station health check via sponsored transaction", async () => {
+			await expect(Iota.checkGasStationIsWorking(gasStationConfig)).resolves.toBeUndefined();
 		});
 	});
 });

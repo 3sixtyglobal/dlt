@@ -1,7 +1,7 @@
 # Class: VaultJwtSigner
 
 Factory that creates a vault-backed StorageSigner for IOTA Identity operations.
-The private key never leaves the vault — only the raw signing operation is delegated.
+The private key never leaves the vault - only the raw signing operation is delegated.
 
 The returned StorageSigner is a genuine WASM object, satisfying the internal validation
 that IdentityClient.create() performs on the signer's iotaPublicKeyBytes() path.

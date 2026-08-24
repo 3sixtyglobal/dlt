@@ -4,6 +4,7 @@ import { bcs } from "@iota/bcs";
 import type { IotaClient } from "@iota/iota-sdk/client";
 import { Transaction } from "@iota/iota-sdk/transactions";
 import { GeneralError, Is, StringHelper } from "@twin.org/core";
+import { AccountHelper } from "@twin.org/dlt-account";
 import type { ILoggingComponent } from "@twin.org/logging-models";
 import { nameof } from "@twin.org/nameof";
 import type { IVaultConnector } from "@twin.org/vault-models";
@@ -59,12 +60,13 @@ export class IotaSmartContractUtils {
 			const moduleName = IotaSmartContractUtils.getModuleName(namespace);
 
 			// Get admin address for the transaction
-			const adminAddress = await IotaSmartContractUtils.getPackageControllerAddress(
-				vaultConnector,
+			const [adminAddress] = await AccountHelper.getAddresses(
 				config,
+				vaultConnector,
 				identity,
-				accountAddressIndex,
-				walletAddressIndex
+				accountAddressIndex ?? 0,
+				walletAddressIndex ?? 0,
+				1
 			);
 
 			// Get the required object IDs from deployment config
@@ -146,12 +148,13 @@ export class IotaSmartContractUtils {
 			const moduleName = IotaSmartContractUtils.getModuleName(namespace);
 
 			// Get admin address for the transaction
-			const adminAddress = await IotaSmartContractUtils.getPackageControllerAddress(
-				vaultConnector,
+			const [adminAddress] = await AccountHelper.getAddresses(
 				config,
+				vaultConnector,
 				identity,
-				accountAddressIndex,
-				walletAddressIndex
+				accountAddressIndex ?? 0,
+				walletAddressIndex ?? 0,
+				1
 			);
 
 			// Get the required object IDs from deployment config
@@ -232,12 +235,13 @@ export class IotaSmartContractUtils {
 			const moduleName = IotaSmartContractUtils.getModuleName(namespace);
 
 			// Get admin address for the transaction
-			const adminAddress = await IotaSmartContractUtils.getPackageControllerAddress(
-				vaultConnector,
+			const [adminAddress] = await AccountHelper.getAddresses(
 				config,
+				vaultConnector,
 				identity,
-				accountAddressIndex,
-				walletAddressIndex
+				accountAddressIndex ?? 0,
+				walletAddressIndex ?? 0,
+				1
 			);
 
 			// Get the required object IDs from deployment config
@@ -309,12 +313,13 @@ export class IotaSmartContractUtils {
 	): Promise<boolean> {
 		try {
 			// Get admin address for discovery
-			const adminAddress = await IotaSmartContractUtils.getPackageControllerAddress(
-				vaultConnector,
+			const [adminAddress] = await AccountHelper.getAddresses(
 				config,
+				vaultConnector,
 				identity,
-				accountAddressIndex,
-				walletAddressIndex
+				accountAddressIndex ?? 0,
+				walletAddressIndex ?? 0,
+				1
 			);
 
 			// Get the migration state ID
@@ -389,12 +394,13 @@ export class IotaSmartContractUtils {
 				arguments: []
 			});
 
-			const controllerAddress = await IotaSmartContractUtils.getPackageControllerAddress(
-				vaultConnector,
+			const [controllerAddress] = await AccountHelper.getAddresses(
 				config,
+				vaultConnector,
 				identity,
-				accountAddressIndex,
-				walletAddressIndex
+				accountAddressIndex ?? 0,
+				walletAddressIndex ?? 0,
+				1
 			);
 
 			const result = await client.devInspectTransactionBlock({
@@ -522,33 +528,6 @@ export class IotaSmartContractUtils {
 	private static getModuleName(namespace: string): string {
 		// Convert namespace to snake_case for module name
 		return StringHelper.snakeCase(namespace);
-	}
-
-	/**
-	 * Get the package controller address for transactions.
-	 * @param vaultConnector The vault connector to use.
-	 * @param config The IOTA configuration.
-	 * @param identity The identity to use.
-	 * @param accountAddressIndex Optional account address index to use.
-	 * @param walletAddressIndex Optional address index to use.
-	 * @returns The controller address.
-	 * @internal
-	 */
-	private static async getPackageControllerAddress(
-		vaultConnector: IVaultConnector,
-		config: IIotaConfig,
-		identity: string,
-		accountAddressIndex?: number,
-		walletAddressIndex?: number
-	): Promise<string> {
-		const address = await Iota.getAddress(
-			vaultConnector,
-			config,
-			identity,
-			accountAddressIndex ?? 0,
-			walletAddressIndex ?? 0
-		);
-		return address;
 	}
 
 	/**

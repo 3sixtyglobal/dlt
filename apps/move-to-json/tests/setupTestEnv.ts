@@ -6,6 +6,7 @@ import { promisify } from "node:util";
 import type { IotaClientOptions } from "@iota/iota-sdk/client";
 import { Guards } from "@twin.org/core";
 import { Bip39 } from "@twin.org/crypto";
+import { AccountHelper } from "@twin.org/dlt-account";
 import { Iota, type IIotaConfig } from "@twin.org/dlt-iota";
 import { MemoryEntityStorageConnector } from "@twin.org/entity-storage-connector-memory";
 import { EntityStorageConnectorFactory } from "@twin.org/entity-storage-models";
@@ -116,9 +117,9 @@ export const TEST_IOTA_CONFIG: IIotaConfig = {
 	coinType: TEST_COIN_TYPE
 };
 
-const deployerAddresses = await Iota.getAddresses(
-	TEST_VAULT_CONNECTOR,
+const deployerAddresses = await AccountHelper.getAddresses(
 	TEST_IOTA_CONFIG,
+	TEST_VAULT_CONNECTOR,
 	TEST_DEPLOYER_IDENTITY,
 	0,
 	0,

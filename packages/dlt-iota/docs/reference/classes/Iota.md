@@ -14,30 +14,6 @@ Class for performing operations on IOTA.
 
 ## Properties
 
-### DEFAULT\_MNEMONIC\_SECRET\_NAME {#default_mnemonic_secret_name}
-
-> `readonly` `static` **DEFAULT\_MNEMONIC\_SECRET\_NAME**: `string` = `"mnemonic"`
-
-Default name for the mnemonic secret.
-
-***
-
-### DEFAULT\_SEED\_SECRET\_NAME {#default_seed_secret_name}
-
-> `readonly` `static` **DEFAULT\_SEED\_SECRET\_NAME**: `string` = `"seed"`
-
-Default name for the seed secret.
-
-***
-
-### DEFAULT\_COIN\_TYPE {#default_coin_type}
-
-> `readonly` `static` **DEFAULT\_COIN\_TYPE**: `number` = `4218`
-
-Default coin type.
-
-***
-
 ### CLASS\_NAME {#class_name}
 
 > `readonly` `static` **CLASS\_NAME**: `string`
@@ -85,184 +61,6 @@ The configuration to populate.
 #### Returns
 
 `void`
-
-***
-
-### storeMnemonic() {#storemnemonic}
-
-> `static` **storeMnemonic**(`vaultConnector`, `config`, `identity`, `mnemonic`, `accountIndex`): `Promise`\<`string`\>
-
-Store a mnemonic in the vault, derive and store the seed, and pre-cache the first keypair chunk.
-
-#### Parameters
-
-##### vaultConnector
-
-`IVaultConnector`
-
-The vault connector.
-
-##### config
-
-[`IIotaConfig`](../interfaces/IIotaConfig.md)
-
-The configuration.
-
-##### identity
-
-`string`
-
-The identity of the user to access the vault keys.
-
-##### mnemonic
-
-`string` \| `undefined`
-
-The mnemonic to store, if undefined a new one will be generated and returned.
-
-##### accountIndex
-
-`number`
-
-The account index to pre-cache.
-
-#### Returns
-
-`Promise`\<`string`\>
-
-The mnemonic that was stored.
-
-***
-
-### publicKeyToAddress() {#publickeytoaddress}
-
-> `static` **publicKeyToAddress**(`publicKey`): `string`
-
-Derive an address from a public key.
-
-#### Parameters
-
-##### publicKey
-
-`Uint8Array`
-
-The public key to derive the address from.
-
-#### Returns
-
-`string`
-
-The derived address.
-
-***
-
-### getAddress() {#getaddress}
-
-> `static` **getAddress**(`vaultConnector`, `config`, `identity`, `accountIndex`, `startAddressIndex`, `isInternal?`): `Promise`\<`string`\>
-
-Get address for the identity.
-
-#### Parameters
-
-##### vaultConnector
-
-`IVaultConnector`
-
-The vault connector.
-
-##### config
-
-`Pick`\<[`IIotaConfig`](../interfaces/IIotaConfig.md), `"coinType"` \| `"vaultMnemonicId"` \| `"vaultSeedId"`\>
-
-The configuration.
-
-##### identity
-
-`string`
-
-The identity of the user to access the vault keys.
-
-##### accountIndex
-
-`number`
-
-The account index to get the addresses for.
-
-##### startAddressIndex
-
-`number`
-
-The start index for the addresses.
-
-##### isInternal?
-
-`boolean`
-
-Whether the addresses are internal.
-
-#### Returns
-
-`Promise`\<`string`\>
-
-The address.
-
-***
-
-### getAddresses() {#getaddresses}
-
-> `static` **getAddresses**(`vaultConnector`, `config`, `identity`, `accountIndex`, `startAddressIndex`, `count`, `isInternal?`): `Promise`\<`string`[]\>
-
-Get addresses for the identity.
-
-#### Parameters
-
-##### vaultConnector
-
-`IVaultConnector`
-
-The vault connector.
-
-##### config
-
-`Pick`\<[`IIotaConfig`](../interfaces/IIotaConfig.md), `"coinType"` \| `"vaultMnemonicId"` \| `"vaultSeedId"`\>
-
-The configuration.
-
-##### identity
-
-`string`
-
-The identity of the user to access the vault keys.
-
-##### accountIndex
-
-`number`
-
-The account index to get the addresses for.
-
-##### startAddressIndex
-
-`number`
-
-The start index for the addresses.
-
-##### count
-
-`number`
-
-The number of addresses to generate.
-
-##### isInternal?
-
-`boolean`
-
-Whether the addresses are internal.
-
-#### Returns
-
-`Promise`\<`string`[]\>
-
-The list of addresses.
 
 ***
 
@@ -857,6 +655,52 @@ The configuration to check.
 `boolean`
 
 True if both the gas station url and auth token are set.
+
+***
+
+### checkGasStationConnectivity() {#checkgasstationconnectivity}
+
+> `static` **checkGasStationConnectivity**(`config`): `Promise`\<`boolean`\>
+
+Check whether the gas station HTTP endpoint is reachable and responding.
+
+#### Parameters
+
+##### config
+
+[`IIotaConfig`](../interfaces/IIotaConfig.md)
+
+The configuration containing gas station settings.
+
+#### Returns
+
+`Promise`\<`boolean`\>
+
+True if the gas station responds with "OK", false otherwise.
+
+***
+
+### checkGasStationIsWorking() {#checkgasstationisworking}
+
+> `static` **checkGasStationIsWorking**(`config`): `Promise`\<`void`\>
+
+Verify the gas station is fully operational by executing a sponsored transaction
+end-to-end (reserve gas → sign → execute → confirm).
+
+A read-only Move clock call is used as the test payload so that no objects are created
+and no on-chain state is left behind.
+
+#### Parameters
+
+##### config
+
+[`IIotaConfig`](../interfaces/IIotaConfig.md)
+
+The configuration containing gas station settings and client options.
+
+#### Returns
+
+`Promise`\<`void`\>
 
 ***
 

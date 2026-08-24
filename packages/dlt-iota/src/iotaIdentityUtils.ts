@@ -47,7 +47,7 @@ export class IotaIdentityUtils {
 		Guards.stringValue(IotaIdentityUtils.CLASS_NAME, nameof(controllerAddress), controllerAddress);
 		Guards.object(IotaIdentityUtils.CLASS_NAME, nameof(client), client);
 
-		// Extract the Object ID from the DID — last colon-delimited segment.
+		// Extract the Object ID from the DID - last colon-delimited segment.
 		// On-chain DIDs include the 0x prefix in the segment; the check avoids double-prefixing.
 		const idParts = identityId.split(":");
 		const lastSegment = idParts[idParts.length - 1];
@@ -65,7 +65,7 @@ export class IotaIdentityUtils {
 			);
 
 			// getControllerTokenForAddress requires IdentityClient even though the operation
-			// is read-only — the signer is never called, only the embedded read-only client.
+			// is read-only - the signer is never called, only the embedded read-only client.
 			// StorageSigner is used (rather than a plain object satisfying TransactionSigner
 			// structurally) because IdentityClient.create() validates iotaPublicKeyBytes()
 			// through an internal WASM code path that only accepts bytes from the library's

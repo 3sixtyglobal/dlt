@@ -3,6 +3,7 @@
 import path from "node:path";
 import { requestIotaFromFaucetV0 } from "@iota/iota-sdk/faucet";
 import { Guards, Is } from "@twin.org/core";
+import { AccountHelper } from "@twin.org/dlt-account";
 import dotenv from "dotenv";
 import { Iota } from "../src/iota.js";
 
@@ -22,7 +23,7 @@ export const TEST_CLIENT_OPTIONS = {
 	url: process.env.TEST_NODE_ENDPOINT ?? ""
 };
 
-export const TEST_COIN_TYPE = Iota.DEFAULT_COIN_TYPE;
+export const TEST_COIN_TYPE = AccountHelper.DEFAULT_COIN_TYPE;
 export const TEST_NETWORK = process.env.TEST_NETWORK;
 
 // Test data constants

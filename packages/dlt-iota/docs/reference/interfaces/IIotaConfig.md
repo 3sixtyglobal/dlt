@@ -2,7 +2,59 @@
 
 Configuration for IOTA.
 
+## Extends
+
+- `IAccountConfig`
+
 ## Properties
+
+### vaultSeedId? {#vaultseedid}
+
+> `optional` **vaultSeedId?**: `string`
+
+The ID of the vault seed.
+
+#### Inherited from
+
+`IAccountConfig.vaultSeedId`
+
+***
+
+### vaultMnemonicId? {#vaultmnemonicid}
+
+> `optional` **vaultMnemonicId?**: `string`
+
+The ID of the vault mnemonic.
+
+#### Inherited from
+
+`IAccountConfig.vaultMnemonicId`
+
+***
+
+### coinType? {#cointype}
+
+> `optional` **coinType?**: `number`
+
+The coin type.
+
+#### Inherited from
+
+`IAccountConfig.coinType`
+
+***
+
+### maxAddressScanRange? {#maxaddressscanrange}
+
+> `optional` **maxAddressScanRange?**: `number`
+
+The maximum number of addresses to scan for the account.
+
+#### Inherited from
+
+`IAccountConfig.maxAddressScanRange`
+
+***
 
 ### clientOptions {#clientoptions}
 
@@ -17,62 +69,6 @@ The configuration for the client.
 > **network**: `string`
 
 The network the operations are being performed on.
-
-***
-
-### vaultMnemonicId? {#vaultmnemonicid}
-
-> `optional` **vaultMnemonicId?**: `string`
-
-The id of the entry in the vault containing the mnemonic.
-
-#### Default
-
-```ts
-mnemonic
-```
-
-***
-
-### vaultSeedId? {#vaultseedid}
-
-> `optional` **vaultSeedId?**: `string`
-
-The id of the entry in the vault containing the seed.
-
-#### Default
-
-```ts
-seed
-```
-
-***
-
-### coinType? {#cointype}
-
-> `optional` **coinType?**: `number`
-
-The coin type.
-
-#### Default
-
-```ts
-IOTA 4218
-```
-
-***
-
-### maxAddressScanRange? {#maxaddressscanrange}
-
-> `optional` **maxAddressScanRange?**: `number`
-
-The maximum range to scan for addresses.
-
-#### Default
-
-```ts
-1000
-```
 
 ***
 

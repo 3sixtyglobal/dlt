@@ -1,5 +1,6 @@
 // Copyright 2026 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
+import { AccountHelper } from "@twin.org/dlt-account";
 import { MemoryEntityStorageConnector } from "@twin.org/entity-storage-connector-memory";
 import { EntityStorageConnectorFactory } from "@twin.org/entity-storage-models";
 import { nameof } from "@twin.org/nameof";
@@ -11,7 +12,6 @@ import {
 } from "@twin.org/vault-connector-entity-storage";
 import type { IVaultConnector } from "@twin.org/vault-models";
 import { TEST_CLIENT_OPTIONS, TEST_MNEMONIC, TEST_NETWORK } from "./setupTestEnv.js";
-import { Iota } from "../src/iota.js";
 import type { IIotaConfig } from "../src/models/IIotaConfig.js";
 import { VaultJwtSigner } from "../src/vaultJwtSigner.js";
 
@@ -92,10 +92,17 @@ describe("VaultJwtSigner", () => {
 
 		test("public key matches the address from getAddresses", async () => {
 			const vault = await vaultWithMnemonic();
-			const [expectedAddress] = await Iota.getAddresses(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0, 1);
+			const [expectedAddress] = await AccountHelper.getAddresses(
+				TEST_CONFIG,
+				vault,
+				TEST_IDENTITY,
+				0,
+				0,
+				1
+			);
 			const signer = await VaultJwtSigner.create(vault, TEST_CONFIG, TEST_IDENTITY, 0, 0);
 			const pk = await signer.publicKey();
-			expect(Iota.publicKeyToAddress(pk.toRawBytes())).toBe(expectedAddress);
+			expect(AccountHelper.publicKeyToAddress(pk.toRawBytes())).toBe(expectedAddress);
 		});
 
 		// StorageSigner.sign() requires valid BCS-encoded TransactionData, which needs a real

@@ -1,4 +1,5 @@
 {
+	"packages/dlt-account": "0.9.1",
 	"packages/dlt-iota": "0.9.1",
 	"apps/move-to-json": "0.9.1"
 }

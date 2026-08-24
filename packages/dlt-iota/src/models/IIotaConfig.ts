@@ -1,12 +1,13 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
 import type { IotaClientOptions } from "@iota/iota-sdk/client";
+import type { IAccountConfig } from "@twin.org/dlt-account";
 import type { IGasStationConfig } from "./IGasStationConfig.js";
 
 /**
  * Configuration for IOTA.
  */
-export interface IIotaConfig {
+export interface IIotaConfig extends IAccountConfig {
 	/**
 	 * The configuration for the client.
 	 */
@@ -16,30 +17,6 @@ export interface IIotaConfig {
 	 * The network the operations are being performed on.
 	 */
 	network: string;
-
-	/**
-	 * The id of the entry in the vault containing the mnemonic.
-	 * @default mnemonic
-	 */
-	vaultMnemonicId?: string;
-
-	/**
-	 * The id of the entry in the vault containing the seed.
-	 * @default seed
-	 */
-	vaultSeedId?: string;
-
-	/**
-	 * The coin type.
-	 * @default IOTA 4218
-	 */
-	coinType?: number;
-
-	/**
-	 * The maximum range to scan for addresses.
-	 * @default 1000
-	 */
-	maxAddressScanRange?: number;
 
 	/**
 	 * The length of time to wait for the inclusion of a transaction in seconds.

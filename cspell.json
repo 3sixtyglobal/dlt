@@ -39,6 +39,7 @@
 		"FLUSHALL",
 		"FLUSHDB",
 		"HKLM",
+		"hotfixes",
 		"iotaledger",
 		"keepalive",
 		"keytool",

@@ -8,6 +8,10 @@
 	"initial-version": "0.0.1",
 	"versioning": "default",
 	"packages": {
+		"packages/dlt-account": {
+			"package-name": "dlt-account",
+			"changelog-path": "docs/changelog.md"
+		},
 		"packages/dlt-iota": {
 			"package-name": "dlt-iota",
 			"changelog-path": "docs/changelog.md"
@@ -26,6 +30,7 @@
 			"type": "linked-versions",
 			"groupName": "repo",
 			"components": [
+				"dlt-account",
 				"dlt-iota",
 				"move-to-json"
 			]
