@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.10.0](https://github.com/iotaledger/twin-dlt/compare/dlt-iota-v0.10.0...dlt-iota-v0.10.0) (2026-09-16)
+
+
+### Features
+
+* adding gas station docker image config ([#24](https://github.com/iotaledger/twin-dlt/issues/24)) ([0663303](https://github.com/iotaledger/twin-dlt/commit/06633039598ccfe5b1cf0d72332327fc151dc5c9))
+* blend transaction methods ([#13](https://github.com/iotaledger/twin-dlt/issues/13)) ([763a93c](https://github.com/iotaledger/twin-dlt/commit/763a93cf30eaa3872ac56fa9cef512d58cdb0208))
+* gas station integration ([#17](https://github.com/iotaledger/twin-dlt/issues/17)) ([23c7c96](https://github.com/iotaledger/twin-dlt/commit/23c7c96858dd6a91d01306983080e1eb8860115a))
+* Get Key Pair method in the iota dlt ([#5](https://github.com/iotaledger/twin-dlt/issues/5)) ([3179854](https://github.com/iotaledger/twin-dlt/commit/31798540b9b8be68079ba1696b29a11c84c40fa5))
+* github action simplification and readme update ([#25](https://github.com/iotaledger/twin-dlt/issues/25)) ([b1a3988](https://github.com/iotaledger/twin-dlt/commit/b1a3988fd5e8b4bef31208a2da6d0d5fff13758d))
+* improve error handling ([179188d](https://github.com/iotaledger/twin-dlt/commit/179188dce9bbc6add5f537cb83e50cac817e5cf9))
+* improve prepareAndPostGasStationTransaction with options parameter ([#20](https://github.com/iotaledger/twin-dlt/issues/20)) ([778365d](https://github.com/iotaledger/twin-dlt/commit/778365d535965fb67583db93d9611bfbb944b64d))
+* rebased release ([8ce044b](https://github.com/iotaledger/twin-dlt/commit/8ce044b93a596415852b1f7b75c3e315fe2c6b6f))
+* release to production ([fe6a7f7](https://github.com/iotaledger/twin-dlt/commit/fe6a7f751138ea92ac22c70438261b0cea6fb238))
+* release to production ([#102](https://github.com/iotaledger/twin-dlt/issues/102)) ([81ca358](https://github.com/iotaledger/twin-dlt/commit/81ca358c5abb6700b774851f17f6a64ae573ddca))
+* release to production ([#111](https://github.com/iotaledger/twin-dlt/issues/111)) ([6a09aaf](https://github.com/iotaledger/twin-dlt/commit/6a09aafde39fcaa07e29f89b55e3dcc6b2d7687b))
+* release to production ([#82](https://github.com/iotaledger/twin-dlt/issues/82)) ([b628936](https://github.com/iotaledger/twin-dlt/commit/b62893622f0fe2d4a817297ebed39066f40c0bce))
+* release to production ([#86](https://github.com/iotaledger/twin-dlt/issues/86)) ([687e24b](https://github.com/iotaledger/twin-dlt/commit/687e24b0061231900f5e5ac8bb8b7ef2a2bdc830))
+* release to production [skip ci] ([#117](https://github.com/iotaledger/twin-dlt/issues/117)) ([e579d30](https://github.com/iotaledger/twin-dlt/commit/e579d30cdd701760a664cfc4c985c645b6d52b42))
+* update dependencies ([f7b71c2](https://github.com/iotaledger/twin-dlt/commit/f7b71c24274b71e2d37c26c4a7e5e6d9df1dc9b7))
+* use shared store mechanism ([#10](https://github.com/iotaledger/twin-dlt/issues/10)) ([ce36214](https://github.com/iotaledger/twin-dlt/commit/ce36214577f02cbb9642f831cb2c21335c31cc9a))
+
+
+### Bug Fixes
+
+* isAbortError static method ([2544c92](https://github.com/iotaledger/twin-dlt/commit/2544c926a5f0c4505e9f2c23d4380ced368f8470))
+
 ## [0.9.2](https://github.com/iotaledger/twin-dlt/compare/dlt-iota-v0.9.2...dlt-iota-v0.9.2) (2026-08-24)
 
 
