@@ -1,6 +1,6 @@
 {
 	"name": "@twin.org/dlt-iota",
-	"version": "0.9.3-next.0",
+	"version": "0.10.1-next.0",
 	"description": "IOTA distributed ledger utilities for clients, transactions, and contract operations.",
 	"repository": {
 		"type": "git",
@@ -33,7 +33,7 @@
 		"@iota/iota-sdk": "1.15.0",
 		"@twin.org/core": "next",
 		"@twin.org/crypto": "next",
-		"@twin.org/dlt-account": "0.9.3-next.0",
+		"@twin.org/dlt-account": "0.10.1-next.0",
 		"@twin.org/logging-models": "next",
 		"@twin.org/nameof": "next",
 		"@twin.org/vault-models": "next",
