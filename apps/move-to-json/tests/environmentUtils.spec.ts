@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import {
 	checkEnvironmentExists,
+	createEnvironment,
 	execAsyncWithTimeout,
 	verifyIotaCliInstalled,
 	ensureEnvironment,
@@ -128,6 +129,46 @@ describe("environmentUtils", () => {
 					expect(environments.find(env => env.alias === "testnet")?.grpc).toBe(
 						"https://grpc.testnet.iota.cafe:443"
 					);
+				},
+				60000
+			);
+		});
+
+		describe("with an existing environment missing the gRPC url", () => {
+			let configDir: string;
+			let originalConfigDir: string | undefined;
+
+			beforeAll(async () => {
+				originalConfigDir = process.env.IOTA_CONFIG_DIR;
+				configDir = await mkdtemp(path.join(os.tmpdir(), "move-to-json-iota-"));
+				process.env.IOTA_CONFIG_DIR = configDir;
+			});
+
+			afterAll(async () => {
+				if (originalConfigDir === undefined) {
+					delete process.env.IOTA_CONFIG_DIR;
+				} else {
+					process.env.IOTA_CONFIG_DIR = originalConfigDir;
+				}
+				await rm(configDir, { recursive: true, force: true });
+			});
+
+			it.skipIf(!GRPC_SUPPORTED)(
+				"should add the gRPC url to the existing environment",
+				async () => {
+					await createEnvironment("testnet", "https://api.testnet.iota.cafe");
+
+					const getTestnetGrpc = async (): Promise<string | null | undefined> => {
+						const { stdout } = await execAsyncWithTimeout("iota client envs --json", 5000);
+						const environments: { alias: string; grpc?: string | null }[] = JSON.parse(stdout)[0];
+						return environments.find(env => env.alias === "testnet")?.grpc;
+					};
+
+					expect(await getTestnetGrpc()).toBeNull();
+
+					await ensureEnvironment("testnet", "https://api.testnet.iota.cafe");
+
+					expect(await getTestnetGrpc()).toBe("https://grpc.testnet.iota.cafe:443");
 				},
 				60000
 			);

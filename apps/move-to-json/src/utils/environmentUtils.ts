@@ -168,6 +168,29 @@ export async function checkEnvironmentExists(network: string): Promise<boolean> 
 }
 
 /**
+ * Check if a specific IOTA environment has a gRPC url configured.
+ * @param network The network alias to check.
+ * @returns Promise<boolean> True if the environment has a gRPC url, false otherwise.
+ */
+async function checkEnvironmentHasGrpc(network: string): Promise<boolean> {
+	try {
+		const { stdout } = await execAsyncWithTimeout("iota client envs --json", 5000);
+		const envData = JSON.parse(stdout);
+		const environments: { alias: string; grpc?: string | null }[] = Is.arrayValue(envData)
+			? envData[0]
+			: envData;
+
+		return (
+			Is.arrayValue(environments) &&
+			environments.some(env => env.alias === network && Is.stringValue(env.grpc))
+		);
+	} catch {
+		// Treat an unreadable config as missing the gRPC url
+		return false;
+	}
+}
+
+/**
  * Default IOTA environments, matching those created by the IOTA CLI.
  */
 const DEFAULT_ENVIRONMENTS: { alias: string; rpc: string; grpc: string }[] = [
@@ -310,14 +333,26 @@ export async function ensureEnvironment(network: string, rpcUrl: string): Promis
 
 	// Now check if the specific environment exists
 	const exists = await checkEnvironmentExists(network);
+	const defaultEnvironment = DEFAULT_ENVIRONMENTS.find(
+		env => env.alias === network && env.rpc === rpcUrl
+	);
 
 	if (!exists) {
 		// Use CLI framework for user-facing message
 		CLIDisplay.value(I18n.formatMessage("commands.common.info.creatingEnvironment"), network, 1);
-		const defaultEnvironment = DEFAULT_ENVIRONMENTS.find(
-			env => env.alias === network && env.rpc === rpcUrl
-		);
 		await createEnvironment(network, rpcUrl, defaultEnvironment?.grpc);
+	} else if (
+		Is.object(defaultEnvironment) &&
+		!(await checkEnvironmentHasGrpc(network)) &&
+		(await supportsGrpcEnvironment())
+	) {
+		// Environments created by older CLIs have no gRPC url, re-adding the alias updates it in place
+		CLIDisplay.value(
+			I18n.formatMessage("commands.common.info.updatingEnvironmentGrpc"),
+			network,
+			1
+		);
+		await createEnvironment(network, rpcUrl, defaultEnvironment.grpc);
 	} else {
 		// Switch to the environment to make sure it's active
 		const isWindows = process.platform === "win32";

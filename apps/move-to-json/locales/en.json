@@ -236,6 +236,7 @@
 				"noEnvironments": "No IOTA environments found",
 				"creatingDefaults": "Creating Defaults",
 				"creatingEnvironment": "Creating IOTA environment",
+				"updatingEnvironmentGrpc": "Adding gRPC url to IOTA environment",
 				"activeEnvironment": "Active environment"
 			}
 		}
