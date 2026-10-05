@@ -1,18 +1,25 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { I18n } from "@twin.org/core";
 import {
 	checkEnvironmentExists,
 	createEnvironment,
 	execAsyncWithTimeout,
+	execWithInput,
 	verifyIotaCliInstalled,
 	ensureEnvironment,
 	supportsGrpcEnvironment
 } from "../src/utils/environmentUtils.js";
 
 const GRPC_SUPPORTED = await supportsGrpcEnvironment();
+
+I18n.addDictionary(
+	"en",
+	JSON.parse(await readFile(path.join(import.meta.dirname, "../locales/en.json"), "utf8"))
+);
 
 describe("environmentUtils", () => {
 	describe("execAsyncWithTimeout", () => {
@@ -28,6 +35,30 @@ describe("environmentUtils", () => {
 				execAsyncWithTimeout(isWindows ? "powershell Start-Sleep -Seconds 10" : "sleep 10", 1000)
 			).rejects.toThrow("commandTimeout");
 		}, 2000);
+	});
+
+	describe("execWithInput", () => {
+		it("should resolve when the command exits before the inputs are written", async () => {
+			await expect(
+				execWithInput('node -e "process.exit(0)"', ["0"], 3000)
+			).resolves.toBeUndefined();
+		}, 5000);
+
+		it("should write the inputs to a command that prompts", async () => {
+			await expect(
+				execWithInput(
+					"node -e \"process.stdin.once('data', d => process.exit(d.toString().trim() === '0' ? 0 : 1))\"",
+					["0"],
+					3000
+				)
+			).resolves.toBeUndefined();
+		}, 5000);
+
+		it("should reject when the command exits with a failure code", async () => {
+			await expect(execWithInput('node -e "process.exit(2)"', ["0"], 3000)).rejects.toThrow(
+				"commandFailedWithCode"
+			);
+		}, 5000);
 	});
 
 	describe("checkEnvironmentExists", () => {

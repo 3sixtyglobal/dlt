@@ -72,32 +72,56 @@ export async function execAsyncWithTimeout(
  * Execute a command with input.
  * @param command The command to execute.
  * @param inputs The inputs to provide to the command.
+ * @param timeoutMs The timeout in milliseconds.
  * @returns A promise that resolves when the command completes.
  */
-export async function execWithInput(command: string, inputs: string[]): Promise<void> {
+export async function execWithInput(
+	command: string,
+	inputs: string[],
+	timeoutMs: number = 5000
+): Promise<void> {
 	const child = spawn(command, { shell: true, stdio: ["pipe", "inherit", "inherit"] });
 
-	for (const input of inputs) {
-		await new Promise(resolve => setTimeout(resolve, 500));
-		child.stdin.write(`${input}\n`);
-	}
+	return new Promise<void>((resolve, reject) => {
+		let inputTimer: NodeJS.Timeout | undefined;
 
-	child.stdin.end();
-
-	return new Promise((resolve, reject) => {
 		const timeout = setTimeout(() => {
+			clearTimeout(inputTimer);
 			child.kill("SIGTERM");
 			reject(
 				new GeneralError("environmentUtils", "commandTimeout", {
 					command,
 					inputs,
-					timeout: 5000
+					timeout: timeoutMs
 				})
 			);
-		}, 5000);
+		}, timeoutMs);
+
+		// Writing to a command that has already exited raises EPIPE, the exit code decides the result
+		child.stdin.on("error", error => {
+			if ((error as NodeJS.ErrnoException).code !== "EPIPE") {
+				child.kill("SIGTERM");
+			}
+		});
+
+		// Inputs are written after the listeners are attached, as the command may exit without prompting
+		let inputIndex = 0;
+		const writeNextInput = (): void => {
+			if (child.exitCode !== null || child.signalCode !== null) {
+				return;
+			}
+			if (inputIndex < inputs.length) {
+				child.stdin.write(`${inputs[inputIndex++]}\n`);
+				inputTimer = setTimeout(writeNextInput, 500);
+			} else {
+				child.stdin.end();
+			}
+		};
+		inputTimer = setTimeout(writeNextInput, 500);
 
 		child.on("close", code => {
 			clearTimeout(timeout);
+			clearTimeout(inputTimer);
 
 			if (code === 0) {
 				resolve();
@@ -114,6 +138,7 @@ export async function execWithInput(command: string, inputs: string[]): Promise<
 
 		child.on("error", error => {
 			clearTimeout(timeout);
+			clearTimeout(inputTimer);
 			reject(
 				new GeneralError("environmentUtils", "commandExecutionFailed", {
 					command,
@@ -246,7 +271,8 @@ export async function createEnvironment(
 			Is.stringValue(grpcUrl) && (await supportsGrpcEnvironment()) ? ` --grpc ${grpcUrl}` : "";
 		await execWithInput(
 			`iota client new-env --alias ${network} --rpc ${rpcUrl}${grpcOption}${additionalInfo}`,
-			["0"]
+			["0"],
+			30000
 		);
 		await execAsyncWithTimeout(`iota client switch --env ${network}${additionalInfo}`, 5000);
 	} catch (error) {
