@@ -40,6 +40,7 @@
 		"FLUSHDB",
 		"HKLM",
 		"hotfixes",
+		"iotaledger",
 		"keepalive",
 		"keytool",
 		"localnet",
