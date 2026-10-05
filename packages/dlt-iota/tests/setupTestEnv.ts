@@ -15,7 +15,6 @@ dotenv.config({
 });
 
 Guards.stringValue("TestEnv", "TEST_NODE_ENDPOINT", process.env.TEST_NODE_ENDPOINT);
-Guards.stringValue("TestEnv", "TEST_FAUCET_ENDPOINT", process.env.TEST_FAUCET_ENDPOINT);
 Guards.stringValue("TestEnv", "TEST_NETWORK", process.env.TEST_NETWORK);
 Guards.stringValue("TestEnv", "TEST_EXPLORER_URL", process.env.TEST_EXPLORER_URL);
 
