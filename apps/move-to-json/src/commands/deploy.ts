@@ -157,10 +157,15 @@ export async function actionCommandDeploy(opts: {
 	const rpcTimeout = CLIParam.number("rpcTimeout", opts.rpcTimeout);
 	const gasBudget = CLIParam.number("gasBudget", opts.gasBudget);
 	const confirmationTimeout = CLIParam.number("confirmationTimeout", opts.confirmationTimeout);
-	const faucetUrl: string | undefined =
-		network === NetworkTypes.Mainnet
-			? undefined
-			: CLIParam.stringValue("faucetUrl", opts.faucetUrl);
+	let faucetUrl: string | undefined;
+	if (network !== NetworkTypes.Mainnet) {
+		try {
+			faucetUrl = CLIParam.stringValue("faucetUrl", opts.faucetUrl);
+		} catch {
+			// Optional parameter, only required if the deployer balance is insufficient
+			faucetUrl = undefined;
+		}
+	}
 
 	let deployerMnemonic: string | undefined;
 	try {
