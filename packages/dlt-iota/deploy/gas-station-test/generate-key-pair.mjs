@@ -4,7 +4,8 @@
 import { Converter } from '@twin.org/core';
 import { Bip39, Bip44, Ed25519, KeyType, Blake2b } from '@twin.org/crypto';
 
-const mnemonic = Bip39.randomMnemonic();
+// Use the mnemonic from the command line if provided, otherwise generate a random one
+const mnemonic = process.argv[2]?.trim() || Bip39.randomMnemonic();
 
 console.log('Mnemonic:', mnemonic);
 
