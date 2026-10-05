@@ -4,7 +4,7 @@
 	"description": "IOTA distributed ledger utilities for clients, transactions, and contract operations.",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/iotaledger/twin-dlt.git",
+		"url": "git+https://github.com/3sixtyglobal/twin-dlt.git",
 		"directory": "packages/dlt-iota"
 	},
 	"author": "cornel.filip@iota.org",
@@ -85,7 +85,7 @@
 		"dlt"
 	],
 	"bugs": {
-		"url": "git+https://github.com/iotaledger/twin-dlt/issues"
+		"url": "git+https://github.com/3sixtyglobal/twin-dlt/issues"
 	},
 	"homepage": "https://twindev.org"
 }
