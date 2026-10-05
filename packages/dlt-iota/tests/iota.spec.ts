@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0.
 import type { IotaClientOptions } from "@iota/iota-sdk/client";
 import { Transaction } from "@iota/iota-sdk/transactions";
-import { BaseError, GeneralError } from "@twin.org/core";
+import { BaseError, GeneralError, Is } from "@twin.org/core";
 import { AccountHelper } from "@twin.org/dlt-account";
 import { MemoryEntityStorageConnector } from "@twin.org/entity-storage-connector-memory";
 import { EntityStorageConnectorFactory } from "@twin.org/entity-storage-models";
@@ -638,88 +638,103 @@ describe("Iota", () => {
 			expect(result).toBe(false);
 		});
 
-		test("returns true immediately when balance already meets target with faucetUrl", async () => {
-			vi.spyOn(Iota, "getBalance").mockResolvedValue(100n);
-			const fundSpy = vi.spyOn(Iota, "fundAddress");
+		test.skipIf(!Is.stringValue(TEST_FAUCET_ENDPOINT))(
+			"returns true immediately when balance already meets target with faucetUrl",
+			async () => {
+				vi.spyOn(Iota, "getBalance").mockResolvedValue(100n);
+				const fundSpy = vi.spyOn(Iota, "fundAddress");
 
-			const result = await Iota.ensureBalance(
-				TEST_CONFIG,
-				TEST_FAUCET_ENDPOINT,
-				TEST_IDENTITY,
-				TEST_ADDRESS,
-				100n
-			);
+				const result = await Iota.ensureBalance(
+					TEST_CONFIG,
+					TEST_FAUCET_ENDPOINT,
+					TEST_IDENTITY,
+					TEST_ADDRESS,
+					100n
+				);
 
-			expect(result).toBe(true);
-			expect(fundSpy).not.toHaveBeenCalled();
-		});
+				expect(result).toBe(true);
+				expect(fundSpy).not.toHaveBeenCalled();
+			}
+		);
 
-		test("returns true when a single fundAddress call brings balance to target", async () => {
-			vi.spyOn(Iota, "getBalance").mockResolvedValue(0n);
-			vi.spyOn(Iota, "fundAddress").mockResolvedValue(100n);
+		test.skipIf(!Is.stringValue(TEST_FAUCET_ENDPOINT))(
+			"returns true when a single fundAddress call brings balance to target",
+			async () => {
+				vi.spyOn(Iota, "getBalance").mockResolvedValue(0n);
+				vi.spyOn(Iota, "fundAddress").mockResolvedValue(100n);
 
-			const result = await Iota.ensureBalance(
-				TEST_CONFIG,
-				TEST_FAUCET_ENDPOINT,
-				TEST_IDENTITY,
-				TEST_ADDRESS,
-				100n
-			);
+				const result = await Iota.ensureBalance(
+					TEST_CONFIG,
+					TEST_FAUCET_ENDPOINT,
+					TEST_IDENTITY,
+					TEST_ADDRESS,
+					100n
+				);
 
-			expect(result).toBe(true);
-		});
+				expect(result).toBe(true);
+			}
+		);
 
-		test("returns false immediately when fundAddress returns 0n", async () => {
-			vi.spyOn(Iota, "getBalance").mockResolvedValue(0n);
-			vi.spyOn(Iota, "fundAddress").mockResolvedValue(0n);
+		test.skipIf(!Is.stringValue(TEST_FAUCET_ENDPOINT))(
+			"returns false immediately when fundAddress returns 0n",
+			async () => {
+				vi.spyOn(Iota, "getBalance").mockResolvedValue(0n);
+				vi.spyOn(Iota, "fundAddress").mockResolvedValue(0n);
 
-			const result = await Iota.ensureBalance(
-				TEST_CONFIG,
-				TEST_FAUCET_ENDPOINT,
-				TEST_IDENTITY,
-				TEST_ADDRESS,
-				100n
-			);
+				const result = await Iota.ensureBalance(
+					TEST_CONFIG,
+					TEST_FAUCET_ENDPOINT,
+					TEST_IDENTITY,
+					TEST_ADDRESS,
+					100n
+				);
 
-			expect(result).toBe(false);
-		});
+				expect(result).toBe(false);
+			}
+		);
 
-		test("retries when each top-up is insufficient, returns true once target is met", async () => {
-			vi.useFakeTimers();
-			vi.spyOn(Iota, "getBalance").mockResolvedValue(0n);
-			vi.spyOn(Iota, "fundAddress").mockResolvedValue(50n);
+		test.skipIf(!Is.stringValue(TEST_FAUCET_ENDPOINT))(
+			"retries when each top-up is insufficient, returns true once target is met",
+			async () => {
+				vi.useFakeTimers();
+				vi.spyOn(Iota, "getBalance").mockResolvedValue(0n);
+				vi.spyOn(Iota, "fundAddress").mockResolvedValue(50n);
 
-			const promise = Iota.ensureBalance(
-				TEST_CONFIG,
-				TEST_FAUCET_ENDPOINT,
-				TEST_IDENTITY,
-				TEST_ADDRESS,
-				100n
-			);
-			await vi.runAllTimersAsync();
+				const promise = Iota.ensureBalance(
+					TEST_CONFIG,
+					TEST_FAUCET_ENDPOINT,
+					TEST_IDENTITY,
+					TEST_ADDRESS,
+					100n
+				);
+				await vi.runAllTimersAsync();
 
-			expect(await promise).toBe(true);
-			expect(Iota.fundAddress).toHaveBeenCalledTimes(2);
-		});
+				expect(await promise).toBe(true);
+				expect(Iota.fundAddress).toHaveBeenCalledTimes(2);
+			}
+		);
 
-		test("returns false when retryCount is exhausted with balance still below target", async () => {
-			vi.useFakeTimers();
-			vi.spyOn(Iota, "getBalance").mockResolvedValue(0n);
-			// Each call adds 1n; 10 retries yield 10n total, still below 100n
-			vi.spyOn(Iota, "fundAddress").mockResolvedValue(1n);
+		test.skipIf(!Is.stringValue(TEST_FAUCET_ENDPOINT))(
+			"returns false when retryCount is exhausted with balance still below target",
+			async () => {
+				vi.useFakeTimers();
+				vi.spyOn(Iota, "getBalance").mockResolvedValue(0n);
+				// Each call adds 1n; 10 retries yield 10n total, still below 100n
+				vi.spyOn(Iota, "fundAddress").mockResolvedValue(1n);
 
-			const promise = Iota.ensureBalance(
-				TEST_CONFIG,
-				TEST_FAUCET_ENDPOINT,
-				TEST_IDENTITY,
-				TEST_ADDRESS,
-				100n
-			);
-			await vi.runAllTimersAsync();
+				const promise = Iota.ensureBalance(
+					TEST_CONFIG,
+					TEST_FAUCET_ENDPOINT,
+					TEST_IDENTITY,
+					TEST_ADDRESS,
+					100n
+				);
+				await vi.runAllTimersAsync();
 
-			expect(await promise).toBe(false);
-			expect(Iota.fundAddress).toHaveBeenCalledTimes(10);
-		});
+				expect(await promise).toBe(false);
+				expect(Iota.fundAddress).toHaveBeenCalledTimes(10);
+			}
+		);
 
 		test.skip("funds the test address to at least 1 IOTA via the real faucet", async () => {
 			const vault = await vaultWithMnemonic();
