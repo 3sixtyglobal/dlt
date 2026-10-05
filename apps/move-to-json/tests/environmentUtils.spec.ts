@@ -1,11 +1,17 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
+import { mkdtemp, rm } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 import {
 	checkEnvironmentExists,
 	execAsyncWithTimeout,
 	verifyIotaCliInstalled,
-	ensureEnvironment
+	ensureEnvironment,
+	supportsGrpcEnvironment
 } from "../src/utils/environmentUtils.js";
+
+const GRPC_SUPPORTED = await supportsGrpcEnvironment();
 
 describe("environmentUtils", () => {
 	describe("execAsyncWithTimeout", () => {
@@ -91,5 +97,40 @@ describe("environmentUtils", () => {
 			expect(devnetExists).toBe(true);
 			expect(localnetExists).toBe(true);
 		}, 60000);
+
+		describe("with an empty IOTA config", () => {
+			let configDir: string;
+			let originalConfigDir: string | undefined;
+
+			beforeAll(async () => {
+				originalConfigDir = process.env.IOTA_CONFIG_DIR;
+				configDir = await mkdtemp(path.join(os.tmpdir(), "move-to-json-iota-"));
+				process.env.IOTA_CONFIG_DIR = configDir;
+			});
+
+			afterAll(async () => {
+				if (originalConfigDir === undefined) {
+					delete process.env.IOTA_CONFIG_DIR;
+				} else {
+					process.env.IOTA_CONFIG_DIR = originalConfigDir;
+				}
+				await rm(configDir, { recursive: true, force: true });
+			});
+
+			it.skipIf(!GRPC_SUPPORTED)(
+				"should configure the gRPC url on default environments",
+				async () => {
+					await ensureEnvironment("testnet", "https://api.testnet.iota.cafe");
+
+					const { stdout } = await execAsyncWithTimeout("iota client envs --json", 5000);
+					const environments: { alias: string; grpc?: string | null }[] = JSON.parse(stdout)[0];
+
+					expect(environments.find(env => env.alias === "testnet")?.grpc).toBe(
+						"https://grpc.testnet.iota.cafe:443"
+					);
+				},
+				60000
+			);
+		});
 	});
 });

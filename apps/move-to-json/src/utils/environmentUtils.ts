@@ -168,19 +168,63 @@ export async function checkEnvironmentExists(network: string): Promise<boolean> 
 }
 
 /**
+ * Default IOTA environments, matching those created by the IOTA CLI.
+ */
+const DEFAULT_ENVIRONMENTS: { alias: string; rpc: string; grpc: string }[] = [
+	{
+		alias: "mainnet",
+		rpc: "https://api.mainnet.iota.cafe",
+		grpc: "https://grpc.mainnet.iota.cafe:443"
+	},
+	{
+		alias: "devnet",
+		rpc: "https://api.devnet.iota.cafe",
+		grpc: "https://grpc.devnet.iota.cafe:443"
+	},
+	{
+		alias: "testnet",
+		rpc: "https://api.testnet.iota.cafe",
+		grpc: "https://grpc.testnet.iota.cafe:443"
+	},
+	{ alias: "localnet", rpc: "http://127.0.0.1:9000", grpc: "http://127.0.0.1:50051" }
+];
+
+/**
+ * Check if the installed IOTA CLI supports configuring a gRPC URL for an environment.
+ * @returns Promise<boolean> True if the --grpc option is supported.
+ */
+export async function supportsGrpcEnvironment(): Promise<boolean> {
+	try {
+		const { stdout } = await execAsyncWithTimeout("iota client new-env --help", 5000);
+		return stdout.includes("--grpc");
+	} catch {
+		// Older or unavailable CLI, so do not pass the gRPC option
+		return false;
+	}
+}
+
+/**
  * Create a new IOTA environment.
  * @param network The network alias to create.
  * @param rpcUrl The RPC URL for the network.
+ * @param grpcUrl The gRPC URL for the network, only used if supported by the IOTA CLI.
  * @returns Promise<void>
  */
-export async function createEnvironment(network: string, rpcUrl: string): Promise<void> {
+export async function createEnvironment(
+	network: string,
+	rpcUrl: string,
+	grpcUrl?: string
+): Promise<void> {
 	const isWindows = process.platform === "win32";
 
 	try {
 		const additionalInfo = isWindows ? "" : " || true";
-		await execWithInput(`iota client new-env --alias ${network} --rpc ${rpcUrl}${additionalInfo}`, [
-			"0"
-		]);
+		const grpcOption =
+			Is.stringValue(grpcUrl) && (await supportsGrpcEnvironment()) ? ` --grpc ${grpcUrl}` : "";
+		await execWithInput(
+			`iota client new-env --alias ${network} --rpc ${rpcUrl}${grpcOption}${additionalInfo}`,
+			["0"]
+		);
 		await execAsyncWithTimeout(`iota client switch --env ${network}${additionalInfo}`, 5000);
 	} catch (error) {
 		throw new GeneralError(
@@ -197,22 +241,15 @@ export async function createEnvironment(network: string, rpcUrl: string): Promis
  * @returns Promise<void>
  */
 async function createDefaultEnvironments(): Promise<void> {
-	const defaultEnvironments = [
-		{ alias: "mainnet", rpc: "https://api.mainnet.iota.cafe" },
-		{ alias: "devnet", rpc: "https://api.devnet.iota.cafe" },
-		{ alias: "testnet", rpc: "https://api.testnet.iota.cafe" },
-		{ alias: "localnet", rpc: "http://127.0.0.1:9000" }
-	];
-
 	CLIDisplay.value(
 		I18n.formatMessage("commands.common.info.creatingDefaultEnvironments"),
-		`${defaultEnvironments.length} environments`,
+		`${DEFAULT_ENVIRONMENTS.length} environments`,
 		1
 	);
 
-	for (const env of defaultEnvironments) {
+	for (const env of DEFAULT_ENVIRONMENTS) {
 		try {
-			await createEnvironment(env.alias, env.rpc);
+			await createEnvironment(env.alias, env.rpc, env.grpc);
 			CLIDisplay.value(I18n.formatMessage("commands.common.info.createdEnvironment"), env.alias, 2);
 		} catch {
 			// Continue creating other environments even if one fails
@@ -277,7 +314,10 @@ export async function ensureEnvironment(network: string, rpcUrl: string): Promis
 	if (!exists) {
 		// Use CLI framework for user-facing message
 		CLIDisplay.value(I18n.formatMessage("commands.common.info.creatingEnvironment"), network, 1);
-		await createEnvironment(network, rpcUrl);
+		const defaultEnvironment = DEFAULT_ENVIRONMENTS.find(
+			env => env.alias === network && env.rpc === rpcUrl
+		);
+		await createEnvironment(network, rpcUrl, defaultEnvironment?.grpc);
 	} else {
 		// Switch to the environment to make sure it's active
 		const isWindows = process.platform === "win32";
