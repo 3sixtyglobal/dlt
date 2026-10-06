@@ -9,8 +9,8 @@ on:
         required: true
         type: choice
         options:
-          - '🚧 prerelease (next branch)'
-          - '🚀 production (main branch)'
+          - '🌱 prerelease (next branch)'
+          - '🌳 production (main branch)'
 
 env:
   TWIN_DOCKER_USERNAME: ${{ secrets.TWIN_DOCKER_USERNAME }}
