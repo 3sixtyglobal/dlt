@@ -8,8 +8,14 @@ FROM iotaledger/gas-station:0.5.2
 # Switch to root for installation
 USER root
 
+# The base image is Debian 11 (bullseye), which is end of life, so its packages are now
+# only available from archive.debian.org
+RUN find /etc/apt -name '*.list' -o -name '*.sources' | xargs sed -i \
+    -e 's|deb.debian.org|archive.debian.org|g' \
+    -e 's|security.debian.org|archive.debian.org|g'
+
 # Install Redis, supervisor, and other dependencies
-RUN apt-get update && apt-get install -y \
+RUN apt-get -o Acquire::Check-Valid-Until=false update && apt-get install -y \
     supervisor \
     curl \
     gettext-base \
