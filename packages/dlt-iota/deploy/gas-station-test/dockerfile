@@ -3,7 +3,7 @@
 # check=skip=SecretsUsedInArgOrEnv
 
 # Use official gas station image as base - pinned to specific version for stability
-FROM iotaledger/gas-station:0.5.2
+FROM iotaledger/gas-station:0.6
 
 # Switch to root for installation
 USER root
@@ -37,7 +37,7 @@ ENV REDIS_PORT=6379 \
     REDIS_MAXMEMORY=256mb \
     GAS_STATION_PORT=9527 \
     GAS_STATION_METRICS_PORT=9184 \
-    IOTA_NODE_URL=https://api.testnet.iota.cafe \
+    IOTA_NODE_URL=https://grpc.testnet.iota.cafe \
     TARGET_INIT_BALANCE=100000000 \
     DAILY_GAS_CAP=1500000000000 \
     REFRESH_INTERVAL=86400
