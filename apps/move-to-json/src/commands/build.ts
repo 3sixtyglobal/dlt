@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0.
 import { promises as fsPromises } from "node:fs";
 import path from "node:path";
-import { CLIDisplay, CLIParam, CLIUtils } from "@twin.org/cli-core";
-import { Converter, GeneralError, Guards, I18n, Is, StringHelper } from "@twin.org/core";
-import { Sha3 } from "@twin.org/crypto";
-import type { IContractData, ISmartContractDeployments } from "@twin.org/dlt-iota";
-import { NetworkTypes } from "@twin.org/dlt-iota";
-import { nameof } from "@twin.org/nameof";
+import { CLIDisplay, CLIParam, CLIUtils } from "@3sixty/cli-core";
+import { Converter, GeneralError, Guards, I18n, Is, StringHelper } from "@3sixty/core";
+import { Sha3 } from "@3sixty/crypto";
+import type { IContractData, ISmartContractDeployments } from "@3sixty/dlt-iota";
+import { NetworkTypes } from "@3sixty/dlt-iota";
+import { nameof } from "@3sixty/nameof";
 import type { Command } from "commander";
 import FastGlob from "fast-glob";
 import { verifyIotaSDK } from "../utils/iotaUtils.js";

@@ -1,16 +1,16 @@
 // Copyright 2026 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import { AccountHelper } from "@twin.org/dlt-account";
-import { MemoryEntityStorageConnector } from "@twin.org/entity-storage-connector-memory";
-import { EntityStorageConnectorFactory } from "@twin.org/entity-storage-models";
-import { nameof } from "@twin.org/nameof";
+import { AccountHelper } from "@3sixty/dlt-account";
+import { MemoryEntityStorageConnector } from "@3sixty/entity-storage-connector-memory";
+import { EntityStorageConnectorFactory } from "@3sixty/entity-storage-models";
+import { nameof } from "@3sixty/nameof";
 import {
 	EntityStorageVaultConnector,
 	initSchema,
 	type VaultKey,
 	type VaultSecret
-} from "@twin.org/vault-connector-entity-storage";
-import type { IVaultConnector } from "@twin.org/vault-models";
+} from "@3sixty/vault-connector-entity-storage";
+import type { IVaultConnector } from "@3sixty/vault-models";
 import { TEST_CLIENT_OPTIONS, TEST_MNEMONIC, TEST_NETWORK } from "./setupTestEnv.js";
 import type { IIotaConfig } from "../src/models/IIotaConfig.js";
 import { VaultJwtSigner } from "../src/vaultJwtSigner.js";

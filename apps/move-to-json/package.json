@@ -1,10 +1,10 @@
 {
-	"name": "@twin.org/move-to-json",
-	"version": "0.11.1-next.0",
+	"name": "@3sixty/move-to-json",
+	"version": "0.20.0-next.0",
 	"description": "CLI for compiling Move contracts and preparing deployment JSON for IOTA networks.",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/3sixtyglobal/twin-dlt.git",
+		"url": "git+https://github.com/3sixtyglobal/dlt.git",
 		"directory": "packages/move-to-json"
 	},
 	"author": "cornel.filip@iota.org",
@@ -30,25 +30,25 @@
 	},
 	"dependencies": {
 		"@iota/iota-sdk": "1.15.0",
-		"@twin.org/cli-core": "next",
-		"@twin.org/core": "next",
-		"@twin.org/crypto": "next",
-		"@twin.org/dlt-account": "0.11.1-next.0",
-		"@twin.org/dlt-iota": "0.11.1-next.0",
-		"@twin.org/entity-storage-connector-memory": "next",
-		"@twin.org/entity-storage-models": "next",
-		"@twin.org/nameof": "next",
-		"@twin.org/vault-connector-entity-storage": "next",
-		"@twin.org/vault-models": "next",
-		"@twin.org/wallet-connector-iota": "next",
+		"@3sixty/cli-core": "next",
+		"@3sixty/core": "next",
+		"@3sixty/crypto": "next",
+		"@3sixty/dlt-account": "0.20.0-next.0",
+		"@3sixty/dlt-iota": "0.20.0-next.0",
+		"@3sixty/entity-storage-connector-memory": "next",
+		"@3sixty/entity-storage-models": "next",
+		"@3sixty/nameof": "next",
+		"@3sixty/vault-connector-entity-storage": "next",
+		"@3sixty/vault-models": "next",
+		"@3sixty/wallet-connector-iota": "next",
 		"commander": "15.0.0",
 		"fast-glob": "3.3.3"
 	},
 	"devDependencies": {
-		"@twin.org/merge-locales": "next",
-		"@twin.org/nameof-transformer": "next",
-		"@twin.org/nameof-vitest-plugin": "next",
-		"@twin.org/validate-locales": "next",
+		"@3sixty/merge-locales": "next",
+		"@3sixty/nameof-transformer": "next",
+		"@3sixty/nameof-vitest-plugin": "next",
+		"@3sixty/validate-locales": "next",
 		"@types/node": "26.6.2",
 		"@vitest/coverage-v8": "5.0.1",
 		"concurrently": "10.0.5",
@@ -91,7 +91,7 @@
 		"dlt"
 	],
 	"bugs": {
-		"url": "git+https://github.com/3sixtyglobal/twin-dlt/issues"
+		"url": "git+https://github.com/3sixtyglobal/dlt/issues"
 	},
-	"homepage": "https://twindev.org"
+	"homepage": "https://3sixty.global"
 }

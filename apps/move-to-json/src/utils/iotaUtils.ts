@@ -1,7 +1,7 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import { CLIDisplay, CLIUtils } from "@twin.org/cli-core";
-import { GeneralError, I18n } from "@twin.org/core";
+import { CLIDisplay, CLIUtils } from "@3sixty/cli-core";
+import { GeneralError, I18n } from "@3sixty/core";
 
 /**
  * Verify the IOTA SDK is installed and accessible.

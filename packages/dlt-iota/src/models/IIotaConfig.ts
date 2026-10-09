@@ -1,7 +1,7 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
+import type { IAccountConfig } from "@3sixty/dlt-account";
 import type { IotaClientOptions } from "@iota/iota-sdk/client";
-import type { IAccountConfig } from "@twin.org/dlt-account";
 import type { IGasStationConfig } from "./IGasStationConfig.js";
 
 /**

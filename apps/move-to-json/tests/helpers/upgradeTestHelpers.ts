@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0.
 import fs from "node:fs/promises";
 import path from "node:path";
-import { GeneralError } from "@twin.org/core";
-import type { IContractData, ISmartContractDeployments } from "@twin.org/dlt-iota";
+import { GeneralError } from "@3sixty/core";
+import type { IContractData, ISmartContractDeployments } from "@3sixty/dlt-iota";
 import { CLI } from "../../src/cli.js";
 import { cleanBuildArtifactsInPath } from "../../src/utils/buildArtifactUtils.js";
 import {

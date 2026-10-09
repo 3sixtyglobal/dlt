@@ -8,6 +8,7 @@
 	"release-type": "node",
 	"initial-version": "0.0.1",
 	"versioning": "default",
+	"last-release-sha": "e8b755552812fbfa7822da6d98af4bc47681302b",
 	"packages": {
 		"packages/dlt-account": {
 			"package-name": "dlt-account",

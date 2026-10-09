@@ -10,6 +10,7 @@
 	"versioning": "prerelease",
 	"prerelease": true,
 	"prerelease-type": "next",
+	"last-release-sha": "85602274d02d7d6906a24df038d9fbdeaed34dfc",
 	"packages": {
 		"packages/dlt-account": {
 			"package-name": "dlt-account",

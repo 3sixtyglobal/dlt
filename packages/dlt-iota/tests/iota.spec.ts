@@ -1,20 +1,20 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import type { IotaClientOptions } from "@iota/iota-sdk/client";
-import { Transaction } from "@iota/iota-sdk/transactions";
-import { BaseError, GeneralError, Is } from "@twin.org/core";
-import { AccountHelper } from "@twin.org/dlt-account";
-import { MemoryEntityStorageConnector } from "@twin.org/entity-storage-connector-memory";
-import { EntityStorageConnectorFactory } from "@twin.org/entity-storage-models";
-import { nameof } from "@twin.org/nameof";
+import { BaseError, GeneralError, Is } from "@3sixty/core";
+import { AccountHelper } from "@3sixty/dlt-account";
+import { MemoryEntityStorageConnector } from "@3sixty/entity-storage-connector-memory";
+import { EntityStorageConnectorFactory } from "@3sixty/entity-storage-models";
+import { nameof } from "@3sixty/nameof";
 import {
 	EntityStorageVaultConnector,
 	initSchema,
 	type VaultKey,
 	type VaultSecret
-} from "@twin.org/vault-connector-entity-storage";
-import type { IVaultConnector } from "@twin.org/vault-models";
-import { FetchHelper } from "@twin.org/web";
+} from "@3sixty/vault-connector-entity-storage";
+import type { IVaultConnector } from "@3sixty/vault-models";
+import { FetchHelper } from "@3sixty/web";
+import type { IotaClientOptions } from "@iota/iota-sdk/client";
+import { Transaction } from "@iota/iota-sdk/transactions";
 import {
 	TEST_CLIENT_OPTIONS,
 	TEST_EXPLORER_URL,

@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0.
 import { exec, type ExecOptionsWithStringEncoding, spawn } from "node:child_process";
 import { promisify } from "node:util";
-import { CLIDisplay } from "@twin.org/cli-core";
-import { GeneralError, I18n, Is } from "@twin.org/core";
+import { CLIDisplay } from "@3sixty/cli-core";
+import { GeneralError, I18n, Is } from "@3sixty/core";
 
 const execAsync = promisify(exec);
 

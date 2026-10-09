@@ -1,4 +1,4 @@
-# @twin.org/dlt-account
+# @3sixty/dlt-account
 
 ## Classes
 

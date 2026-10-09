@@ -1,19 +1,19 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import { Transaction } from "@iota/iota-sdk/transactions";
-import { BaseError } from "@twin.org/core";
-import { Bip39, Bip44, KeyType } from "@twin.org/crypto";
-import { AccountHelper } from "@twin.org/dlt-account";
-import { MemoryEntityStorageConnector } from "@twin.org/entity-storage-connector-memory";
-import { EntityStorageConnectorFactory } from "@twin.org/entity-storage-models";
-import { nameof } from "@twin.org/nameof";
+import { BaseError } from "@3sixty/core";
+import { Bip39, Bip44, KeyType } from "@3sixty/crypto";
+import { AccountHelper } from "@3sixty/dlt-account";
+import { MemoryEntityStorageConnector } from "@3sixty/entity-storage-connector-memory";
+import { EntityStorageConnectorFactory } from "@3sixty/entity-storage-models";
+import { nameof } from "@3sixty/nameof";
 import {
 	EntityStorageVaultConnector,
 	initSchema,
 	type VaultKey,
 	type VaultSecret
-} from "@twin.org/vault-connector-entity-storage";
-import { VaultKeyType } from "@twin.org/vault-models";
+} from "@3sixty/vault-connector-entity-storage";
+import { VaultKeyType } from "@3sixty/vault-models";
+import { Transaction } from "@iota/iota-sdk/transactions";
 import {
 	GAS_BUDGET,
 	GAS_STATION_AUTH_TOKEN,

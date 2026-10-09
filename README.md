@@ -1,4 +1,4 @@
-# TWIN Distributed Ledger
+# 3Sixty Distributed Ledger
 
 This monorepo brings together reusable ledger utilities and supporting tools for building, testing, and deploying distributed ledger workloads. The packages and applications are designed to work together so teams can move from integration code to deployment workflows with fewer bespoke steps.
 

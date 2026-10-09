@@ -1,5 +1,8 @@
 // Copyright 2026 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
+import { Base64Url, Guards } from "@3sixty/core";
+import { nameof } from "@3sixty/nameof";
+import type { IVaultConnector } from "@3sixty/vault-models";
 import {
 	Jwk,
 	JwkType,
@@ -8,9 +11,6 @@ import {
 	Storage,
 	StorageSigner
 } from "@iota/identity-wasm/node/index.js";
-import { Base64Url, Guards } from "@twin.org/core";
-import { nameof } from "@twin.org/nameof";
-import type { IVaultConnector } from "@twin.org/vault-models";
 import { Iota } from "./iota.js";
 import type { IIotaConfig } from "./models/IIotaConfig.js";
 import { VaultJwkStorage } from "./vaultJwkStorage.js";

@@ -7,14 +7,14 @@ Use these commands to build and deploy Move contracts with a repeatable workflow
 To install and run the CLI locally use the following commands:
 
 ```shell
-npm install @twin.org/move-to-json -g
+npm install @3sixty/move-to-json -g
 move-to-json
 ```
 
 or run directly using NPX:
 
 ```shell
-npx "@twin.org/move-to-json"
+npx "@3sixty/move-to-json"
 ```
 
 ## Help
@@ -165,6 +165,6 @@ move-to-json deploy --network mainnet --contracts <PATH-TO-CONTRACTS> --load-env
 ## Example
 
 ```shell
-npx "@twin.org/move-to-json" build "tests/fixtures/sources/**/*.move" --load-env configs/testnet.env --output tests/fixtures/smartContractDeployments/smart-contract-deployments.json
-npx "@twin.org/move-to-json" deploy --load-env configs/testnet.env --contracts tests/fixtures/smartContractDeployments/smart-contract-deployments.json --dry-run
+npx "@3sixty/move-to-json" build "tests/fixtures/sources/**/*.move" --load-env configs/testnet.env --output tests/fixtures/smartContractDeployments/smart-contract-deployments.json
+npx "@3sixty/move-to-json" deploy --load-env configs/testnet.env --contracts tests/fixtures/smartContractDeployments/smart-contract-deployments.json --dry-run
 ```

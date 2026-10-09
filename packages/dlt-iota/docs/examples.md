@@ -5,7 +5,7 @@ These snippets show practical ways to configure clients, derive addresses, post 
 ## Iota
 
 ```typescript
-import { Iota, NetworkTypes, type IIotaConfig } from '@twin.org/dlt-iota';
+import { Iota, NetworkTypes, type IIotaConfig } from '@3sixty/dlt-iota';
 
 const config: IIotaConfig = {
   network: NetworkTypes.Testnet,
@@ -24,8 +24,8 @@ console.log(client !== undefined); // true
 ```
 
 ```typescript
-import { Bip39 } from '@twin.org/crypto';
-import { Iota } from '@twin.org/dlt-iota';
+import { Bip39 } from '@3sixty/crypto';
+import { Iota } from '@3sixty/dlt-iota';
 
 const mnemonic =
   'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
@@ -43,9 +43,9 @@ console.log(keyPair.publicKey.length > 0); // true
 ```
 
 ```typescript
-import { Converter } from '@twin.org/core';
-import { Iota, type IIotaConfig } from '@twin.org/dlt-iota';
-import type { IVaultConnector } from '@twin.org/vault-models';
+import { Converter } from '@3sixty/core';
+import { Iota, type IIotaConfig } from '@3sixty/dlt-iota';
+import type { IVaultConnector } from '@3sixty/vault-models';
 
 const config: IIotaConfig = {
   clientOptions: {
@@ -77,8 +77,8 @@ import {
   type IIotaConfig,
   type IIotaTransaction,
   type IIotaTransactionBlockResponse
-} from '@twin.org/dlt-iota';
-import type { IVaultConnector } from '@twin.org/vault-models';
+} from '@3sixty/dlt-iota';
+import type { IVaultConnector } from '@3sixty/vault-models';
 
 const config: IIotaConfig = {
   clientOptions: {
@@ -125,8 +125,8 @@ import {
   type IIotaConfig,
   type IIotaTransaction,
   type IIotaTransactionBlockResponse
-} from '@twin.org/dlt-iota';
-import type { IVaultConnector } from '@twin.org/vault-models';
+} from '@3sixty/dlt-iota';
+import type { IVaultConnector } from '@3sixty/vault-models';
 
 const config: IIotaConfig = {
   clientOptions: {
@@ -182,8 +182,8 @@ console.log(typeof postedResult.digest === 'string'); // true
 ```
 
 ```typescript
-import { Iota, type IIotaClient, type IIotaConfig } from '@twin.org/dlt-iota';
-import type { ILoggingComponent } from '@twin.org/logging-models';
+import { Iota, type IIotaClient, type IIotaConfig } from '@3sixty/dlt-iota';
+import type { ILoggingComponent } from '@3sixty/logging-models';
 
 const config: IIotaConfig = {
   clientOptions: {
@@ -213,8 +213,8 @@ import {
   type IIotaClient,
   type IIotaConfig,
   type IIotaTransactionBlockResponse
-} from '@twin.org/dlt-iota';
-import type { IVaultConnector } from '@twin.org/vault-models';
+} from '@3sixty/dlt-iota';
+import type { IVaultConnector } from '@3sixty/vault-models';
 
 const config: IIotaConfig = {
   clientOptions: {
@@ -251,11 +251,11 @@ import {
   NetworkTypes,
   type IIotaConfig,
   type ISmartContractDeployments
-} from '@twin.org/dlt-iota';
+} from '@3sixty/dlt-iota';
 import type { IotaClient } from '@iota/iota-sdk/client';
-import type { ILoggingComponent } from '@twin.org/logging-models';
-import type { IVaultConnector } from '@twin.org/vault-models';
-import type { IWalletConnector } from '@twin.org/wallet-models';
+import type { ILoggingComponent } from '@3sixty/logging-models';
+import type { IVaultConnector } from '@3sixty/vault-models';
+import type { IWalletConnector } from '@3sixty/wallet-models';
 
 const config: IIotaConfig = {
   network: NetworkTypes.Testnet,
@@ -314,11 +314,11 @@ import {
   NetworkTypes,
   type IIotaConfig,
   type ISmartContractDeployments
-} from '@twin.org/dlt-iota';
+} from '@3sixty/dlt-iota';
 import type { IotaClient } from '@iota/iota-sdk/client';
-import type { ILoggingComponent } from '@twin.org/logging-models';
-import type { IVaultConnector } from '@twin.org/vault-models';
-import type { IWalletConnector } from '@twin.org/wallet-models';
+import type { ILoggingComponent } from '@3sixty/logging-models';
+import type { IVaultConnector } from '@3sixty/vault-models';
+import type { IWalletConnector } from '@3sixty/wallet-models';
 
 const config: IIotaConfig = {
   network: NetworkTypes.Testnet,
@@ -368,9 +368,9 @@ console.log(migrationActive); // true
 ```
 
 ```typescript
-import { IotaSmartContractUtils, NetworkTypes, type IIotaConfig } from '@twin.org/dlt-iota';
+import { IotaSmartContractUtils, NetworkTypes, type IIotaConfig } from '@3sixty/dlt-iota';
 import type { IotaClient } from '@iota/iota-sdk/client';
-import type { IWalletConnector } from '@twin.org/wallet-models';
+import type { IWalletConnector } from '@3sixty/wallet-models';
 
 type ContractObjectFields = {
   fields: {

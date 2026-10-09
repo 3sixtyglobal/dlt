@@ -1,9 +1,9 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
 import path from "node:path";
+import { Guards, Is } from "@3sixty/core";
+import { AccountHelper } from "@3sixty/dlt-account";
 import { requestIotaFromFaucetV0 } from "@iota/iota-sdk/faucet";
-import { Guards, Is } from "@twin.org/core";
-import { AccountHelper } from "@twin.org/dlt-account";
 import dotenv from "dotenv";
 import { Iota } from "../src/iota.js";
 

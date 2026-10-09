@@ -1,11 +1,11 @@
-# TWIN DLT Account
+# 3Sixty DLT Account
 
 This package provides helper utilities for managing distributed ledger accounts. It covers the full account lifecycle against a vault connector, including BIP44 key derivation, secure storage of mnemonics and seeds, address generation, and account migration operations. Services that need consistent, repeatable account management can use it to avoid reimplementing common cryptographic patterns.
 
 ## Installation
 
 ```shell
-npm install @twin.org/dlt-account
+npm install @3sixty/dlt-account
 ```
 
 ## Examples

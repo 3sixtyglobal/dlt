@@ -1,9 +1,5 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import { IotaClient } from "@iota/iota-sdk/client";
-import { requestIotaFromFaucetV0 } from "@iota/iota-sdk/faucet";
-import { Ed25519Keypair } from "@iota/iota-sdk/keypairs/ed25519";
-import { Transaction } from "@iota/iota-sdk/transactions";
 import {
 	BaseError,
 	Coerce,
@@ -13,12 +9,16 @@ import {
 	Is,
 	StringHelper,
 	type IError
-} from "@twin.org/core";
-import { AccountHelper } from "@twin.org/dlt-account";
-import type { ILoggingComponent } from "@twin.org/logging-models";
-import { nameof } from "@twin.org/nameof";
-import type { IVaultConnector } from "@twin.org/vault-models";
-import { FetchHelper, HttpMethod } from "@twin.org/web";
+} from "@3sixty/core";
+import { AccountHelper } from "@3sixty/dlt-account";
+import type { ILoggingComponent } from "@3sixty/logging-models";
+import { nameof } from "@3sixty/nameof";
+import type { IVaultConnector } from "@3sixty/vault-models";
+import { FetchHelper, HttpMethod } from "@3sixty/web";
+import { IotaClient } from "@iota/iota-sdk/client";
+import { requestIotaFromFaucetV0 } from "@iota/iota-sdk/faucet";
+import { Ed25519Keypair } from "@iota/iota-sdk/keypairs/ed25519";
+import { Transaction } from "@iota/iota-sdk/transactions";
 import type { IGasReservationResult } from "./models/IGasReservationResult.js";
 import type { IGasStationConfig } from "./models/IGasStationConfig.js";
 import type { IGasStationExecuteResponse } from "./models/IGasStationExecuteResponse.js";

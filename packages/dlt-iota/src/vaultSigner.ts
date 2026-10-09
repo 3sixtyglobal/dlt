@@ -1,8 +1,8 @@
 // Copyright 2026 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
+import type { IVaultConnector } from "@3sixty/vault-models";
 import { Signer, type SignatureScheme } from "@iota/iota-sdk/cryptography";
 import { Ed25519PublicKey } from "@iota/iota-sdk/keypairs/ed25519";
-import type { IVaultConnector } from "@twin.org/vault-models";
 
 /**
  * A signer that delegates all signing to the vault connector, ensuring the private key

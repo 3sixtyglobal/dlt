@@ -1,4 +1,4 @@
-# @twin.org/move-to-json
+# @3sixty/move-to-json
 
 ## Classes
 

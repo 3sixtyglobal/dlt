@@ -1,5 +1,7 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
+import { Base64Url, GeneralError, Guards, Is, NotFoundError } from "@3sixty/core";
+import { nameof } from "@3sixty/nameof";
 import {
 	IdentityClient,
 	IdentityClientReadOnly,
@@ -14,8 +16,6 @@ import {
 } from "@iota/identity-wasm/node/index.js";
 import { decodeIotaPrivateKey } from "@iota/iota-sdk/cryptography";
 import { Ed25519Keypair } from "@iota/iota-sdk/keypairs/ed25519";
-import { Base64Url, GeneralError, Guards, Is, NotFoundError } from "@twin.org/core";
-import { nameof } from "@twin.org/nameof";
 import { Iota } from "./iota.js";
 import type { IIotaClient } from "./models/IIotaClient.js";
 import type { IIotaControllerCapInfo } from "./models/IIotaControllerCapInfo.js";

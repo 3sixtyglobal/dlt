@@ -1,11 +1,11 @@
-# TWIN Move to JSON
+# 3Sixty Move to JSON
 
 This app provides a command line workflow for compiling Move contracts and producing deployment-ready JSON for IOTA networks. It is intended for development teams that want predictable build and deployment inputs across test and production environments.
 
 ## Installation
 
 ```shell
-npm install -D @twin.org/move-to-json
+npm install -D @3sixty/move-to-json
 ```
 
 ## Usage

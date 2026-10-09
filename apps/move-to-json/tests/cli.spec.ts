@@ -3,19 +3,19 @@
 import { existsSync } from "node:fs";
 import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { CLIDisplay, CLIUtils } from "@twin.org/cli-core";
-import { GeneralError } from "@twin.org/core";
-import { Bip39 } from "@twin.org/crypto";
-import { AccountHelper } from "@twin.org/dlt-account";
-import { MemoryEntityStorageConnector } from "@twin.org/entity-storage-connector-memory";
-import { EntityStorageConnectorFactory } from "@twin.org/entity-storage-models";
-import { nameof } from "@twin.org/nameof";
+import { CLIDisplay, CLIUtils } from "@3sixty/cli-core";
+import { GeneralError } from "@3sixty/core";
+import { Bip39 } from "@3sixty/crypto";
+import { AccountHelper } from "@3sixty/dlt-account";
+import { MemoryEntityStorageConnector } from "@3sixty/entity-storage-connector-memory";
+import { EntityStorageConnectorFactory } from "@3sixty/entity-storage-models";
+import { nameof } from "@3sixty/nameof";
 import {
 	EntityStorageVaultConnector,
 	initSchema,
 	type VaultKey,
 	type VaultSecret
-} from "@twin.org/vault-connector-entity-storage";
+} from "@3sixty/vault-connector-entity-storage";
 import { TEST_IOTA_CONFIG, TEST_MNEMONIC_NAME } from "./setupTestEnv.js";
 import { CLI } from "../src/cli.js";
 import { ensureCorrectDeployerKey, generateUniqueBackupAlias } from "../src/commands/deploy.js";

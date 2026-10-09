@@ -5,8 +5,8 @@ These examples show how to create, query, and manage distributed ledger accounts
 ## AccountHelper
 
 ```typescript
-import type { IVaultConnector } from '@twin.org/vault-models';
-import { AccountHelper } from '@twin.org/dlt-account';
+import type { IVaultConnector } from '@3sixty/vault-models';
+import { AccountHelper } from '@3sixty/dlt-account';
 
 declare const vaultConnector: IVaultConnector;
 const identity = 'did:example:alice';
@@ -28,8 +28,8 @@ console.log(stored === existingMnemonic); // true
 ```
 
 ```typescript
-import type { IVaultConnector } from '@twin.org/vault-models';
-import { AccountHelper } from '@twin.org/dlt-account';
+import type { IVaultConnector } from '@3sixty/vault-models';
+import { AccountHelper } from '@3sixty/dlt-account';
 
 declare const vaultConnector: IVaultConnector;
 const identity = 'did:example:alice';
@@ -56,8 +56,8 @@ console.log(internalAddresses.length); // 5
 ```
 
 ```typescript
-import type { IVaultConnector } from '@twin.org/vault-models';
-import { AccountHelper } from '@twin.org/dlt-account';
+import type { IVaultConnector } from '@3sixty/vault-models';
+import { AccountHelper } from '@3sixty/dlt-account';
 
 declare const vaultConnector: IVaultConnector;
 const identity = 'did:example:alice';
@@ -75,8 +75,8 @@ console.log(AccountHelper.publicKeyToAddress(publicKey) === addresses[2]); // tr
 ```
 
 ```typescript
-import type { IVaultConnector } from '@twin.org/vault-models';
-import { AccountHelper } from '@twin.org/dlt-account';
+import type { IVaultConnector } from '@3sixty/vault-models';
+import { AccountHelper } from '@3sixty/dlt-account';
 
 declare const vaultConnector: IVaultConnector;
 
@@ -90,8 +90,8 @@ await AccountHelper.renameAccountKeys(
 ```
 
 ```typescript
-import type { IVaultConnector } from '@twin.org/vault-models';
-import { AccountHelper } from '@twin.org/dlt-account';
+import type { IVaultConnector } from '@3sixty/vault-models';
+import { AccountHelper } from '@3sixty/dlt-account';
 
 declare const vaultConnector: IVaultConnector;
 const identity = 'did:example:alice';
@@ -101,9 +101,9 @@ await AccountHelper.removeAccountKeys(undefined, vaultConnector, identity);
 ```
 
 ```typescript
-import { Converter } from '@twin.org/core';
-import type { IVaultConnector } from '@twin.org/vault-models';
-import { AccountHelper } from '@twin.org/dlt-account';
+import { Converter } from '@3sixty/core';
+import type { IVaultConnector } from '@3sixty/vault-models';
+import { AccountHelper } from '@3sixty/dlt-account';
 
 declare const vaultConnector: IVaultConnector;
 const identity = 'did:example:alice';
@@ -130,7 +130,7 @@ console.log(derivedAddress.startsWith('0x')); // true
 ```
 
 ```typescript
-import { AccountHelper } from '@twin.org/dlt-account';
+import { AccountHelper } from '@3sixty/dlt-account';
 
 const identity = 'did:example:alice';
 

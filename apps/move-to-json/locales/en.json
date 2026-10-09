@@ -39,7 +39,7 @@
 			}
 		},
 		"envSetup": {
-			"mnemonicMissing": "Missing required DEPLOYER_MNEMONIC environment variable for {network}. Set DEPLOYER_MNEMONIC in your environment or use --load-env to load from configuration file (e.g., configs/{network}.env).\n\nYou can generate a mnemonic using:\nnpx \"@twin.org/wallet-cli\" mnemonic --env wallet.env\n\nThen add the MNEMONIC value to your configs/{network}.env file:\n{mnemonicVar}=\"word1 word2 word3 ... word24\"\n\nSee configs/{network}.env.example for reference.",
+			"mnemonicMissing": "Missing required DEPLOYER_MNEMONIC environment variable for {network}. Set DEPLOYER_MNEMONIC in your environment or use --load-env to load from configuration file (e.g., configs/{network}.env).\n\nYou can generate a mnemonic using:\nnpx \"@3sixty/wallet-cli\" mnemonic --env wallet.env\n\nThen add the MNEMONIC value to your configs/{network}.env file:\n{mnemonicVar}=\"word1 word2 word3 ... word24\"\n\nSee configs/{network}.env.example for reference.",
 			"mnemonicInvalidFormat": "Invalid DEPLOYER_MNEMONIC environment variable format for {network}. Please ensure {mnemonicVar} in your environment or configs/{network}.env contains a valid 24-word mnemonic phrase.",
 			"seedInvalidFormat": "Invalid DEPLOYER_SEED environment variable format for {network}. Expected hex string starting with 0x and at least 64 characters.\nPlease ensure {seedVar} in your environment or configs/{network}.env contains a valid hex seed value."
 		},

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0.
 import { readFile, writeFile, rm, mkdir } from "node:fs/promises";
 import path from "node:path";
-import type { ISmartContractDeployments } from "@twin.org/dlt-iota";
+import type { ISmartContractDeployments } from "@3sixty/dlt-iota";
 import {
 	TEST_NETWORK,
 	TEST_CONTRACT_PATH_V1,

@@ -2,27 +2,23 @@
 // SPDX-License-Identifier: Apache-2.0.
 import { promises as fsPromises } from "node:fs";
 import path from "node:path";
-import { IotaClient } from "@iota/iota-sdk/client";
-import { requestIotaFromFaucetV0 } from "@iota/iota-sdk/faucet";
-import { CLIDisplay, CLIParam, CLIUtils } from "@twin.org/cli-core";
-import { Coerce, Converter, GeneralError, Guards, I18n, Is, RandomHelper } from "@twin.org/core";
-import { Bip39, Bip44 } from "@twin.org/crypto";
-import { AccountHelper } from "@twin.org/dlt-account";
-import {
-	NetworkTypes,
-	type IContractData,
-	type ISmartContractDeployments
-} from "@twin.org/dlt-iota";
-import { MemoryEntityStorageConnector } from "@twin.org/entity-storage-connector-memory";
-import { EntityStorageConnectorFactory } from "@twin.org/entity-storage-models";
-import { nameof } from "@twin.org/nameof";
+import { CLIDisplay, CLIParam, CLIUtils } from "@3sixty/cli-core";
+import { Coerce, Converter, GeneralError, Guards, I18n, Is, RandomHelper } from "@3sixty/core";
+import { Bip39, Bip44 } from "@3sixty/crypto";
+import { AccountHelper } from "@3sixty/dlt-account";
+import { NetworkTypes, type IContractData, type ISmartContractDeployments } from "@3sixty/dlt-iota";
+import { MemoryEntityStorageConnector } from "@3sixty/entity-storage-connector-memory";
+import { EntityStorageConnectorFactory } from "@3sixty/entity-storage-models";
+import { nameof } from "@3sixty/nameof";
 import {
 	EntityStorageVaultConnector,
 	initSchema,
 	type VaultKey,
 	type VaultSecret
-} from "@twin.org/vault-connector-entity-storage";
-import type { IVaultConnector } from "@twin.org/vault-models";
+} from "@3sixty/vault-connector-entity-storage";
+import type { IVaultConnector } from "@3sixty/vault-models";
+import { IotaClient } from "@iota/iota-sdk/client";
+import { requestIotaFromFaucetV0 } from "@iota/iota-sdk/faucet";
 import type { Command } from "commander";
 import type { INetworkConfig } from "../models/INetworkConfig.js";
 import { cleanBuildArtifactsInPath } from "../utils/buildArtifactUtils.js";

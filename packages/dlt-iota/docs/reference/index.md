@@ -1,4 +1,4 @@
-# @twin.org/dlt-iota
+# @3sixty/dlt-iota
 
 ## Classes
 

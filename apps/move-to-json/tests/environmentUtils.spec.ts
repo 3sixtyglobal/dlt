@@ -3,7 +3,7 @@
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { I18n } from "@twin.org/core";
+import { I18n } from "@3sixty/core";
 import {
 	checkEnvironmentExists,
 	createEnvironment,

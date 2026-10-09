@@ -1,13 +1,13 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
+import { GeneralError, Is, StringHelper } from "@3sixty/core";
+import { AccountHelper } from "@3sixty/dlt-account";
+import type { ILoggingComponent } from "@3sixty/logging-models";
+import { nameof } from "@3sixty/nameof";
+import type { IVaultConnector } from "@3sixty/vault-models";
 import { bcs } from "@iota/bcs";
 import type { IotaClient } from "@iota/iota-sdk/client";
 import { Transaction } from "@iota/iota-sdk/transactions";
-import { GeneralError, Is, StringHelper } from "@twin.org/core";
-import { AccountHelper } from "@twin.org/dlt-account";
-import type { ILoggingComponent } from "@twin.org/logging-models";
-import { nameof } from "@twin.org/nameof";
-import type { IVaultConnector } from "@twin.org/vault-models";
 import { Iota } from "./iota.js";
 import type { IIotaConfig } from "./models/IIotaConfig.js";
 import type { ISmartContractDeployments } from "./models/ISmartContractDeployments.js";

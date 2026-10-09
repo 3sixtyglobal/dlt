@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0.
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { CLIBase } from "@twin.org/cli-core";
+import { CLIBase } from "@3sixty/cli-core";
 import type { Command } from "commander";
 import { buildCommandBuild } from "./commands/build.js";
 import { buildCommandDeploy } from "./commands/deploy.js";
@@ -30,7 +30,7 @@ export class CLI extends CLIBase {
 			{
 				title: "TWIN Move to JSON",
 				appName: "move-to-json",
-				version: "0.11.1-next.0", // x-release-please-version
+				version: "0.20.0-next.0", // x-release-please-version
 				icon: "⚙️ ",
 				supportsEnvFiles: true,
 				overrideOutputWidth: options?.overrideOutputWidth
