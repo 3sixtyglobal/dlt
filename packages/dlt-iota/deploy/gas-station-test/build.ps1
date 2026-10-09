@@ -1,14 +1,14 @@
 # Build script for TWIN Gas Station unified Docker image
-# Supports multi-platform builds and publication to Docker Hub
+# Supports multi-platform builds and publication to GitHub Container Registry
 
 $ErrorActionPreference = "Stop"
 
 # Configuration
-$IMAGE_NAME = "twin-gas-station-test"
-$DOCKER_HUB_REPO = "twinfoundation/twin-gas-station-test"
+$IMAGE_NAME = "3sixty-gas-station-test"
+$IMAGE_REPO = "ghcr.io/3sixtyglobal/3sixty-gas-station-test"
 $VERSION = "latest"
 $PLATFORMS = "linux/amd64,linux/arm64"
-$BUILDER_NAME = "twin-multiplatform-builder"
+$BUILDER_NAME = "3sixty-multiplatform-builder"
 
 Write-Host "Building TWIN Gas Station unified Docker image..."
 
@@ -82,7 +82,7 @@ function Build-Local {
 function Build-Multiplatform {
     Write-Host "Building multi-platform image..."
     Write-Host "Platforms: $PLATFORMS"
-    Write-Host "Repository: $DOCKER_HUB_REPO"
+    Write-Host "Repository: $IMAGE_REPO"
 
     $currentBuilder = (docker buildx inspect --bootstrap | Select-String "Name:").ToString().Split()[-1]
     Write-Host "Using builder: $currentBuilder"
@@ -91,24 +91,24 @@ function Build-Multiplatform {
     Write-Host "Running build command..."
     docker buildx build `
         --platform $PLATFORMS `
-        --tag "${DOCKER_HUB_REPO}:${VERSION}" `
-        --tag "${DOCKER_HUB_REPO}:${dateTag}" `
+        --tag "${IMAGE_REPO}:${VERSION}" `
+        --tag "${IMAGE_REPO}:${dateTag}" `
         --push `
         .
 
     if ($LASTEXITCODE -eq 0) {
         Write-Host "OK Multi-platform build and push completed successfully!"
-        Write-Host "Available at: ${DOCKER_HUB_REPO}:${VERSION}"
-        Write-Host "Daily tag: ${DOCKER_HUB_REPO}:${dateTag}"
+        Write-Host "Available at: ${IMAGE_REPO}:${VERSION}"
+        Write-Host "Daily tag: ${IMAGE_REPO}:${dateTag}"
     } else {
         Write-Host "FAILED Build failed. Check the error messages above."
         Write-Host ""
         Write-Host "Troubleshooting tips:"
-        Write-Host "1. Make sure you're logged in: docker login"
+        Write-Host "1. Make sure you're logged in: docker login ghcr.io"
         Write-Host "2. Check builder status: docker buildx ls"
         Write-Host "3. If using 'docker' driver, create new builder:"
-        Write-Host "   docker buildx create --name twin-multiplatform-builder --driver docker-container"
-        Write-Host "   docker buildx use twin-multiplatform-builder"
+        Write-Host "   docker buildx create --name 3sixty-multiplatform-builder --driver docker-container"
+        Write-Host "   docker buildx use 3sixty-multiplatform-builder"
         exit 1
     }
 }
@@ -117,8 +117,8 @@ function Test-Local {
     Write-Host "Testing local image..."
 
     # Stop any existing container
-    docker stop twin-gas-station-test 2>$null
-    docker rm twin-gas-station-test 2>$null
+    docker stop 3sixty-gas-station-test 2>$null
+    docker rm 3sixty-gas-station-test 2>$null
 
     docker image inspect "${IMAGE_NAME}:${VERSION}" 2>$null | Out-Null
     if ($LASTEXITCODE -ne 0) {
@@ -128,7 +128,7 @@ function Test-Local {
 
     Write-Host "Starting test container..."
     docker run -d `
-        --name twin-gas-station-test `
+        --name 3sixty-gas-station-test `
         -p 6379:6379 `
         -p 9527:9527 `
         -p 9184:9184 `
@@ -141,20 +141,20 @@ function Test-Local {
     }
 
     $redisReady = Wait-ForService -ServiceName "Redis" -CheckCommand {
-        docker exec twin-gas-station-test redis-cli ping
+        docker exec 3sixty-gas-station-test redis-cli ping
     }
     if (-not $redisReady) {
         Write-Host "FAILED Redis test failed"
-        docker logs twin-gas-station-test
+        docker logs 3sixty-gas-station-test
         return $false
     }
 
     $gasStationReady = Wait-ForService -ServiceName "Gas Station" -CheckCommand {
-        docker exec twin-gas-station-test curl -f http://localhost:9527/
+        docker exec 3sixty-gas-station-test curl -f http://localhost:9527/
     }
     if (-not $gasStationReady) {
         Write-Host "FAILED Gas Station test failed"
-        docker logs twin-gas-station-test
+        docker logs 3sixty-gas-station-test
         return $false
     }
 
@@ -164,30 +164,30 @@ function Test-Local {
     Write-Host "Running final verification tests..."
 
     Write-Host "Testing Redis connection..."
-    docker exec twin-gas-station-test redis-cli ping
+    docker exec 3sixty-gas-station-test redis-cli ping
     if ($LASTEXITCODE -eq 0) {
         Write-Host "OK Redis is working"
     } else {
         Write-Host "FAILED Redis verification failed"
-        docker logs twin-gas-station-test
+        docker logs 3sixty-gas-station-test
         return $false
     }
 
     Write-Host "Testing Gas Station connection..."
-    docker exec twin-gas-station-test curl -f http://localhost:9527/ 2>$null
+    docker exec 3sixty-gas-station-test curl -f http://localhost:9527/ 2>$null
     if ($LASTEXITCODE -eq 0) {
         Write-Host "OK Gas Station is working"
     } else {
         Write-Host "FAILED Gas Station verification failed"
-        docker logs twin-gas-station-test
+        docker logs 3sixty-gas-station-test
         return $false
     }
 
     Write-Host "OK All tests passed!"
 
     # Cleanup
-    docker stop twin-gas-station-test
-    docker rm twin-gas-station-test
+    docker stop 3sixty-gas-station-test
+    docker rm 3sixty-gas-station-test
     return $true
 }
 
@@ -246,7 +246,7 @@ switch ($args[0]) {
         Build-Local
         Test-Local
         Write-Host "Local build and test successful. Ready for publishing."
-        Write-Host "Run '.\build.ps1 publish' to build and push multi-platform image to Docker Hub"
+        Write-Host "Run '.\build.ps1 publish' to build and push multi-platform image to GitHub Container Registry"
     }
     default {
         Write-Host "Usage: .\build.ps1 {local|test|publish|all|setup}"
@@ -254,7 +254,7 @@ switch ($args[0]) {
         Write-Host "Commands:"
         Write-Host "  local    - Build local image for testing"
         Write-Host "  test     - Test the local image"
-        Write-Host "  publish  - Build and push multi-platform image to Docker Hub"
+        Write-Host "  publish  - Build and push multi-platform image to GitHub Container Registry"
         Write-Host "  all      - Build local + test (recommended first step)"
         Write-Host "  setup    - Setup buildx builder for multi-platform builds"
         Write-Host ""
@@ -265,7 +265,7 @@ switch ($args[0]) {
         Write-Host ""
         Write-Host "Manual setup (complete process):"
         Write-Host "  docker run --rm --privileged multiarch/qemu-user-static --reset -p yes --credential yes"
-        Write-Host "  docker buildx create --name twin-multiplatform-builder --driver docker-container --use"
+        Write-Host "  docker buildx create --name 3sixty-multiplatform-builder --driver docker-container --use"
         Write-Host "  docker buildx inspect --bootstrap"
         Write-Host ""
         Write-Host "Note: QEMU registration may require running PowerShell as Administrator"

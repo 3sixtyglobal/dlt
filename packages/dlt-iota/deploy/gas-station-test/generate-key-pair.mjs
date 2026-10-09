@@ -1,8 +1,8 @@
 // Copyright 2026 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
 /* eslint-disable no-console */
-import { Converter } from '@twin.org/core';
-import { Bip39, Bip44, Ed25519, KeyType, Blake2b } from '@twin.org/crypto';
+import { Converter } from '@3sixty/core';
+import { Bip39, Bip44, Ed25519, KeyType, Blake2b } from '@3sixty/crypto';
 
 // Use the mnemonic from the command line if provided, otherwise generate a random one
 const mnemonic = process.argv[2]?.trim() || Bip39.randomMnemonic();

@@ -13,13 +13,17 @@ on:
           - '🌳 production (main branch)'
 
 env:
-  TWIN_DOCKER_USERNAME: ${{ secrets.TWIN_DOCKER_USERNAME }}
-  TWIN_DOCKER_REPO: twinfoundation/twin-gas-station-test
+  REGISTRY: ghcr.io
+  IMAGE_NAME: 3sixty-gas-station-test
   DOCKERFILE_DIR: packages/dlt-iota/deploy/gas-station-test
 
 jobs:
   build-and-push:
-    runs-on: ${{ github.event.repository.private && fromJSON('{"group":"twin","labels":"self-hosted"}') || 'ubuntu-latest' }}
+    runs-on: ${{ github.event.repository.private && fromJSON('{"group":"3sixty","labels":"self-hosted"}') || 'ubuntu-latest' }}
+
+    permissions:
+      contents: read
+      packages: write
 
     steps:
       # Set branch variable based on release type
@@ -61,8 +65,13 @@ jobs:
       - name: Determine Docker tags
         id: docker-tags
         run: |
+          # GHCR image names must be lowercase
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          IMAGE="${{ env.REGISTRY }}/$OWNER/${{ env.IMAGE_NAME }}"
           DATESTAMP=$(date +%Y%m%d)
-          TAGS="${{ env.TWIN_DOCKER_REPO }}:latest,${{ env.TWIN_DOCKER_REPO }}:${{ steps.base-version.outputs.version }},${{ env.TWIN_DOCKER_REPO }}:$DATESTAMP"
+          TAGS="$IMAGE:latest,$IMAGE:${{ steps.base-version.outputs.version }},$IMAGE:$DATESTAMP"
+          echo "owner=$OWNER" >> $GITHUB_OUTPUT
+          echo "image=$IMAGE" >> $GITHUB_OUTPUT
           echo "datestamp=$DATESTAMP" >> $GITHUB_OUTPUT
           echo "tags=$TAGS" >> $GITHUB_OUTPUT
           echo "Docker tags: $TAGS"
@@ -77,12 +86,13 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
-      # Log in to Docker Hub
-      - name: Log in to Docker Hub
+      # Log in to GitHub Container Registry
+      - name: Log in to GitHub Container Registry
         uses: docker/login-action@v4
         with:
-          username: ${{ env.TWIN_DOCKER_USERNAME }}
-          password: ${{ secrets.TWIN_DOCKER_PASSWORD }}
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       # Build and push the Docker image
       - name: Build and Push Docker image
@@ -94,6 +104,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.docker-tags.outputs.tags }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
 
       # Output publish summary
       - name: Publish Summary
@@ -102,8 +114,8 @@ jobs:
           BASE_VERSION="${{ steps.base-version.outputs.version }}"
           DATESTAMP="${{ steps.docker-tags.outputs.datestamp }}"
           DIGEST="${{ steps.build-push.outputs.digest }}"
-          # 'f' is percent-encoded (%66) so GitHub Actions does not redact the org name from the summary
-          REPO_BASE_URL="https://hub.docker.com/r/twin%66oundation/twin-gas-station-test"
+          IMAGE="${{ steps.docker-tags.outputs.image }}"
+          PACKAGE_URL="${{ github.server_url }}/${{ github.repository }}/pkgs/container/${{ env.IMAGE_NAME }}"
 
           echo "## Gas Station Docker Publish Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -113,9 +125,10 @@ jobs:
           echo "| **Branch** | \`$BRANCH\` |" >> $GITHUB_STEP_SUMMARY
           echo "| **Datestamp tag** | \`$DATESTAMP\` |" >> $GITHUB_STEP_SUMMARY
           echo "| **Image digest** | \`$DIGEST\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Package** | [$PACKAGE_URL]($PACKAGE_URL) |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Tags published" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- [$REPO_BASE_URL?tag=latest]($REPO_BASE_URL?tag=latest)" >> $GITHUB_STEP_SUMMARY
-          echo "- [$REPO_BASE_URL?tag=$BASE_VERSION]($REPO_BASE_URL?tag=$BASE_VERSION)" >> $GITHUB_STEP_SUMMARY
-          echo "- [$REPO_BASE_URL?tag=$DATESTAMP]($REPO_BASE_URL?tag=$DATESTAMP)" >> $GITHUB_STEP_SUMMARY
+          echo "- \`$IMAGE:latest\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`$IMAGE:$BASE_VERSION\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`$IMAGE:$DATESTAMP\`" >> $GITHUB_STEP_SUMMARY

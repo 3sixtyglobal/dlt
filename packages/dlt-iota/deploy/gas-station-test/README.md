@@ -1,4 +1,4 @@
-# TWIN Gas Station Test Image
+# 3Sixty Gas Station Test Image
 
 A single Docker image that runs both Redis and the IOTA Gas Station together, intended for local development and CI testing of the TWIN framework.
 
@@ -25,13 +25,13 @@ Pass overrides at `docker run` time:
 
 ```bash
 docker run -d \
-  --name twin-gas-station-test \
+  --name 3sixty-gas-station-test \
   -p 6379:6379 \
   -p 9527:9527 \
   -p 9184:9184 \
   -e GAS_STATION_AUTH=<your-auth-token> \
   -e GAS_STATION_KEYPAIR=<your-base64-keypair> \
-  twin-gas-station-test:latest
+  3sixty-gas-station-test:latest
 ```
 
 ### Generating a new keypair
@@ -60,18 +60,18 @@ Fund the address using the IOTA testnet faucet at <https://faucet.testnet.iota.c
 
 # Run the container
 docker run -d \
-  --name twin-gas-station-test \
+  --name 3sixty-gas-station-test \
   -p 6379:6379 \
   -p 9527:9527 \
   -p 9184:9184 \
-  twin-gas-station-test:latest
+  3sixty-gas-station-test:latest
 
 # View logs
-docker logs twin-gas-station-test
+docker logs 3sixty-gas-station-test
 
 # Stop and remove
-docker stop twin-gas-station-test
-docker rm twin-gas-station-test
+docker stop 3sixty-gas-station-test
+docker rm 3sixty-gas-station-test
 ```
 
 ### Windows (PowerShell)
@@ -82,37 +82,37 @@ docker rm twin-gas-station-test
 
 # Run the container
 docker run -d `
-  --name twin-gas-station-test `
+  --name 3sixty-gas-station-test `
   -p 6379:6379 `
   -p 9527:9527 `
   -p 9184:9184 `
-  twin-gas-station-test:latest
+  3sixty-gas-station-test:latest
 
 # View logs
-docker logs twin-gas-station-test
+docker logs 3sixty-gas-station-test
 
 # Stop and remove
-docker stop twin-gas-station-test
-docker rm twin-gas-station-test
+docker stop 3sixty-gas-station-test
+docker rm 3sixty-gas-station-test
 ```
 
 ### Direct Docker Build
 
 ```bash
-docker build -t twin-gas-station-test:latest .
+docker build -t 3sixty-gas-station-test:latest .
 ```
 
 ## Build Scripts
 
 `build.sh` (Linux / macOS) and `build.ps1` (Windows) expose the same commands:
 
-| Command   | Description                                       |
-| --------- | ------------------------------------------------- |
-| `local`   | Build the image locally for testing               |
-| `test`    | Build, run, verify services, then clean up        |
-| `all`     | `local` + `test` combined                         |
-| `publish` | Build multi-platform image and push to Docker Hub |
-| `setup`   | Register QEMU emulators and create buildx builder |
+| Command   | Description                                                      |
+| --------- | ---------------------------------------------------------------- |
+| `local`   | Build the image locally for testing                              |
+| `test`    | Build, run, verify services, then clean up                       |
+| `all`     | `local` + `test` combined                                        |
+| `publish` | Build multi-platform image and push to GitHub Container Registry |
+| `setup`   | Register QEMU emulators and create buildx builder                |
 
 > On Windows, replace `./build.sh` with `.\build.ps1`.
 
@@ -120,20 +120,20 @@ docker build -t twin-gas-station-test:latest .
 
 ```bash
 # Check service status inside the container
-docker exec twin-gas-station-test supervisorctl status
+docker exec 3sixty-gas-station-test supervisorctl status
 
 # Tail logs for a specific service
-docker exec twin-gas-station-test supervisorctl tail redis
-docker exec twin-gas-station-test supervisorctl tail gas-station
+docker exec 3sixty-gas-station-test supervisorctl tail redis
+docker exec 3sixty-gas-station-test supervisorctl tail gas-station
 
 # Restart a service
-docker exec twin-gas-station-test supervisorctl restart gas-station
+docker exec 3sixty-gas-station-test supervisorctl restart gas-station
 
 # Test Redis
-docker exec twin-gas-station-test redis-cli ping
+docker exec 3sixty-gas-station-test redis-cli ping
 
 # Test Gas Station API
-docker exec twin-gas-station-test curl -f http://localhost:9527/
+docker exec 3sixty-gas-station-test curl -f http://localhost:9527/
 ```
 
 ## Data Persistence
@@ -142,17 +142,17 @@ Redis data is stored at `/data/redis` inside the container. To persist it across
 
 ```bash
 docker run -d \
-  --name twin-gas-station-test \
+  --name 3sixty-gas-station-test \
   -p 6379:6379 \
   -p 9527:9527 \
   -p 9184:9184 \
   -v twin-redis-data:/data/redis \
-  twin-gas-station-test:latest
+  3sixty-gas-station-test:latest
 ```
 
 ## Multi-Platform Builds
 
-Publishing to Docker Hub requires a `docker-container` buildx builder. Use the `setup` command to configure one:
+Publishing to GitHub Container Registry requires a `docker-container` buildx builder. Use the `setup` command to configure one:
 
 ```bash
 ./build.sh setup   # Linux / macOS
@@ -166,7 +166,7 @@ Or run the steps manually:
 docker run --rm --privileged multiarch/qemu-user-static --reset -p yes --credential yes
 
 # Create a docker-container builder and set it as active
-docker buildx create --name twin-multiplatform-builder --driver docker-container --use
+docker buildx create --name 3sixty-multiplatform-builder --driver docker-container --use
 
 # Bootstrap it
 docker buildx inspect --bootstrap
@@ -200,5 +200,5 @@ The default `docker` driver only builds for the host architecture. Run `./build.
 
 ```bash
 docker buildx ls
-# twin-multiplatform-builder*  docker-container  running  linux/amd64*, linux/arm64*
+# 3sixty-multiplatform-builder*  docker-container  running  linux/amd64*, linux/arm64*
 ```

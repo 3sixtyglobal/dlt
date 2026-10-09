@@ -1,15 +1,15 @@
 #!/bin/bash
 # Build script for TWIN Gas Station unified Docker image
-# Supports multi-platform builds and publication to Docker Hub
+# Supports multi-platform builds and publication to GitHub Container Registry
 
 set -e
 
 # Configuration
-IMAGE_NAME="twin-gas-station-test"
-DOCKER_HUB_REPO="twinfoundation/twin-gas-station-test"
+IMAGE_NAME="3sixty-gas-station-test"
+IMAGE_REPO="ghcr.io/3sixtyglobal/3sixty-gas-station-test"
 VERSION="latest"
 PLATFORMS="linux/amd64,linux/arm64"
-BUILDER_NAME="twin-multiplatform-builder"
+BUILDER_NAME="3sixty-multiplatform-builder"
 
 echo "Building TWIN Gas Station unified Docker image..."
 
@@ -78,27 +78,27 @@ build_local() {
 build_multiplatform() {
     echo "Building multi-platform image..."
     echo "Platforms: $PLATFORMS"
-    echo "Repository: $DOCKER_HUB_REPO"
+    echo "Repository: $IMAGE_REPO"
 
     CURRENT_BUILDER=$(docker buildx inspect --bootstrap | grep "Name:" | awk '{print $2}')
     echo "Using builder: $CURRENT_BUILDER"
 
     docker buildx build \
         --platform $PLATFORMS \
-        --tag "$DOCKER_HUB_REPO:$VERSION" \
-        --tag "$DOCKER_HUB_REPO:$(date +%Y%m%d)" \
+        --tag "$IMAGE_REPO:$VERSION" \
+        --tag "$IMAGE_REPO:$(date +%Y%m%d)" \
         --push \
         .
 
     if [ $? -eq 0 ]; then
         echo "✅ Multi-platform build and push completed successfully!"
-        echo "Available at: $DOCKER_HUB_REPO:$VERSION"
-        echo "Daily tag: $DOCKER_HUB_REPO:$(date +%Y%m%d)"
+        echo "Available at: $IMAGE_REPO:$VERSION"
+        echo "Daily tag: $IMAGE_REPO:$(date +%Y%m%d)"
     else
         echo "❌ Build failed. Check the error messages above."
         echo ""
         echo "Troubleshooting tips:"
-        echo "1. Make sure you're logged in: docker login"
+        echo "1. Make sure you're logged in: docker login ghcr.io"
         echo "2. Check builder status: docker buildx ls"
         echo "3. If using 'docker' driver, create new builder:"
         echo "   docker buildx create --name $BUILDER_NAME --driver docker-container"
@@ -111,8 +111,8 @@ build_multiplatform() {
 test_local() {
     echo "Testing local image..."
 
-    docker stop twin-gas-station-test 2>/dev/null || true
-    docker rm twin-gas-station-test 2>/dev/null || true
+    docker stop 3sixty-gas-station-test 2>/dev/null || true
+    docker rm 3sixty-gas-station-test 2>/dev/null || true
 
     if ! docker image inspect "$IMAGE_NAME:$VERSION" > /dev/null 2>&1; then
         echo "❌ Image '$IMAGE_NAME:$VERSION' not found. Run './build.sh local' first."
@@ -121,7 +121,7 @@ test_local() {
 
     echo "Starting test container..."
     docker run -d \
-        --name twin-gas-station-test \
+        --name 3sixty-gas-station-test \
         -p 6379:6379 \
         -p 9527:9527 \
         -p 9184:9184 \
@@ -132,15 +132,15 @@ test_local() {
         return 1
     fi
 
-    if ! wait_for_service "Redis" "docker exec twin-gas-station-test redis-cli ping"; then
+    if ! wait_for_service "Redis" "docker exec 3sixty-gas-station-test redis-cli ping"; then
         echo "❌ Redis test failed"
-        docker logs twin-gas-station-test
+        docker logs 3sixty-gas-station-test
         return 1
     fi
 
-    if ! wait_for_service "Gas Station" "docker exec twin-gas-station-test curl -f http://localhost:9527/"; then
+    if ! wait_for_service "Gas Station" "docker exec 3sixty-gas-station-test curl -f http://localhost:9527/"; then
         echo "❌ Gas Station test failed"
-        docker logs twin-gas-station-test
+        docker logs 3sixty-gas-station-test
         return 1
     fi
 
@@ -149,27 +149,27 @@ test_local() {
     echo "Running final verification tests..."
 
     echo "Testing Redis connection..."
-    if docker exec twin-gas-station-test redis-cli ping; then
+    if docker exec 3sixty-gas-station-test redis-cli ping; then
         echo "✅ Redis is working"
     else
         echo "❌ Redis verification failed"
-        docker logs twin-gas-station-test
+        docker logs 3sixty-gas-station-test
         return 1
     fi
 
     echo "Testing Gas Station connection..."
-    if docker exec twin-gas-station-test curl -f http://localhost:9527/ 2>/dev/null; then
+    if docker exec 3sixty-gas-station-test curl -f http://localhost:9527/ 2>/dev/null; then
         echo "✅ Gas Station is working"
     else
         echo "❌ Gas Station verification failed"
-        docker logs twin-gas-station-test
+        docker logs 3sixty-gas-station-test
         return 1
     fi
 
     echo "✅ All tests passed!"
 
-    docker stop twin-gas-station-test
-    docker rm twin-gas-station-test
+    docker stop 3sixty-gas-station-test
+    docker rm 3sixty-gas-station-test
 }
 
 # Main script logic
@@ -226,7 +226,7 @@ case "$1" in
         build_local
         test_local
         echo "Local build and test successful. Ready for publishing."
-        echo "Run './build.sh publish' to build and push multi-platform image to Docker Hub"
+        echo "Run './build.sh publish' to build and push multi-platform image to GitHub Container Registry"
         ;;
     *)
         echo "Usage: $0 {local|test|publish|all|setup}"
@@ -234,7 +234,7 @@ case "$1" in
         echo "Commands:"
         echo "  local    - Build local image for testing"
         echo "  test     - Test the local image"
-        echo "  publish  - Build and push multi-platform image to Docker Hub"
+        echo "  publish  - Build and push multi-platform image to GitHub Container Registry"
         echo "  all      - Build local + test (recommended first step)"
         echo "  setup    - Setup buildx builder for multi-platform builds"
         echo ""
