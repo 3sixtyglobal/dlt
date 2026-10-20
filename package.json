@@ -1,5 +1,5 @@
 {
-	"name": "@3sixty/dlt",
+	"name": "3sixty-dlt",
 	"version": "0.0.0",
 	"description": "Monorepo for distributed ledger utilities and deployment tooling.",
 	"repository": {
