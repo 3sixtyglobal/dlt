@@ -275,8 +275,8 @@ importers:
         specifier: next
         version: 0.20.0-next.0(typescript@6.0.3)
       '@iota/iota-sdk':
-        specifier: 1.17.0
-        version: 1.17.0(typescript@6.0.3)
+        specifier: 1.15.0
+        version: 1.15.0(typescript@6.0.3)
       commander:
         specifier: 15.0.0
         version: 15.0.0
@@ -419,10 +419,10 @@ importers:
         version: 1.6.0
       '@iota/identity-wasm':
         specifier: 1.9.7-beta.1
-        version: 1.9.7-beta.1(@iota/iota-sdk@1.17.0(typescript@6.0.3))
+        version: 1.9.7-beta.1(@iota/iota-sdk@1.15.0(typescript@6.0.3))
       '@iota/iota-sdk':
-        specifier: 1.17.0
-        version: 1.17.0(typescript@6.0.3)
+        specifier: 1.15.0
+        version: 1.15.0(typescript@6.0.3)
     devDependencies:
       '@3sixty/entity':
         specifier: next
@@ -1085,10 +1085,6 @@ packages:
 
   '@iota/iota-sdk@1.15.0':
     resolution: {integrity: sha512-3srYE00/bNdzkDeW29YjaYQLW4guBfPE5qixt3nHk2et6pWFrAxEajIrE6KSj0hqyi9rIxekuOGNEzqNfzcz7g==}
-    engines: {node: '>=24'}
-
-  '@iota/iota-sdk@1.17.0':
-    resolution: {integrity: sha512-Y2mnA0BQxPXPa043OiAFy7XEq/ZDTFaRmXxka+7+qEWSTRX37WQbXTYKUyDtqjDLUWVnFpkAoi8XDCwEd6Fgyw==}
     engines: {node: '>=24'}
 
   '@iota/notarization@0.1.15':
@@ -4613,48 +4609,11 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
-  '@iota/identity-wasm@1.9.7-beta.1(@iota/iota-sdk@1.17.0(typescript@6.0.3))':
-    dependencies:
-      '@iota/iota-interaction-ts': 0.14.0(@iota/iota-sdk@1.17.0(typescript@6.0.3))
-      '@iota/iota-sdk': 1.17.0(typescript@6.0.3)
-      '@iota/notarization': 0.1.15(@iota/iota-sdk@1.17.0(typescript@6.0.3))
-      '@noble/ed25519': 1.7.5
-      '@noble/hashes': 1.8.0
-      '@noble/post-quantum': 0.2.1
-      '@types/node-fetch': 2.6.13
-      base64-arraybuffer: 1.0.2
-      jose: 5.10.0
-      node-fetch: 2.7.0
-    transitivePeerDependencies:
-      - encoding
-
   '@iota/iota-interaction-ts@0.14.0(@iota/iota-sdk@1.15.0(typescript@6.0.3))':
     dependencies:
       '@iota/iota-sdk': 1.15.0(typescript@6.0.3)
 
-  '@iota/iota-interaction-ts@0.14.0(@iota/iota-sdk@1.17.0(typescript@6.0.3))':
-    dependencies:
-      '@iota/iota-sdk': 1.17.0(typescript@6.0.3)
-
   '@iota/iota-sdk@1.15.0(typescript@6.0.3)':
-    dependencies:
-      '@graphql-typed-document-node/core': 3.2.0(graphql@16.14.2)
-      '@iota/bcs': 1.6.0
-      '@noble/curves': 1.9.7
-      '@noble/hashes': 1.8.0
-      '@scure/base': 1.2.6
-      '@scure/bip32': 1.7.0
-      '@scure/bip39': 1.6.0
-      bignumber.js: 9.3.1
-      gql.tada: 1.11.4(graphql@16.14.2)(typescript@6.0.3)
-      graphql: 16.14.2
-      valibot: 1.5.0(typescript@6.0.3)
-    transitivePeerDependencies:
-      - '@gql.tada/svelte-support'
-      - '@gql.tada/vue-support'
-      - typescript
-
-  '@iota/iota-sdk@1.17.0(typescript@6.0.3)':
     dependencies:
       '@graphql-typed-document-node/core': 3.2.0(graphql@16.14.2)
       '@iota/bcs': 1.6.0
@@ -4676,11 +4635,6 @@ snapshots:
     dependencies:
       '@iota/iota-interaction-ts': 0.14.0(@iota/iota-sdk@1.15.0(typescript@6.0.3))
       '@iota/iota-sdk': 1.15.0(typescript@6.0.3)
-
-  '@iota/notarization@0.1.15(@iota/iota-sdk@1.17.0(typescript@6.0.3))':
-    dependencies:
-      '@iota/iota-interaction-ts': 0.14.0(@iota/iota-sdk@1.17.0(typescript@6.0.3))
-      '@iota/iota-sdk': 1.17.0(typescript@6.0.3)
 
   '@jridgewell/resolve-uri@3.1.2': {}
 
