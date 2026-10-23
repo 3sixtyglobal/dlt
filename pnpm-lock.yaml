@@ -251,10 +251,10 @@ importers:
         specifier: next
         version: 0.20.0-next.2
       '@3sixty/dlt-account':
-        specifier: 0.20.0-next.0
+        specifier: 0.20.0-next.1
         version: link:../../packages/dlt-account
       '@3sixty/dlt-iota':
-        specifier: 0.20.0-next.0
+        specifier: 0.20.0-next.1
         version: link:../../packages/dlt-iota
       '@3sixty/entity-storage-connector-memory':
         specifier: next
@@ -388,7 +388,7 @@ importers:
         specifier: next
         version: 0.20.0-next.2
       '@3sixty/dlt-account':
-        specifier: 0.20.0-next.0
+        specifier: 0.20.0-next.1
         version: link:../dlt-account
       '@3sixty/logging-models':
         specifier: next
