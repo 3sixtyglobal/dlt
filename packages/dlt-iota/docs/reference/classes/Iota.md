@@ -552,7 +552,7 @@ retryable error is thrown instead of the opaque underlying failure.
 
 #### Type Parameters
 
-##### T
+##### T {#t}
 
 `T`
 
