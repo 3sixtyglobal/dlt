@@ -854,7 +854,12 @@ describe("Iota", () => {
 						result.reason,
 						/equivocated until the next epoch/
 					);
-					expect(isClearConflict || isEquivocated).toBe(true);
+					expect(
+						isClearConflict || isEquivocated,
+						BaseError.flatten(result.reason)
+							.map(e => `${e.source ?? ""}:${e.message}`)
+							.join(" <- ")
+					).toBe(true);
 				}
 			}
 		});
