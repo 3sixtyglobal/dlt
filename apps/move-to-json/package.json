@@ -39,7 +39,6 @@
 		"@3sixty/nameof": "next",
 		"@3sixty/vault-connector-entity-storage": "next",
 		"@3sixty/vault-models": "next",
-		"@3sixty/wallet-connector-iota": "next",
 		"@iota/iota-sdk": "1.15.0",
 		"commander": "15.0.0",
 		"fast-glob": "3.3.3"
