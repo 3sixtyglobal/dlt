@@ -87,6 +87,14 @@ export class Iota {
 	private static readonly _STALE_OBJECT_ERROR_PATTERN: RegExp = /is not available for consumption/;
 
 	/**
+	 * Pattern that identifies the legacy node wording for an owned-object lock conflict, which does
+	 * not distinguish a transient reservation from equivocation. Retryable since the retry count is
+	 * bounded and a persistent lock still surfaces as the clear conflict error.
+	 * @internal
+	 */
+	private static readonly _LOCKED_OBJECT_ERROR_PATTERN: RegExp = /because of locked objects/;
+
+	/**
 	 * Pattern that identifies the gas station error returned when it cannot allocate gas because its
 	 * coin pool is exhausted by concurrent sponsorships. Retryable: coins are reclaimed once the
 	 * competing transactions confirm, so a subsequent attempt can usually succeed.
@@ -565,17 +573,18 @@ export class Iota {
 
 	/**
 	 * Check if an error is a retryable owned-object conflict caused by a concurrent transaction.
-	 * This covers both the "reserved for another transaction" case (the object is locked by an
-	 * in-flight transaction) and the "is not available for consumption" case (a concurrent
-	 * transaction already consumed the referenced version); a retry rebuild re-resolves to the
-	 * current version so both can recover. The non-retryable "equivocated until the next epoch"
-	 * case is not matched.
+	 * This covers the "reserved for another transaction" case (the object is locked by an
+	 * in-flight transaction), the legacy "because of locked objects" wording of the same conflict,
+	 * and the "is not available for consumption" case (a concurrent transaction already consumed
+	 * the referenced version); a retry rebuild re-resolves to the current version so these can
+	 * recover. The non-retryable "equivocated until the next epoch" case is not matched.
 	 * @param error The error to check.
 	 * @returns True if the error is a retryable owned-object conflict.
 	 */
 	public static isRetryableObjectConflictError(error: unknown): boolean {
 		return (
 			Is.stringValue(Iota.objectConflictMessage(error, Iota._RESERVED_OBJECT_ERROR_PATTERN)) ||
+			Is.stringValue(Iota.objectConflictMessage(error, Iota._LOCKED_OBJECT_ERROR_PATTERN)) ||
 			Is.stringValue(Iota.objectConflictMessage(error, Iota._STALE_OBJECT_ERROR_PATTERN)) ||
 			Is.stringValue(Iota.objectConflictMessage(error, Iota._GAS_RESERVATION_ERROR_PATTERN))
 		);

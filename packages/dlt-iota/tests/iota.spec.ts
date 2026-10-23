@@ -328,6 +328,11 @@ describe("Iota", () => {
 			"Transaction execution failed due to issues with transaction inputs, please review the errors and try again:\n" +
 			"- Object ID 0x00bf8123e61f47bbaf976a1723955571cb4808321b60efbabf79366d656f4165 Version 958986780 Digest 2jX46bsvCW5dpdZbaMvZRSGmk6UHcsybACxTV4E3uciL is not available for consumption, current version: 958986781";
 
+		// Legacy node wording of the lock conflict, as surfaced through the gas station execute_tx.
+		const LOCKED_MESSAGE =
+			"execute_transaction error for 63NYsFsJYbDSJ8SpXbyywnBpJ7NJP9LXidWuNSfweuV: server error (code 10): Failed to sign transaction by a quorum of validators because of locked objects. Conflicting Transactions:\n" +
+			'{\n    TransactionDigest(\n        "772yM3SdiaEsKQMGQD3k7iS8scNkgoKhUJ5NyLdKu6rv",\n    ): [],\n}';
+
 		const RETRY_CONFIG: IIotaConfig = {
 			...TEST_CONFIG,
 			objectLockRetries: 2,
@@ -373,6 +378,20 @@ describe("Iota", () => {
 				)
 			);
 			expect(Iota.isRetryableObjectConflictError(wrapped)).toBe(true);
+		});
+
+		test("isRetryableObjectConflictError detects a locked-objects error in the gas-station shape", () => {
+			const wrapped = new GeneralError(
+				"Iota",
+				"gasStationTransactionFailed",
+				undefined,
+				new GeneralError("Iota", "failureStatusText", undefined, new Error(LOCKED_MESSAGE))
+			);
+			expect(Iota.isRetryableObjectConflictError(wrapped)).toBe(true);
+		});
+
+		test("isReservedObjectError does not match a locked-objects error", () => {
+			expect(Iota.isReservedObjectError(new Error(LOCKED_MESSAGE))).toBe(false);
 		});
 
 		test("isRetryableObjectConflictError does not treat an equivocated conflict as retryable", () => {
