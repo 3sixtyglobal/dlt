@@ -492,11 +492,11 @@ True if the error is a retryable object reservation conflict.
 > `static` **isRetryableObjectConflictError**(`error`): `boolean`
 
 Check if an error is a retryable owned-object conflict caused by a concurrent transaction.
-This covers both the "reserved for another transaction" case (the object is locked by an
-in-flight transaction) and the "is not available for consumption" case (a concurrent
-transaction already consumed the referenced version); a retry rebuild re-resolves to the
-current version so both can recover. The non-retryable "equivocated until the next epoch"
-case is not matched.
+This covers the "reserved for another transaction" case (the object is locked by an
+in-flight transaction), the legacy "because of locked objects" wording of the same conflict,
+and the "is not available for consumption" case (a concurrent transaction already consumed
+the referenced version); a retry rebuild re-resolves to the current version so these can
+recover. The non-retryable "equivocated until the next epoch" case is not matched.
 
 #### Parameters
 
