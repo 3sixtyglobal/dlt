@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.20.0-next.2](https://github.com/3sixtyglobal/dlt/compare/move-to-json-v0.20.0-next.1...move-to-json-v0.20.0-next.2) (2026-10-26)
+
+
+### Features
+
+* release to next [skip ci] ([#15](https://github.com/3sixtyglobal/dlt/issues/15)) ([f337308](https://github.com/3sixtyglobal/dlt/commit/f337308198c9c827c596f2921c921482b9ee1594))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @3sixty/dlt-account bumped from 0.20.0-next.1 to 0.20.0-next.2
+    * @3sixty/dlt-iota bumped from 0.20.0-next.1 to 0.20.0-next.2
+
 ## [0.20.0-next.1](https://github.com/3sixtyglobal/dlt/compare/move-to-json-v0.20.0-next.0...move-to-json-v0.20.0-next.1) (2026-10-23)
 
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.20.0-next.2](https://github.com/3sixtyglobal/dlt/compare/dlt-account-v0.20.0-next.1...dlt-account-v0.20.0-next.2) (2026-10-26)
+
+
+### Features
+
+* release to next [skip ci] ([#15](https://github.com/3sixtyglobal/dlt/issues/15)) ([f337308](https://github.com/3sixtyglobal/dlt/commit/f337308198c9c827c596f2921c921482b9ee1594))
+
 ## [0.20.0-next.1](https://github.com/3sixtyglobal/dlt/compare/dlt-account-v0.20.0-next.0...dlt-account-v0.20.0-next.1) (2026-10-23)
 
 
