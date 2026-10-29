@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.20.0-next.3](https://github.com/3sixtyglobal/dlt/compare/dlt-account-v0.20.0-next.2...dlt-account-v0.20.0-next.3) (2026-10-29)
+
+
+### Bug Fixes
+
+* rename and remove account keys for an explicit account index ([#17](https://github.com/3sixtyglobal/dlt/issues/17)) ([a2a712c](https://github.com/3sixtyglobal/dlt/commit/a2a712cf8e8270eca633916363ccbdc22693705b))
+
 ## [0.20.0-next.2](https://github.com/3sixtyglobal/dlt/compare/dlt-account-v0.20.0-next.1...dlt-account-v0.20.0-next.2) (2026-10-26)
 
 
