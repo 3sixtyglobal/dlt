@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.20.0-next.3](https://github.com/3sixtyglobal/dlt/compare/dlt-iota-v0.20.0-next.2...dlt-iota-v0.20.0-next.3) (2026-10-29)
+
+
+### Miscellaneous Chores
+
+* **dlt-iota:** Synchronize repo versions
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @3sixty/dlt-account bumped from 0.20.0-next.2 to 0.20.0-next.3
+
 ## [0.20.0-next.2](https://github.com/3sixtyglobal/dlt/compare/dlt-iota-v0.20.0-next.1...dlt-iota-v0.20.0-next.2) (2026-10-26)
 
 
