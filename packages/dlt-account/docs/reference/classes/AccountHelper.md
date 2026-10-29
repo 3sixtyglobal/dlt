@@ -110,9 +110,11 @@ The mnemonic that was stored.
 
 ### renameAccountKeys() {#renameaccountkeys}
 
-> `static` **renameAccountKeys**(`accountConfig`, `vaultConnector`, `fromIdentity`, `toIdentity`): `Promise`\<`void`\>
+> `static` **renameAccountKeys**(`accountConfig`, `vaultConnector`, `fromIdentity`, `toIdentity`, `accountIndex?`): `Promise`\<`void`\>
 
 Rename all vault entries for an account from one identity to another.
+The account indexes are scanned from 0 until one has no keys, an account index beyond a gap
+in that sequence is only found when it is passed explicitly.
 
 #### Parameters
 
@@ -140,6 +142,12 @@ The source identity whose vault entries should be copied.
 
 The destination identity that will receive the copied entries.
 
+##### accountIndex?
+
+`number`
+
+An account index whose keys are also renamed, such as the one the keys were created for.
+
 #### Returns
 
 `Promise`\<`void`\>
@@ -148,9 +156,11 @@ The destination identity that will receive the copied entries.
 
 ### removeAccountKeys() {#removeaccountkeys}
 
-> `static` **removeAccountKeys**(`accountConfig`, `vaultConnector`, `identity`): `Promise`\<`void`\>
+> `static` **removeAccountKeys**(`accountConfig`, `vaultConnector`, `identity`, `accountIndex?`): `Promise`\<`void`\>
 
 Remove all vault entries for an account.
+The account indexes are scanned from 0 until one has no keys, an account index beyond a gap
+in that sequence is only found when it is passed explicitly.
 
 #### Parameters
 
@@ -171,6 +181,12 @@ The vault connector.
 `string`
 
 The identity of the user whose vault keys should be removed.
+
+##### accountIndex?
+
+`number`
+
+An account index whose keys are also removed, such as the one the keys were created for.
 
 #### Returns
 
