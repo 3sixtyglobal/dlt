@@ -1,6 +1,7 @@
 // Copyright 2026 IOTA Stiftung.
+// Copyright 2026 3Sixty Trade Ltd.
 // SPDX-License-Identifier: Apache-2.0.
-import { Converter, GeneralError, Guards } from "@3sixty/core";
+import { Converter, GeneralError, Guards, Is } from "@3sixty/core";
 import { Bip39, Bip44, Blake2b, KeyType } from "@3sixty/crypto";
 import { nameof } from "@3sixty/nameof";
 import type { IVaultConnector } from "@3sixty/vault-models";
@@ -88,20 +89,27 @@ export class AccountHelper {
 
 	/**
 	 * Rename all vault entries for an account from one identity to another.
+	 * The account indexes are scanned from 0 until one has no keys, an account index beyond a gap
+	 * in that sequence is only found when it is passed explicitly.
 	 * @param accountConfig The account configuration.
 	 * @param vaultConnector The vault connector.
 	 * @param fromIdentity The source identity whose vault entries should be copied.
 	 * @param toIdentity The destination identity that will receive the copied entries.
+	 * @param accountIndex An account index whose keys are also renamed, such as the one the keys were created for.
 	 */
 	public static async renameAccountKeys(
 		accountConfig: IAccountConfig | undefined,
 		vaultConnector: IVaultConnector,
 		fromIdentity: string,
-		toIdentity: string
+		toIdentity: string,
+		accountIndex?: number
 	): Promise<void> {
 		Guards.object(AccountHelper.CLASS_NAME, nameof(vaultConnector), vaultConnector);
 		Guards.stringValue(AccountHelper.CLASS_NAME, nameof(fromIdentity), fromIdentity);
 		Guards.stringValue(AccountHelper.CLASS_NAME, nameof(toIdentity), toIdentity);
+		if (!Is.undefined(accountIndex)) {
+			Guards.integer(AccountHelper.CLASS_NAME, nameof(accountIndex), accountIndex);
+		}
 
 		if (fromIdentity === toIdentity) {
 			return;
@@ -128,76 +136,64 @@ export class AccountHelper {
 			await vaultConnector.removeSecret(seedKey);
 		} catch {}
 
-		for (let accountIndex = 0; ; accountIndex++) {
-			let accountHasKeys = false;
+		const rename = async (index: number, internal: boolean, addressIndex: number): Promise<void> =>
+			vaultConnector.renameKey(
+				AccountHelper.buildAddressKeyName(fromIdentity, index, internal, addressIndex),
+				AccountHelper.buildAddressKeyName(toIdentity, index, internal, addressIndex)
+			);
 
-			for (const internal of [false, true]) {
-				for (let chunkStart = 0; ; chunkStart += AccountHelper.DEFAULT_CALC_CHUNK_SIZE) {
-					const firstKeyName = AccountHelper.buildAddressKeyName(
-						fromIdentity,
-						accountIndex,
-						internal,
-						chunkStart
-					);
-					if (!(await vaultConnector.keyExists(firstKeyName))) {
-						break;
-					}
-					accountHasKeys = true;
-					for (let i = chunkStart; i < chunkStart + AccountHelper.DEFAULT_CALC_CHUNK_SIZE; i++) {
-						await vaultConnector.renameKey(
-							AccountHelper.buildAddressKeyName(fromIdentity, accountIndex, internal, i),
-							AccountHelper.buildAddressKeyName(toIdentity, accountIndex, internal, i)
-						);
-					}
-				}
-			}
+		let scanIndex = 0;
+		while (
+			await AccountHelper.processAccountIndexKeys(vaultConnector, fromIdentity, scanIndex, rename)
+		) {
+			scanIndex++;
+		}
 
-			if (!accountHasKeys) {
-				break;
-			}
+		if (!Is.undefined(accountIndex) && accountIndex > scanIndex) {
+			await AccountHelper.processAccountIndexKeys(
+				vaultConnector,
+				fromIdentity,
+				accountIndex,
+				rename
+			);
 		}
 	}
 
 	/**
 	 * Remove all vault entries for an account.
+	 * The account indexes are scanned from 0 until one has no keys, an account index beyond a gap
+	 * in that sequence is only found when it is passed explicitly.
 	 * @param accountConfig The account configuration.
 	 * @param vaultConnector The vault connector.
 	 * @param identity The identity of the user whose vault keys should be removed.
+	 * @param accountIndex An account index whose keys are also removed, such as the one the keys were created for.
 	 */
 	public static async removeAccountKeys(
 		accountConfig: IAccountConfig | undefined,
 		vaultConnector: IVaultConnector,
-		identity: string
+		identity: string,
+		accountIndex?: number
 	): Promise<void> {
 		Guards.object(AccountHelper.CLASS_NAME, nameof(vaultConnector), vaultConnector);
 		Guards.stringValue(AccountHelper.CLASS_NAME, nameof(identity), identity);
+		if (!Is.undefined(accountIndex)) {
+			Guards.integer(AccountHelper.CLASS_NAME, nameof(accountIndex), accountIndex);
+		}
 
-		for (let accountIndex = 0; ; accountIndex++) {
-			let accountHasKeys = false;
+		const remove = async (index: number, internal: boolean, addressIndex: number): Promise<void> =>
+			vaultConnector.removeKey(
+				AccountHelper.buildAddressKeyName(identity, index, internal, addressIndex)
+			);
 
-			for (const internal of [false, true]) {
-				for (let chunkStart = 0; ; chunkStart += AccountHelper.DEFAULT_CALC_CHUNK_SIZE) {
-					const firstKeyName = AccountHelper.buildAddressKeyName(
-						identity,
-						accountIndex,
-						internal,
-						chunkStart
-					);
-					if (!(await vaultConnector.keyExists(firstKeyName))) {
-						break;
-					}
-					accountHasKeys = true;
-					for (let i = chunkStart; i < chunkStart + AccountHelper.DEFAULT_CALC_CHUNK_SIZE; i++) {
-						await vaultConnector.removeKey(
-							AccountHelper.buildAddressKeyName(identity, accountIndex, internal, i)
-						);
-					}
-				}
-			}
+		let scanIndex = 0;
+		while (
+			await AccountHelper.processAccountIndexKeys(vaultConnector, identity, scanIndex, remove)
+		) {
+			scanIndex++;
+		}
 
-			if (!accountHasKeys) {
-				break;
-			}
+		if (!Is.undefined(accountIndex) && accountIndex > scanIndex) {
+			await AccountHelper.processAccountIndexKeys(vaultConnector, identity, accountIndex, remove);
 		}
 
 		try {
@@ -500,5 +496,43 @@ export class AccountHelper {
 	 */
 	public static publicKeyToAddress(publicKey: Uint8Array): string {
 		return Converter.bytesToHex(Blake2b.sum256(publicKey), true);
+	}
+
+	/**
+	 * Apply an action to every registered address key of an account index, chunk by chunk.
+	 * @param vaultConnector The vault connector.
+	 * @param identity The identity owning the keys.
+	 * @param accountIndex The account index.
+	 * @param action The action to apply to each address key.
+	 * @returns True if the account index had any keys.
+	 * @internal
+	 */
+	private static async processAccountIndexKeys(
+		vaultConnector: IVaultConnector,
+		identity: string,
+		accountIndex: number,
+		action: (accountIndex: number, internal: boolean, addressIndex: number) => Promise<void>
+	): Promise<boolean> {
+		let accountHasKeys = false;
+
+		for (const internal of [false, true]) {
+			for (let chunkStart = 0; ; chunkStart += AccountHelper.DEFAULT_CALC_CHUNK_SIZE) {
+				const firstKeyName = AccountHelper.buildAddressKeyName(
+					identity,
+					accountIndex,
+					internal,
+					chunkStart
+				);
+				if (!(await vaultConnector.keyExists(firstKeyName))) {
+					break;
+				}
+				accountHasKeys = true;
+				for (let i = chunkStart; i < chunkStart + AccountHelper.DEFAULT_CALC_CHUNK_SIZE; i++) {
+					await action(accountIndex, internal, i);
+				}
+			}
+		}
+
+		return accountHasKeys;
 	}
 }

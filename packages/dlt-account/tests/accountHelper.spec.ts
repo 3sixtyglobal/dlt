@@ -1,4 +1,5 @@
 // Copyright 2026 IOTA Stiftung.
+// Copyright 2026 3Sixty Trade Ltd.
 // SPDX-License-Identifier: Apache-2.0.
 import { Converter } from "@3sixty/core";
 import { Bip39, Bip44, Blake2b, KeyType } from "@3sixty/crypto";
@@ -302,6 +303,23 @@ describe("AccountHelper", () => {
 			expect(secrets.has(`${TEST_IDENTITY}/my-mnemonic`)).toBe(false);
 			expect(secrets.get(`${TEST_IDENTITY_2}/my-mnemonic`)).toBe(TEST_MNEMONIC);
 		});
+
+		test("moves the keys of an account index beyond a gap when it is passed", async () => {
+			const { connector, keys } = createMockVaultConnector();
+			await AccountHelper.createAccountKeys(undefined, connector, TEST_IDENTITY, TEST_MNEMONIC, 2);
+
+			await AccountHelper.renameAccountKeys(
+				undefined,
+				connector,
+				TEST_IDENTITY,
+				TEST_IDENTITY_2,
+				2
+			);
+			for (let i = 0; i < 25; i++) {
+				expect(keys.has(`${TEST_IDENTITY}/account/2/0/${i}`)).toBe(false);
+				expect(keys.has(`${TEST_IDENTITY_2}/account/2/0/${i}`)).toBe(true);
+			}
+		});
 	});
 
 	describe("removeAccountKeys", () => {
@@ -350,6 +368,40 @@ describe("AccountHelper", () => {
 			await AccountHelper.removeAccountKeys(config, connector, TEST_IDENTITY);
 			expect(secrets.has(`${TEST_IDENTITY}/my-mnemonic`)).toBe(false);
 			expect(secrets.has(`${TEST_IDENTITY}/my-seed`)).toBe(false);
+		});
+
+		test("removes the keys of an account index beyond a gap when it is passed", async () => {
+			const { connector, secrets, keys } = createMockVaultConnector();
+			await AccountHelper.createAccountKeys(undefined, connector, TEST_IDENTITY, TEST_MNEMONIC, 3);
+			expect(keys.has(`${TEST_IDENTITY}/account/3/0/0`)).toBe(true);
+
+			await AccountHelper.removeAccountKeys(undefined, connector, TEST_IDENTITY, 3);
+			expect(keys.size).toBe(0);
+			expect(secrets.size).toBe(0);
+		});
+
+		test("leaves the keys of an account index beyond a gap when it is not passed", async () => {
+			const { connector, keys } = createMockVaultConnector();
+			await AccountHelper.createAccountKeys(undefined, connector, TEST_IDENTITY, TEST_MNEMONIC, 3);
+
+			await AccountHelper.removeAccountKeys(undefined, connector, TEST_IDENTITY);
+			expect(keys.has(`${TEST_IDENTITY}/account/3/0/0`)).toBe(true);
+		});
+
+		test("removes scanned and passed account indexes together", async () => {
+			const { connector, keys } = createMockVaultConnector();
+			await AccountHelper.createAccountKeys(undefined, connector, TEST_IDENTITY, TEST_MNEMONIC, 0);
+			await AccountHelper.createAccountKeys(undefined, connector, TEST_IDENTITY, TEST_MNEMONIC, 5);
+
+			await AccountHelper.removeAccountKeys(undefined, connector, TEST_IDENTITY, 5);
+			expect(keys.size).toBe(0);
+		});
+
+		test("throws when the account index is not an integer", async () => {
+			const { connector } = createMockVaultConnector();
+			await expect(
+				AccountHelper.removeAccountKeys(undefined, connector, TEST_IDENTITY, 1.5)
+			).rejects.toThrow();
 		});
 	});
 
