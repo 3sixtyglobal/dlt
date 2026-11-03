@@ -4,6 +4,7 @@ import {
 	BaseError,
 	Coerce,
 	Converter,
+	DurationConstants,
 	GeneralError,
 	Guards,
 	Is,
@@ -70,7 +71,8 @@ export class Iota {
 	 * Default base delay in milliseconds between object-lock retries.
 	 * @internal
 	 */
-	private static readonly _DEFAULT_OBJECT_LOCK_RETRY_DELAY_MS: number = 1000;
+	private static readonly _DEFAULT_OBJECT_LOCK_RETRY_DELAY_MS: number =
+		DurationConstants.MsPerSecond;
 
 	/**
 	 * Pattern that identifies the retryable "objects reserved by another transaction" node error.
@@ -513,7 +515,9 @@ export class Iota {
 			showObjectChanges?: boolean;
 		}
 	): Promise<IIotaTransactionBlockResponse> {
-		const timeoutMs = (config.inclusionTimeoutSeconds ?? Iota._DEFAULT_INCLUSION_TIMEOUT) * 1000;
+		const timeoutMs =
+			(config.inclusionTimeoutSeconds ?? Iota._DEFAULT_INCLUSION_TIMEOUT) *
+			DurationConstants.MsPerSecond;
 
 		return client.waitForTransaction({
 			digest,
@@ -1052,7 +1056,7 @@ export class Iota {
 				}
 
 				if (i < numTries - 1) {
-					await new Promise(resolve => setTimeout(resolve, 5000));
+					await new Promise(resolve => setTimeout(resolve, 5 * DurationConstants.MsPerSecond));
 				}
 			}
 		} catch (error) {
@@ -1122,7 +1126,7 @@ export class Iota {
 				}
 				currentBalance += addedBalance;
 				if (currentBalance < ensureBalance) {
-					await new Promise(resolve => setTimeout(resolve, 1000));
+					await new Promise(resolve => setTimeout(resolve, DurationConstants.MsPerSecond));
 					retryCount--;
 				}
 			}
