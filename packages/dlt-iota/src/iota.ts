@@ -519,15 +519,27 @@ export class Iota {
 			(config.inclusionTimeoutSeconds ?? Iota._DEFAULT_INCLUSION_TIMEOUT) *
 			DurationConstants.MsPerSecond;
 
-		return client.waitForTransaction({
+		const responseOptions = {
+			showEffects: options?.showEffects ?? true,
+			showEvents: options?.showEvents ?? true,
+			showObjectChanges: options?.showObjectChanges ?? true
+		};
+		const deadline = Date.now() + timeoutMs;
+
+		let response = await client.waitForTransaction({
 			digest,
 			timeout: timeoutMs,
-			options: {
-				showEffects: options?.showEffects ?? true,
-				showEvents: options?.showEvents ?? true,
-				showObjectChanges: options?.showObjectChanges ?? true
-			}
+			options: responseOptions
 		});
+
+		// A node that has not yet caught up with the transaction returns it with errors in place
+		// of the details it cannot build yet, such as the object changes, so fetch it again.
+		while (Is.arrayValue(response.errors) && Date.now() < deadline) {
+			await new Promise(resolve => setTimeout(resolve, DurationConstants.MsPerSecond));
+			response = await client.getTransactionBlock({ digest, options: responseOptions });
+		}
+
+		return response;
 	}
 
 	/**
