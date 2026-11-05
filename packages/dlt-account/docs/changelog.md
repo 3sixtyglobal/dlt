@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.20.0-next.4](https://github.com/3sixtyglobal/dlt/compare/dlt-account-v0.20.0-next.3...dlt-account-v0.20.0-next.4) (2026-11-05)
+
+
+### Miscellaneous Chores
+
+* **dlt-account:** Synchronize repo versions
+
 ## [0.20.0-next.3](https://github.com/3sixtyglobal/dlt/compare/dlt-account-v0.20.0-next.2...dlt-account-v0.20.0-next.3) (2026-10-29)
 
 

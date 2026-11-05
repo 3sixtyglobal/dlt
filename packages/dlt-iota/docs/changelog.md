@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.20.0-next.4](https://github.com/3sixtyglobal/dlt/compare/dlt-iota-v0.20.0-next.3...dlt-iota-v0.20.0-next.4) (2026-11-05)
+
+
+### Bug Fixes
+
+* fetch the transaction again when a lagging node returns it with errors ([#21](https://github.com/3sixtyglobal/dlt/issues/21)) ([7a9ed90](https://github.com/3sixtyglobal/dlt/commit/7a9ed9084e8f9a5074af127c053a2411251a6517))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @3sixty/dlt-account bumped from 0.20.0-next.3 to 0.20.0-next.4
+
 ## [0.20.0-next.3](https://github.com/3sixtyglobal/dlt/compare/dlt-iota-v0.20.0-next.2...dlt-iota-v0.20.0-next.3) (2026-10-29)
 
 
