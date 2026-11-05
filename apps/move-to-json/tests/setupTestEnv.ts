@@ -148,7 +148,7 @@ async function verifyIotaCliInstalled(): Promise<void> {
 
 /**
  * Set up test environment by ensuring deployer address has sufficient funds.
- * @returns Promise that resolves when setup is complete.
+ * @returns A promise that resolves when setup is complete.
  */
 export async function setupTestEnv(): Promise<void> {
 	try {
@@ -174,7 +174,7 @@ export async function setupTestEnv(): Promise<void> {
  * Only requests from faucet if current balance is below minimum required.
  * @param identity The identity to use for wallet operations.
  * @param address The address to ensure funds for.
- * @returns Promise that resolves when funds are ensured.
+ * @returns A promise that resolves when funds are ensured.
  */
 async function ensureFundsForAddress(identity: string, address: string): Promise<void> {
 	try {
@@ -206,7 +206,7 @@ async function ensureFundsForAddress(identity: string, address: string): Promise
 
 /**
  * Clean up test environment.
- * @returns Promise that resolves when cleanup is complete.
+ * @returns A promise that resolves when cleanup is complete.
  */
 export async function cleanupTestEnv(): Promise<void> {
 	console.debug("[cleanupTestEnv] Cleaning up test environment");
@@ -223,7 +223,7 @@ export async function cleanupTestEnv(): Promise<void> {
  * @param config.gasBudget The gas budget to deploy to.
  * @param config.gasStationUrl The gas station url to deploy to.
  * @param config.gasStationAuthToken The gas station auth token to deploy to.
- * @returns Promise that resolves to the temporary config file path.
+ * @returns A promise that resolves to the temporary config file path.
  */
 export async function createTempEnvConfig(config: {
 	network: string;

@@ -1195,7 +1195,7 @@ function nanosToIota(nanos: number): number {
  * @param walletAddress The wallet address to fund.
  * @param rpcUrl The RPC URL for the network.
  * @param faucetUrl The faucet URL (optional, defaults to network-specific URL).
- * @returns Promise that resolves when funding is complete.
+ * @returns A promise that resolves when funding is complete.
  */
 async function requestFaucetFunds(
 	network: NetworkTypes,
@@ -1242,7 +1242,7 @@ async function requestFaucetFunds(
  * @param config Network configuration.
  * @param walletAddress The wallet address to check and potentially fund.
  * @param faucetUrl The faucet URL (optional, defaults to network-specific URL).
- * @returns Promise that resolves when balance check and optional funding is complete.
+ * @returns A promise that resolves when balance check and optional funding is complete.
  */
 async function checkBalanceAndRequestFaucetIfNeeded(
 	network: NetworkTypes,

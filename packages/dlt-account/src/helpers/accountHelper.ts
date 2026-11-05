@@ -134,7 +134,9 @@ export class AccountHelper {
 				seed
 			);
 			await vaultConnector.removeSecret(seedKey);
-		} catch {}
+		} catch {
+			// The secret may not exist, so there is nothing to remove.
+		}
 
 		const rename = async (index: number, internal: boolean, addressIndex: number): Promise<void> =>
 			vaultConnector.renameKey(
@@ -200,12 +202,16 @@ export class AccountHelper {
 			await vaultConnector.removeSecret(
 				AccountHelper.buildSeedKey(identity, accountConfig?.vaultSeedId)
 			);
-		} catch {}
+		} catch {
+			// The secret may not exist, so there is nothing to remove.
+		}
 		try {
 			await vaultConnector.removeSecret(
 				AccountHelper.buildMnemonicKey(identity, accountConfig?.vaultMnemonicId)
 			);
-		} catch {}
+		} catch {
+			// The secret may not exist, so there is nothing to remove.
+		}
 	}
 
 	/**
@@ -424,7 +430,9 @@ export class AccountHelper {
 		try {
 			const seedBase64 = await vaultConnector.getSecret<string>(seedKey);
 			return Converter.base64ToBytes(seedBase64);
-		} catch {}
+		} catch {
+			// No seed is stored, fall back to the mnemonic.
+		}
 
 		const mnemonic = await vaultConnector.getSecret<string>(
 			AccountHelper.buildMnemonicKey(identity, accountConfig?.vaultMnemonicId)

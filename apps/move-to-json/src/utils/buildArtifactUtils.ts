@@ -6,7 +6,7 @@ import path from "node:path";
 /**
  * Clean build artifacts (Move.lock and build directory) in a specific path.
  * @param contractPath Path to the contract directory to clean.
- * @returns Promise that resolves when cleanup is complete.
+ * @returns A promise that resolves when cleanup is complete.
  */
 export async function cleanBuildArtifactsInPath(contractPath: string): Promise<void> {
 	// Clean Move.lock if it exists

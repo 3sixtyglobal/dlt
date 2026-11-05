@@ -25,7 +25,7 @@ import {
 
 /**
  * Build V1 contract using move-to-json build command.
- * @returns Promise that resolves when build is complete.
+ * @returns A promise that resolves when build is complete.
  */
 export async function buildV1Contract(): Promise<void> {
 	let tempConfigPath: string | undefined;
@@ -115,7 +115,7 @@ export async function buildV1Contract(): Promise<void> {
 
 /**
  * Deploy V1 contract using move-to-json deploy command.
- * @returns Promise that resolves to deployment result data.
+ * @returns A promise that resolves to deployment result data.
  */
 export async function deployV1Contract(): Promise<IContractData> {
 	let tempConfigPath: string | undefined;
@@ -221,7 +221,7 @@ export async function deployV1Contract(): Promise<IContractData> {
 /**
  * Build V2 contract using move-to-json build command.
  * @param v1Deployment The V1 deployment data to copy upgrade capability from.
- * @returns Promise that resolves when build is complete.
+ * @returns A promise that resolves when build is complete.
  */
 export async function buildV2Contract(v1Deployment: IContractData): Promise<void> {
 	let tempConfigPath: string | undefined;
@@ -324,7 +324,7 @@ export async function buildV2Contract(v1Deployment: IContractData): Promise<void
 
 /**
  * Upgrade V1 to V2 using move-to-json deploy command with smart upgrade detection.
- * @returns Promise that resolves to upgraded deployment data.
+ * @returns A promise that resolves to upgraded deployment data.
  */
 export async function upgradeToV2UsingSmartDeploy(): Promise<IContractData> {
 	let tempConfigPath: string | undefined;
@@ -432,7 +432,7 @@ export async function upgradeToV2UsingSmartDeploy(): Promise<IContractData> {
 /**
  * Build V3 contract using move-to-json build command.
  * @param v2Deployment The V2 deployment data to copy upgrade capability from.
- * @returns Promise that resolves when build is complete.
+ * @returns A promise that resolves when build is complete.
  */
 export async function buildV3Contract(v2Deployment: IContractData): Promise<void> {
 	let tempConfigPath: string | undefined;
@@ -531,7 +531,7 @@ export async function buildV3Contract(v2Deployment: IContractData): Promise<void
 
 /**
  * Upgrade V2 to V3 using move-to-json deploy command with smart upgrade detection.
- * @returns Promise that resolves to upgraded deployment data.
+ * @returns A promise that resolves to upgraded deployment data.
  */
 export async function upgradeToV3UsingSmartDeploy(): Promise<IContractData> {
 	let tempConfigPath: string | undefined;
@@ -636,7 +636,7 @@ export async function upgradeToV3UsingSmartDeploy(): Promise<IContractData> {
 /**
  * Load deployment configuration from JSON file.
  * @param jsonPath Path to the deployment JSON file.
- * @returns Promise that resolves to smart contract deployments configuration.
+ * @returns A promise that resolves to smart contract deployments configuration.
  */
 export async function loadDeploymentConfig(jsonPath: string): Promise<ISmartContractDeployments> {
 	try {
@@ -649,7 +649,7 @@ export async function loadDeploymentConfig(jsonPath: string): Promise<ISmartCont
 
 /**
  * Clean up test artifacts including deployment JSONs and build directories.
- * @returns Promise that resolves when cleanup is complete.
+ * @returns A promise that resolves when cleanup is complete.
  */
 export async function cleanupTestArtifacts(): Promise<void> {
 	try {
@@ -709,7 +709,7 @@ export async function cleanupTestArtifacts(): Promise<void> {
 
 /**
  * Clean V1 build artifacts (Move.lock and build directory).
- * @returns Promise that resolves when cleanup is complete.
+ * @returns A promise that resolves when cleanup is complete.
  */
 async function cleanupV1BuildArtifacts(): Promise<void> {
 	const contractPath = path.join(TEST_CONTRACT_PATH_V1, "testContract");
@@ -718,7 +718,7 @@ async function cleanupV1BuildArtifacts(): Promise<void> {
 
 /**
  * Clean V2 build artifacts (Move.lock and build directory).
- * @returns Promise that resolves when cleanup is complete.
+ * @returns A promise that resolves when cleanup is complete.
  */
 async function cleanupV2BuildArtifacts(): Promise<void> {
 	const contractPath = path.join(TEST_CONTRACT_PATH_V2, "testContract");
@@ -727,7 +727,7 @@ async function cleanupV2BuildArtifacts(): Promise<void> {
 
 /**
  * Clean V3 build artifacts (Move.lock and build directory).
- * @returns Promise that resolves when cleanup is complete.
+ * @returns A promise that resolves when cleanup is complete.
  */
 export async function cleanupV3BuildArtifacts(): Promise<void> {
 	const contractPath = path.join(TEST_CONTRACT_PATH_V3, "testContract");

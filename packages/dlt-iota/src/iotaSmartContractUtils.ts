@@ -37,7 +37,7 @@ export class IotaSmartContractUtils {
 	 * @param deploymentConfig The deployment configuration containing object IDs.
 	 * @param accountAddressIndex Optional account address index for the controller.
 	 * @param walletAddressIndex Optional wallet address index for the controller.
-	 * @returns Promise that resolves when migration is complete.
+	 * @returns A promise that resolves when migration is complete.
 	 */
 	public static async migrateSmartContract(
 		config: IIotaConfig,
@@ -126,7 +126,7 @@ export class IotaSmartContractUtils {
 	 * @param deploymentConfig The deployment configuration containing object IDs.
 	 * @param accountAddressIndex Optional account address index for the controller.
 	 * @param walletAddressIndex Optional wallet address index for the controller.
-	 * @returns Promise that resolves when migration is enabled.
+	 * @returns A promise that resolves when migration is enabled.
 	 */
 	public static async enableMigration(
 		config: IIotaConfig,
@@ -213,7 +213,7 @@ export class IotaSmartContractUtils {
 	 * @param deploymentConfig The deployment configuration containing object IDs.
 	 * @param accountAddressIndex Optional account address index for the controller.
 	 * @param walletAddressIndex Optional wallet address index for the controller.
-	 * @returns Promise that resolves when migration is disabled.
+	 * @returns A promise that resolves when migration is disabled.
 	 */
 	public static async disableMigration(
 		config: IIotaConfig,

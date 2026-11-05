@@ -171,7 +171,7 @@ export async function verifyIotaCliInstalled(): Promise<void> {
 /**
  * Check if a specific IOTA environment exists.
  * @param network The network alias to check for.
- * @returns Promise<boolean> True if environment exists, false otherwise.
+ * @returns True if environment exists, false otherwise.
  */
 export async function checkEnvironmentExists(network: string): Promise<boolean> {
 	try {
@@ -195,7 +195,7 @@ export async function checkEnvironmentExists(network: string): Promise<boolean> 
 /**
  * Check if a specific IOTA environment has a gRPC url configured.
  * @param network The network alias to check.
- * @returns Promise<boolean> True if the environment has a gRPC url, false otherwise.
+ * @returns True if the environment has a gRPC url, false otherwise.
  */
 async function checkEnvironmentHasGrpc(network: string): Promise<boolean> {
 	try {
@@ -239,7 +239,7 @@ const DEFAULT_ENVIRONMENTS: { alias: string; rpc: string; grpc: string }[] = [
 
 /**
  * Check if the installed IOTA CLI supports configuring a gRPC URL for an environment.
- * @returns Promise<boolean> True if the --grpc option is supported.
+ * @returns True if the --grpc option is supported.
  */
 export async function supportsGrpcEnvironment(): Promise<boolean> {
 	try {
@@ -256,7 +256,7 @@ export async function supportsGrpcEnvironment(): Promise<boolean> {
  * @param network The network alias to create.
  * @param rpcUrl The RPC URL for the network.
  * @param grpcUrl The gRPC URL for the network, only used if supported by the IOTA CLI.
- * @returns Promise<void>
+ * @returns A promise that resolves when complete.
  */
 export async function createEnvironment(
 	network: string,
@@ -287,7 +287,7 @@ export async function createEnvironment(
 
 /**
  * Create default IOTA environments when none exist.
- * @returns Promise<void>
+ * @returns A promise that resolves when complete.
  */
 async function createDefaultEnvironments(): Promise<void> {
 	CLIDisplay.value(
@@ -319,7 +319,7 @@ async function createDefaultEnvironments(): Promise<void> {
 /**
  * Check if any IOTA environments exist by attempting to list them.
  * If the command times out, it likely means no environments are configured.
- * @returns Promise<boolean> True if any environments exist, false otherwise.
+ * @returns True if any environments exist, false otherwise.
  */
 async function checkAnyEnvironmentsExist(): Promise<boolean> {
 	try {
@@ -338,7 +338,7 @@ async function checkAnyEnvironmentsExist(): Promise<boolean> {
  * If no environments exist at all, creates default environments first.
  * @param network The network alias to ensure exists.
  * @param rpcUrl The RPC URL for the network.
- * @returns Promise<void>
+ * @returns A promise that resolves when complete.
  */
 export async function ensureEnvironment(network: string, rpcUrl: string): Promise<void> {
 	// First verify IOTA CLI is installed

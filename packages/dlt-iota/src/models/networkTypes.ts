@@ -4,7 +4,6 @@
 /**
  * Network types supported for deployment
  */
-// eslint-disable-next-line @typescript-eslint/naming-convention
 export const NetworkTypes = {
 	/**
 	 * Testnet.
