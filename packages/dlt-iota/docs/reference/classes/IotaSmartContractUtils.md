@@ -107,7 +107,7 @@ Optional wallet address index for the controller.
 
 `Promise`\<`void`\>
 
-Promise that resolves when migration is complete.
+A promise that resolves when migration is complete.
 
 ***
 
@@ -189,7 +189,7 @@ Optional wallet address index for the controller.
 
 `Promise`\<`void`\>
 
-Promise that resolves when migration is enabled.
+A promise that resolves when migration is enabled.
 
 ***
 
@@ -271,7 +271,7 @@ Optional wallet address index for the controller.
 
 `Promise`\<`void`\>
 
-Promise that resolves when migration is disabled.
+A promise that resolves when migration is disabled.
 
 ***
 
