@@ -24,6 +24,7 @@ import {
 	setupTestEnv
 } from "./setupTestEnv.js";
 import { Iota } from "../src/iota.js";
+import type { IIotaClient } from "../src/models/IIotaClient.js";
 import type { IIotaConfig } from "../src/models/IIotaConfig.js";
 
 let keyEntityStorage: MemoryEntityStorageConnector<VaultKey>;
@@ -1036,6 +1037,67 @@ describe("Iota", () => {
 					})
 				);
 			});
+		});
+	});
+
+	describe("waitForTransactionConfirmation", () => {
+		const DIGEST = "test-digest";
+		const OPTIONS = { showEffects: true, showEvents: true, showObjectChanges: true };
+
+		test("returns the transaction without fetching it again when it has no errors", async () => {
+			const confirmed = { digest: DIGEST, objectChanges: [{ type: "created" }] };
+			const client = {
+				waitForTransaction: vi.fn().mockResolvedValue(confirmed),
+				getTransactionBlock: vi.fn()
+			};
+
+			const result = await Iota.waitForTransactionConfirmation(
+				client as unknown as IIotaClient,
+				DIGEST,
+				TEST_CONFIG
+			);
+
+			expect(result).toBe(confirmed);
+			expect(client.getTransactionBlock).not.toHaveBeenCalled();
+		});
+
+		test("fetches the transaction again until a lagging node returns it without errors", async () => {
+			const lagging = {
+				digest: DIGEST,
+				errors: ["Cannot retrieve object changes: the asked version is higher than the latest"]
+			};
+			const confirmed = { digest: DIGEST, objectChanges: [{ type: "created" }] };
+			const client = {
+				waitForTransaction: vi.fn().mockResolvedValue(lagging),
+				getTransactionBlock: vi.fn().mockResolvedValueOnce(lagging).mockResolvedValueOnce(confirmed)
+			};
+
+			const result = await Iota.waitForTransactionConfirmation(
+				client as unknown as IIotaClient,
+				DIGEST,
+				TEST_CONFIG
+			);
+
+			expect(result).toBe(confirmed);
+			expect(client.getTransactionBlock).toHaveBeenCalledTimes(2);
+			expect(client.getTransactionBlock).toHaveBeenCalledWith({ digest: DIGEST, options: OPTIONS });
+		});
+
+		test("returns the last response when the errors remain past the inclusion timeout", async () => {
+			const lagging = { digest: DIGEST, errors: ["Cannot retrieve object changes"] };
+			const client = {
+				waitForTransaction: vi.fn().mockResolvedValue(lagging),
+				getTransactionBlock: vi.fn().mockResolvedValue(lagging)
+			};
+
+			const result = await Iota.waitForTransactionConfirmation(
+				client as unknown as IIotaClient,
+				DIGEST,
+				{ ...TEST_CONFIG, inclusionTimeoutSeconds: 1 }
+			);
+
+			expect(result).toBe(lagging);
+			expect(client.getTransactionBlock).toHaveBeenCalledTimes(1);
 		});
 	});
 });
