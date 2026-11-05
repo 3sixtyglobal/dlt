@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.20.0-next.4](https://github.com/3sixtyglobal/dlt/compare/move-to-json-v0.20.0-next.3...move-to-json-v0.20.0-next.4) (2026-11-05)
+
+
+### Miscellaneous Chores
+
+* **move-to-json:** Synchronize repo versions
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @3sixty/dlt-account bumped from 0.20.0-next.3 to 0.20.0-next.4
+    * @3sixty/dlt-iota bumped from 0.20.0-next.3 to 0.20.0-next.4
+
 ## [0.20.0-next.3](https://github.com/3sixtyglobal/dlt/compare/move-to-json-v0.20.0-next.2...move-to-json-v0.20.0-next.3) (2026-10-29)
 
 
