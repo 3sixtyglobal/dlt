@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.20.0-next.5](https://github.com/3sixtyglobal/dlt/compare/dlt-account-v0.20.0-next.4...dlt-account-v0.20.0-next.5) (2026-11-06)
+
+
+### Bug Fixes
+
+* apply the shared lint rules for interface names, model locations and deprecated apis ([4bb1ecb](https://github.com/3sixtyglobal/dlt/commit/4bb1ecb90dbfef0a8e9d7d3799ac05ce26d3b3c8))
+
 ## [0.20.0-next.4](https://github.com/3sixtyglobal/dlt/compare/dlt-account-v0.20.0-next.3...dlt-account-v0.20.0-next.4) (2026-11-05)
 
 

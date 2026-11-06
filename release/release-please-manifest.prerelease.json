@@ -1,5 +1,5 @@
 {
-	"packages/dlt-account": "0.20.0-next.4",
-	"packages/dlt-iota": "0.20.0-next.4",
-	"apps/move-to-json": "0.20.0-next.4"
+	"packages/dlt-account": "0.20.0-next.5",
+	"packages/dlt-iota": "0.20.0-next.5",
+	"apps/move-to-json": "0.20.0-next.5"
 }
